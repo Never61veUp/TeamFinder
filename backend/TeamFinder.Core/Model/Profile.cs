@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Diagnostics.CodeAnalysis;
+using CSharpFunctionalExtensions;
 
 namespace TeamFinder.Core.Model;
 
@@ -30,6 +31,7 @@ public sealed class Profile : Entity<Guid>
     
     public Result ConnectGithubInfo(GithubInfo githubInfo)
     {
+        
         if (GithubInfo != null)
             return Result.Failure("Profile already has connected Github info");
 

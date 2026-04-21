@@ -3,6 +3,7 @@
 public class GithubEntity
 {
     public Guid Id { get; set; }
+    public string GithubId { get; set; }
     public string Username { get; set; } = null!;
     public string ProfileUrl { get; set; } = null!;
     public int RepositoriesCount { get; set; }

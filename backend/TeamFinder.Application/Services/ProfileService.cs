@@ -14,6 +14,7 @@ public interface IProfileService
     Task<Result<Profile>> GetById(Guid id);
     Task<Result> AddSkill(Guid profileId, Guid skillId);
     Task<List<Profile>> FindBySkill(Guid skillId);
+    Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo);
 }
 
 public class ProfileService : IProfileService
@@ -95,5 +96,21 @@ public class ProfileService : IProfileService
                 expandedSkills.Contains(s.SkillId)))
             .ToList();
         return profileEntities.Select(p => Profile.Create(p.Id, p.UserName)).ToList();
+    }
+
+    public async Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo)
+    {
+        var profile = await GetById(profileId);
+        if (profile.IsFailure)
+            return Result.Failure(profile.Error);
+        
+        var result = profile.Value.ConnectGithubInfo(githubInfo);
+        if(result.IsFailure || profile.Value.GithubInfo == null)
+            return Result.Failure(result.Error);
+        var githubEntity = profile.Value.GithubInfo.ToEntity();
+        var saveResult = await _repo.ConnectGithubInfo(profileId, githubEntity);
+        if(saveResult.IsFailure)
+            return Result.Failure(saveResult.Error);
+        return Result.Success();
     }
 }
