@@ -1,4 +1,4 @@
-const API_URL = 'https://api.schedule.mixdev.me'
+const API_URL = 'https://api.teamfinder.mixdev.me'
 
 export type TelegramUser = {
   id: number | string
