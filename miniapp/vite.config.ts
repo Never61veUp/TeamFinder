@@ -11,6 +11,6 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] })
   ],
     server:{
-        allowedHosts: ['sheduleminiapp.ru.tuna.am']
+        allowedHosts: ['teamfinder.mixdev.me']
     }
 })
