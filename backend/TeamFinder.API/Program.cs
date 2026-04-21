@@ -68,7 +68,7 @@ builder.Services.AddCors(options =>
 
     options.AddPolicy("cors-prod", policy =>
         policy
-            .WithOrigins("http://localhost:8080", "https://schedule.mixdev.me")
+            .WithOrigins("http://localhost:8080", "https://teamfinder.mixdev.me")
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
