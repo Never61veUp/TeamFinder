@@ -5,7 +5,7 @@ services:
     container_name: teamfinder-api
     build:
       context: .
-      dockerfile: TeamFinder.API.API/Dockerfile
+      dockerfile: TeamFinder.API/Dockerfile
     environment:
       DP_KEYS_FOLDER: "/keys"
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
