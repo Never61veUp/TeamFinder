@@ -5,7 +5,7 @@ services:
     container_name: teamfinder-api
     build:
       context: .
-      dockerfile: ScheduleApp.API/Dockerfile
+      dockerfile: TeamFinder.API.API/Dockerfile
     environment:
       DP_KEYS_FOLDER: "/keys"
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
@@ -18,7 +18,7 @@ services:
       - teamfinder-keys:/keys
     labels:
       - traefik.enable=true
-      - traefik.http.routers.teamfinder-api.rule=Host(`api.schedule.mixdev.me`)
+      - traefik.http.routers.teamfinder-api.rule=Host(`api.teamfinder.mixdev.me`)
       - traefik.http.routers.teamfinder-api.entrypoints=https
       - traefik.http.routers.teamfinder-api.tls.certresolver=letsencrypt
       - traefik.http.services.teamfinder-api.loadbalancer.server.port=8080
@@ -33,7 +33,7 @@ services:
       - "80"
     labels:
       - traefik.enable=true
-      - traefik.http.routers.client.rule=Host(`schedule.mixdev.me`)
+      - traefik.http.routers.client.rule=Host(`teamfinder.mixdev.me`)
       - traefik.http.routers.client.entrypoints=https
       - traefik.http.routers.client.tls.certresolver=letsencrypt
       - traefik.http.services.client.loadbalancer.server.port=80
