@@ -1,0 +1,42 @@
+﻿version: "3.9"
+
+services:
+  teamfinder-api:
+    container_name: teamfinder-api
+    build:
+      context: .
+      dockerfile: ScheduleApp.API/Dockerfile
+    environment:
+      DP_KEYS_FOLDER: "/keys"
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+      JWT_KEY: "${JWT_KEY}"
+      JWT_ISSUER: "MiniApp"
+      JWT_AUDIENCE: "MiniApp"
+      ASPNETCORE_URLS: "http://0.0.0.0:8080"
+      ENABLE_DEV_AUTH: "${ENABLE_DEV_AUTH}"
+    volumes:
+      - teamfinder-keys:/keys
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.teamfinder-api.rule=Host(`api.schedule.mixdev.me`)
+      - traefik.http.routers.teamfinder-api.entrypoints=https
+      - traefik.http.routers.teamfinder-api.tls.certresolver=letsencrypt
+      - traefik.http.services.teamfinder-api.loadbalancer.server.port=8080
+
+  client:
+    build:
+      context: ../miniapp
+      dockerfile: Dockerfile
+    depends_on:
+      - teamfinder-api
+    expose:
+      - "80"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.client.rule=Host(`schedule.mixdev.me`)
+      - traefik.http.routers.client.entrypoints=https
+      - traefik.http.routers.client.tls.certresolver=letsencrypt
+      - traefik.http.services.client.loadbalancer.server.port=80
+
+volumes:
+  teamfinder-keys:

@@ -1,0 +1,28 @@
+﻿services:
+  teamfinder.api:
+    image: teamfinder.api
+    build:
+      context: .
+      dockerfile: TeamFinder.API/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DP_KEYS_FOLDER: "/keys"
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+      JWT_KEY: "${JWT_KEY}"
+      JWT_ISSUER: "MiniApp"
+      JWT_AUDIENCE: "MiniApp"
+      ENABLE_DEV_AUTH: "${ENABLE_DEV_AUTH}"
+    volumes:
+      - teamfinder-keys:/keys
+  client:
+    build:
+      context: ../miniapp
+      dockerfile: Dockerfile
+    depends_on:
+      - teamfinder.api
+    ports:
+      - "5173:80"
+
+volumes:
+  teamfinder-keys:
