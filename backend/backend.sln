@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamFinder.Postgresql", "TeamFinder.Postgresql\TeamFinder.Postgresql.csproj", "{C466E5F0-D5ED-4392-BB29-1DB9CC9BC3F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamFinder.Contracts", "TeamFinder.Contracts\TeamFinder.Contracts.csproj", "{89034644-7E35-4918-BFA8-BE3FD9A31A0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{C466E5F0-D5ED-4392-BB29-1DB9CC9BC3F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C466E5F0-D5ED-4392-BB29-1DB9CC9BC3F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C466E5F0-D5ED-4392-BB29-1DB9CC9BC3F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89034644-7E35-4918-BFA8-BE3FD9A31A0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89034644-7E35-4918-BFA8-BE3FD9A31A0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89034644-7E35-4918-BFA8-BE3FD9A31A0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89034644-7E35-4918-BFA8-BE3FD9A31A0F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C466E5F0-D5ED-4392-BB29-1DB9CC9BC3F0} = {3BF7D3D2-41ED-4324-B4E3-C47D35C2D563}

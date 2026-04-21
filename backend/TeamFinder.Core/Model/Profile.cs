@@ -2,17 +2,28 @@
 
 namespace TeamFinder.Core.Model;
 
-public class Profile : Entity<Guid>
+public sealed class Profile : Entity<Guid>
 {
-    private readonly HashSet<Guid> _skillIds = [];
+    private readonly List<Skill> _skills = [];
 
-    public IReadOnlyCollection<Guid> SkillIds => _skillIds;
+    public IReadOnlyCollection<Skill> Skills => _skills.AsReadOnly();
+    public string Name { get; private set; }
 
-    private Profile() { }
-
-    public void AddSkill(Guid skillId)
+    private Profile(Guid id, string name) : base(id)
     {
-        _skillIds.Add(skillId);
+        Name = name;
+    }
+
+    public static Profile Create(Guid id, string name)
+        => new Profile(id, name);
+
+    public Result AddSkill(Skill skill)
+    {
+        if (_skills.Any(x => x.Id == skill.Id))
+            return Result.Failure("Skill already added to profile");
+
+        _skills.Add(skill);
+        return Result.Success();
     }
 }
 
@@ -20,19 +31,11 @@ public class Skill : Entity<Guid>
 {
     public string Name { get; }
 
-    public Skill(string name)
+    private Skill(Guid id, string name) : base(id)
     {
         Name = name;
     }
 
-}
-
-public class SkillRelation
-{
-    public Guid Id { get; private set; }
-
-    public Guid ParentSkillId { get; private set; }
-    public Guid ChildSkillId { get; private set; }
-
-    public double Weight { get; private set; }
+    public static Skill Create(Guid id, string name)
+        => new Skill(id, name);
 }

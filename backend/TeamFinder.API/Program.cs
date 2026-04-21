@@ -4,6 +4,10 @@ using TeamFinder.API.Security;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.DataProtection;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using TeamFinder.Application.Services;
+using TeamFinder.Postgresql;
+using TeamFinder.Postgresql.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +58,15 @@ builder.Logging.AddConsole();
 
 // Add services to the container.
 
+var connectionString = builder.Configuration.GetConnectionString("Postgres");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+});
+
+
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -101,9 +114,21 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddSingleton<TelegramWebAppValidator>();
 builder.Services.AddSingleton<JwtTokenService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+
+builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 
 var app = builder.Build();
 // Configure the HTTP request pipeline.
+
+if (Environment.GetEnvironmentVariable("RUN_MIGRATIONS") == "true")
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 app.MapOpenApi();
 

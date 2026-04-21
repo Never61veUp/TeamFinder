@@ -13,6 +13,8 @@
       JWT_ISSUER: "MiniApp"
       JWT_AUDIENCE: "MiniApp"
       ENABLE_DEV_AUTH: "${ENABLE_DEV_AUTH}"
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=teamfinderdb;Username=postgres;Password=postgres"
+      RUN_MIGRATIONS: "true"
     volumes:
       - teamfinder-keys:/keys
   client:
@@ -23,6 +25,19 @@
       - teamfinder.api
     ports:
       - "5173:80"
+  
+  postgres:
+    image: postgres:18.3
+    container_name: postgres
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "teamfinderdb"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
 
 volumes:
   teamfinder-keys:
+  postgres_data:
