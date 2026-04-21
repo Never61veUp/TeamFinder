@@ -8,14 +8,16 @@ public sealed class Profile : Entity<Guid>
 
     public IReadOnlyCollection<Skill> Skills => _skills.AsReadOnly();
     public string Name { get; private set; }
+    public GithubInfo? GithubInfo { get; private set; }
 
-    private Profile(Guid id, string name) : base(id)
+    private Profile(Guid id, string name, GithubInfo? githubInfo) : base(id)
     {
         Name = name;
+        GithubInfo = githubInfo;
     }
 
-    public static Profile Create(Guid id, string name)
-        => new Profile(id, name);
+    public static Profile Create(Guid id, string name, GithubInfo? githubInfo = null)
+        => new Profile(id, name, githubInfo);
 
     public Result AddSkill(Skill skill)
     {
@@ -25,17 +27,13 @@ public sealed class Profile : Entity<Guid>
         _skills.Add(skill);
         return Result.Success();
     }
-}
-
-public class Skill : Entity<Guid>
-{
-    public string Name { get; }
-
-    private Skill(Guid id, string name) : base(id)
+    
+    public Result ConnectGithubInfo(GithubInfo githubInfo)
     {
-        Name = name;
-    }
+        if (GithubInfo != null)
+            return Result.Failure("Profile already has connected Github info");
 
-    public static Skill Create(Guid id, string name)
-        => new Skill(id, name);
+        GithubInfo = githubInfo;
+        return Result.Success();
+    }
 }
