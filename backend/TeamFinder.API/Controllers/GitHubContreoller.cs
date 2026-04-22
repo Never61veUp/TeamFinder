@@ -24,6 +24,12 @@ public class GitHubContreoller : ControllerBase
         _profileService = profileService;
     }
     
+    /// <summary>
+    /// Инициирует процесс авторизации через GitHub. Клиент должен быть уже авторизован
+    /// в системе (например, через Telegram), и у него должен быть действующий JWT. Сервер проверит JWT,
+    /// извлечет из него ID профиля, и сформирует URL для перенаправления пользователя на страницу авторизации GitHub.
+    /// Клиент должен будет открыть этот URL, пройти авторизацию
+    /// </summary>
     [HttpGet("login")]
     public IActionResult Login()
     {
@@ -38,7 +44,11 @@ public class GitHubContreoller : ControllerBase
             return Ok(redirectUrl);
         return Redirect(redirectUrl);
     }
-    
+    /// <summary>
+    /// Обрабатывает callback от GitHub после успешной авторизации пользователя. GitHub перенаправит пользователя на этот URL,
+    /// передав в query параметры code и state. Сервер должен будет использовать code для получения access token от GitHub,
+    /// а state использовать для извлечения ID профиля. Затем сервер должен
+    /// </summary>
     [HttpGet("callback")]
     public async Task<IActionResult> Callback(string code, string state)
     {
