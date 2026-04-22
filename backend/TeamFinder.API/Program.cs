@@ -143,6 +143,7 @@ app.MapScalarApiReference(options =>
     options.Title = "API Documentation";
     options.Theme = ScalarTheme.Default;
     options.AddServer("https://api.teamfinder.mixdev.me/");
+    options.Layout = ScalarLayout.Classic;
 });
 app.UseHttpsRedirection();
 
