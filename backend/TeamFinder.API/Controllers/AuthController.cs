@@ -69,6 +69,9 @@ public class AuthController : ControllerBase
     /// Авторизация для разработки. 
     /// </summary>
     /// <remarks>Позволяет получить JWT для любого Telegram ID, указав его в теле запроса.</remarks>
+    /// <param name="tgId">
+    /// Telegram ID пользователя. Используется только в dev-режиме.
+    /// </param>
     [HttpPost("auth/dev")]
     [AllowAnonymous]
     public async Task<IActionResult> DevAuth([FromBody] long tgId)

@@ -84,7 +84,8 @@ public class ProfileService : IProfileService
     public async Task<List<Profile>> GetBySkill(Guid skillId)
     {
         var profileEntities = await _repo.GetProfilesBySkillAsync(skillId);
-        return profileEntities.Select(p => Profile.Create(p.Id, p.UserName)).ToList();
+        var profiles = profileEntities.Select(p => p.ToDomain()).ToList();
+        return profiles;
     }
     
     public async Task<List<Profile>> FindBySkill(Guid skillId)
