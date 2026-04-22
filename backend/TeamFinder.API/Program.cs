@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.HttpOverrides;
 using Scalar.AspNetCore;
 using TeamFinder.API.Security;
@@ -116,6 +117,13 @@ builder.Services.AddSingleton<TelegramWebAppValidator>();
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
+builder.Services.AddScoped<IGithubService, GithubService>();
+builder.Services.AddHttpClient<IGitHubServiceExternal, GitHubServiceExternal>(client =>
+{
+    client.DefaultRequestHeaders.UserAgent.Add(
+        new ProductInfoHeaderValue("MyApp", "1.0"));
+    client.BaseAddress = new Uri("https://api.github.com/");
+});
 
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();

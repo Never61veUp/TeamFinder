@@ -16,8 +16,7 @@ public class ProfileConfiguration : IEntityTypeConfiguration<ProfileEntity>
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.HasIndex(x => x.UserName)
-            .IsUnique();
+        builder.HasIndex(x => x.UserName);
 
         builder.HasMany(x => x.Skills)
             .WithOne(x => x.Profile)

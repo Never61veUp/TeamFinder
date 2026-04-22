@@ -52,7 +52,7 @@ public sealed class TelegramWebAppValidator
                 return new TelegramValidationResult(false, null, "user_id_missing");
 
             user = new TelegramWebAppUser(
-                Id: id,
+                TgId: id,
                 Username: root.TryGetProperty("username", out var u) ? u.GetString() : null,
                 FirstName: root.TryGetProperty("first_name", out var fn) ? fn.GetString() : null,
                 LastName: root.TryGetProperty("last_name", out var ln) ? ln.GetString() : null,

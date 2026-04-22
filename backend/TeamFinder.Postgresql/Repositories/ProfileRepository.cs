@@ -11,6 +11,9 @@ public interface IProfileRepository
     Task Add(ProfileEntity profile);
     Task<List<ProfileEntity>> GetProfilesBySkillAsync(Guid ancestorSkillId);
     Task<Result> Update(ProfileEntity profile);
+    Task<Result> ConnectGithubInfo(Guid profileId, GithubEntity githubInfo);
+    Task<Result<ProfileEntity>> GetByTgId(long tgId);
+    Task<ProfileEntity?> GetWithGithubStatsById(Guid id);
 }
 
 public class ProfileRepository : IProfileRepository
@@ -67,5 +70,31 @@ public class ProfileRepository : IProfileRepository
             .ThenInclude(s => s.Skill)
             .ToListAsync();
         return users;
+    }
+    
+    public async Task<Result> ConnectGithubInfo(Guid profileId, GithubEntity githubInfo)
+    {
+        var profile = await _context.Profiles.FindAsync(profileId);
+        if (profile == null)
+            return Result.Failure("Profile not found");
+        
+        profile.GithubInfo = githubInfo;
+        _context.Profiles.Update(profile);
+        return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to connect Github info");
+    }
+    
+    public async Task<Result<ProfileEntity>> GetByTgId(long tgId)
+    {
+        var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.TgId == tgId);
+        if (profile == null)
+            return Result.Failure<ProfileEntity>("Profile not found");
+        return Result.Success(profile);
+    }
+    
+    public async Task<ProfileEntity?> GetWithGithubStatsById(Guid id)
+    {
+        return await _context.Profiles
+            .Include(x => x.GithubInfo)
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 }

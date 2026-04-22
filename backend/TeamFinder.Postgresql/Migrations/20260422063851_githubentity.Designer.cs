@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeamFinder.Postgresql;
@@ -11,9 +12,11 @@ using TeamFinder.Postgresql;
 namespace TeamFinder.Postgresql.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422063851_githubentity")]
+    partial class githubentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,9 +67,6 @@ namespace TeamFinder.Postgresql.Migrations
                     b.Property<Guid?>("GithubInfoId")
                         .HasColumnType("uuid");
 
-                    b.Property<long>("TgId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -76,7 +76,8 @@ namespace TeamFinder.Postgresql.Migrations
 
                     b.HasIndex("GithubInfoId");
 
-                    b.HasIndex("UserName");
+                    b.HasIndex("UserName")
+                        .IsUnique();
 
                     b.ToTable("profiles", (string)null);
                 });

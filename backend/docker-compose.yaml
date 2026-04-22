@@ -14,6 +14,10 @@ services:
       JWT_AUDIENCE: "MiniApp"
       ASPNETCORE_URLS: "http://0.0.0.0:8080"
       ENABLE_DEV_AUTH: "${ENABLE_DEV_AUTH}"
+      ConnectionStrings__Postgres: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      RUN_MIGRATIONS: "true"
+      GITHUB_CLIENT_ID: "${GITHUB_CLIENT_ID}"
+      GITHUB_CLIENT_SECRET: "${GITHUB_CLIENT_SECRET}"
     volumes:
       - teamfinder-keys:/keys
     labels:
@@ -37,6 +41,19 @@ services:
       - traefik.http.routers.client.entrypoints=https
       - traefik.http.routers.client.tls.certresolver=letsencrypt
       - traefik.http.services.client.loadbalancer.server.port=80
+  
+  postgres:
+    image: postgres:18.3
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
 
 volumes:
   teamfinder-keys:
+  postgres_data:
