@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TeamFinder.Core.Model;
+using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Configuration;
 using TeamFinder.Postgresql.Model;
 using Profile = TeamFinder.Core.Model.Profile;
@@ -12,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<SkillEntity> Skills => Set<SkillEntity>();
     public DbSet<SkillClosure> SkillClosures => Set<SkillClosure>();
     public DbSet<ProfileSkillEntity> ProfileSkillEntity => Set<ProfileSkillEntity>();
+    public DbSet<Team> Teams => Set<Team>();
 
 
     public AppDbContext(DbContextOptions<AppDbContext> options)
