@@ -7,7 +7,7 @@ namespace TeamFinder.API.Security;
 
 public sealed class JwtTokenService
 {
-    public string CreateToken(TelegramWebAppUser user, IConfiguration config)
+    public string CreateToken(Guid profileId, TelegramWebAppUser user, IConfiguration config)
     {
         var issuer = config["JWT_ISSUER"] ?? "MiniApp";
         var audience = config["JWT_AUDIENCE"] ?? "MiniApp";
@@ -27,6 +27,7 @@ public sealed class JwtTokenService
         if (!string.IsNullOrWhiteSpace(user.Username)) claims.Add(new Claim("tg:username", user.Username));
         if (!string.IsNullOrWhiteSpace(user.FirstName)) claims.Add(new Claim("tg:first_name", user.FirstName));
         if (!string.IsNullOrWhiteSpace(user.LastName)) claims.Add(new Claim("tg:last_name", user.LastName));
+        claims.Add(new Claim("profile:id", profileId.ToString()));
 
         var token = new JwtSecurityToken(
             issuer: issuer,

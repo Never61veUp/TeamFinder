@@ -30,11 +30,12 @@ public class GitHubContreoller : ControllerBase
         var githubClientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
         if (string.IsNullOrWhiteSpace(githubClientId))
             return NotFound();
-        var profileId = User.FindFirst("tg:id")?.Value;
-        if(!int.TryParse(profileId, out var profileGuid))
+        var profileId = User.FindFirst("profile:id")?.Value;
+        if(!Guid.TryParse(profileId, out var profileGuid))
             return BadRequest("Invalid profile ID.");
         var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={githubClientId}&state={profileGuid}";
-
+        if (bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
+            return Ok(redirectUrl);
         return Redirect(redirectUrl);
     }
     

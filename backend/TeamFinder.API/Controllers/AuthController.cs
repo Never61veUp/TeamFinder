@@ -37,6 +37,11 @@ public class AuthController : ControllerBase
             return Problem("Missing TELEGRAM_BOT_TOKEN environment variable.", statusCode: 500);
 
         var result = _validator.ValidateInitData(body.InitData, botToken);
+        
+        var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.FirstName);
+        if(profile.IsFailure)
+            return Problem(profile.Error, statusCode: 500);
+        
         if (!result.IsValid || result.User is null)
         {
             var initDataLen = body.InitData?.Length ?? 0;
@@ -47,10 +52,8 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
 
-        var token = _jwt.CreateToken(result.User, _config);
-        var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.FirstName);
-        if(profile.IsFailure)
-            return Problem(profile.Error, statusCode: 500);
+        var token = _jwt.CreateToken(profile.Value.Id, result.User, _config);
+        
         return Ok(new TelegramAuthResponse(token, result.User));
     }
     
@@ -61,12 +64,12 @@ public class AuthController : ControllerBase
         if (!bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
             return NotFound();
         
-        var user = new TelegramWebAppUser(tgId, "Dev","Dev", "dev_user", "ru", false);
-        var token = _jwt.CreateToken(user, _config);
-        
         var profile = await _profileService.CreateOrGetByTgId(tgId, "Dev");
         if(profile.IsFailure)
             return Problem(profile.Error, statusCode: 500);
+        
+        var user = new TelegramWebAppUser(tgId, "Dev","Dev", "dev_user", "ru", false);
+        var token = _jwt.CreateToken(profile.Value.Id, user, _config);
         
         return Ok(new TelegramAuthResponse(token, user));
     }
@@ -75,6 +78,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public IActionResult GetMe()
     {
+        var profileId = User.FindFirst("profile:id")?.Value;
         var id = User.FindFirst("tg:id")?.Value;
         var username = User.FindFirst("tg:username")?.Value;
         var firstName = User.FindFirst("tg:first_name")?.Value;
@@ -82,6 +86,7 @@ public class AuthController : ControllerBase
 
         return Ok(new
         {
+            profileId,
             id,
             username,
             firstName,
