@@ -64,6 +64,9 @@ namespace TeamFinder.Postgresql.Migrations
                     b.Property<Guid?>("GithubInfoId")
                         .HasColumnType("uuid");
 
+                    b.Property<long>("TgId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(50)

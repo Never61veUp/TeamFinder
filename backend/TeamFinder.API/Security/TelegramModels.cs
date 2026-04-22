@@ -5,7 +5,7 @@ public sealed record TelegramAuthRequest(string InitData);
 public sealed record TelegramAuthResponse(string Token, TelegramWebAppUser User);
 
 public sealed record TelegramWebAppUser(
-    long Id,
+    long TgId,
     string? Username,
     string? FirstName,
     string? LastName,

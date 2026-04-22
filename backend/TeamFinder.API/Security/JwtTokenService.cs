@@ -21,7 +21,7 @@ public sealed class JwtTokenService
 
         var claims = new List<Claim>
         {
-            new("tg:id", user.Id.ToString()),
+            new("tg:id", user.TgId.ToString()),
         };
 
         if (!string.IsNullOrWhiteSpace(user.Username)) claims.Add(new Claim("tg:username", user.Username));

@@ -15,6 +15,7 @@ public interface IProfileService
     Task<Result> AddSkill(Guid profileId, Guid skillId);
     Task<List<Profile>> FindBySkill(Guid skillId);
     Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo);
+    Task<Result<Profile>> CreateOrGetByTgId(long tgId, string name);
 }
 
 public class ProfileService : IProfileService
@@ -112,5 +113,31 @@ public class ProfileService : IProfileService
         if(saveResult.IsFailure)
             return Result.Failure(saveResult.Error);
         return Result.Success();
+    }
+    
+    public async Task<Result<Profile>> GetByTgId(long tgId)
+    {
+        var profileEntity = await _repo.GetByTgId(tgId);
+        if (profileEntity.IsFailure)
+            return Result.Failure<Profile>(profileEntity.Error);
+        return profileEntity.Value.ToDomain();
+    }
+    
+    public async Task<Result<Profile>> CreateOrGetByTgId(long tgId, string name)
+    {
+        var existingProfile = await GetByTgId(tgId);
+        if (existingProfile.IsSuccess)
+            return Result.Success(existingProfile.Value);
+        
+        var profile = Profile.Create(Guid.NewGuid(), name);
+        var addingTgResult = profile.AddTelegramId(tgId);
+        if(addingTgResult.IsFailure)
+            return Result.Failure<Profile>(addingTgResult.Error);
+        
+        var profileEntity = profile.ToEntity();
+        
+        await _repo.Add(profileEntity);
+
+        return Result.Success(profile);
     }
 }

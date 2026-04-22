@@ -9,6 +9,7 @@ public static class ProfileMapping
     public static Profile ToDomain(this ProfileEntity entity)
     {
         var profile = Profile.Create(entity.Id, entity.UserName);
+        profile.AddTelegramId(entity.TgId);
 
         foreach (var skill in entity.Skills)
         {
@@ -24,6 +25,7 @@ public static class ProfileMapping
         {
             Id = domain.Id,
             UserName = domain.Name,
+            TgId = domain.TelegramId,
             Skills = domain.Skills
                 .Select(s => new ProfileSkillEntity
                 {

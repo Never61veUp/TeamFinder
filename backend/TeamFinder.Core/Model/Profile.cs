@@ -10,6 +10,7 @@ public sealed class Profile : Entity<Guid>
     public IReadOnlyCollection<Skill> Skills => _skills.AsReadOnly();
     public string Name { get; private set; }
     public GithubInfo? GithubInfo { get; private set; }
+    public long TelegramId { get; private set; } = 0;
 
     private Profile(Guid id, string name, GithubInfo? githubInfo) : base(id)
     {
@@ -36,6 +37,15 @@ public sealed class Profile : Entity<Guid>
             return Result.Failure("Profile already has connected Github info");
 
         GithubInfo = githubInfo;
+        return Result.Success();
+    }
+    
+    public Result AddTelegramId(long tgId)
+    {
+        if (TelegramId != 0)
+            return Result.Failure("Profile already has connected Telegram ID");
+
+        TelegramId = tgId;
         return Result.Success();
     }
 }

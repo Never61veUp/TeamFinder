@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeamFinder.API.Security;
+using TeamFinder.Application.Services;
 
 namespace TeamFinder.API.Controllers;
 
@@ -11,23 +12,25 @@ public class AuthController : ControllerBase
     private readonly TelegramWebAppValidator _validator;
     private readonly JwtTokenService _jwt;
     private readonly IConfiguration _config;
+    private readonly IProfileService _profileService;
     private readonly ILogger<AuthController> _log;
 
     public AuthController(
         TelegramWebAppValidator validator,
         JwtTokenService jwt,
         IConfiguration config,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory, IProfileService profileService)
     {
         _validator = validator;
         _jwt = jwt;
         _config = config;
+        _profileService = profileService;
         _log = loggerFactory.CreateLogger<AuthController>();
     }
 
     [HttpPost("auth/telegram")]
     [AllowAnonymous]
-    public IActionResult TelegramAuth([FromBody] TelegramAuthRequest body)
+    public async Task<IActionResult> TelegramAuth([FromBody] TelegramAuthRequest body)
     {
         var botToken = _config["TELEGRAM_BOT_TOKEN"];
         if (string.IsNullOrWhiteSpace(botToken))
@@ -45,19 +48,25 @@ public class AuthController : ControllerBase
         }
 
         var token = _jwt.CreateToken(result.User, _config);
-
+        var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.FirstName);
+        if(profile.IsFailure)
+            return Problem(profile.Error, statusCode: 500);
         return Ok(new TelegramAuthResponse(token, result.User));
     }
     
     [HttpPost("auth/dev")]
     [AllowAnonymous]
-    public async Task<IActionResult> DevAuth([FromBody] long userId)
+    public async Task<IActionResult> DevAuth([FromBody] long tgId)
     {
         if (!bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
             return NotFound();
         
-        var user = new TelegramWebAppUser(userId, "Dev","Dev", "dev_user", "ru", false);
+        var user = new TelegramWebAppUser(tgId, "Dev","Dev", "dev_user", "ru", false);
         var token = _jwt.CreateToken(user, _config);
+        
+        var profile = await _profileService.CreateOrGetByTgId(tgId, "Dev");
+        if(profile.IsFailure)
+            return Problem(profile.Error, statusCode: 500);
         
         return Ok(new TelegramAuthResponse(token, user));
     }
