@@ -28,6 +28,15 @@ public class AuthController : ControllerBase
         _log = loggerFactory.CreateLogger<AuthController>();
     }
 
+    /// <summary>
+    /// Авторизация через Telegram Web App.
+    /// </summary>
+    /// <remarks>
+    /// Клиент должен передать initData,
+    /// полученные от Telegram при открытии Web App.
+    /// Сервер проверит их валидность и выдаст JWT,
+    /// который клиент будет использовать для авторизации в дальнейшем.
+    /// </remarks>
     [HttpPost("auth/telegram")]
     [AllowAnonymous]
     public async Task<IActionResult> TelegramAuth([FromBody] TelegramAuthRequest body)
@@ -56,7 +65,10 @@ public class AuthController : ControllerBase
         
         return Ok(new TelegramAuthResponse(token, result.User));
     }
-    
+    /// <summary>
+    /// Авторизация для разработки. 
+    /// </summary>
+    /// <remarks>Позволяет получить JWT для любого Telegram ID, указав его в теле запроса.</remarks>
     [HttpPost("auth/dev")]
     [AllowAnonymous]
     public async Task<IActionResult> DevAuth([FromBody] long tgId)
@@ -73,7 +85,10 @@ public class AuthController : ControllerBase
         
         return Ok(new TelegramAuthResponse(token, user));
     }
-    
+    /// <summary>
+    /// Эндпоинт для проверки работоспособности авторизации.
+    /// </summary>
+    /// <remarks> Требует JWT в заголовке Authorization.</remarks>
     [HttpGet("me")]
     [Authorize]
     public IActionResult GetMe()
@@ -93,7 +108,11 @@ public class AuthController : ControllerBase
             lastName
         });
     }
-    
+    /// <summary>
+    /// Эндпоинт для отладки. 
+    /// </summary>
+    /// <remarks>Возвращает информацию о JWT, который был отправлен в заголовке Authorization, а также параметры, используемые для его генерации.
+    /// Не использовать в продакшене, так как может раскрывать чувствительную информацию. Доступен только при включенной разработческой авторизации.</remarks>
     [HttpGet("debug-token")]
     public IActionResult DebugToken()
     {

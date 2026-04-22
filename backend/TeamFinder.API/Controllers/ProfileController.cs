@@ -17,7 +17,11 @@ public class ProfileController : ControllerBase
     {
         _profileService = profileService;
     }
-    
+    /// <summary>
+    /// Не используется в текущей версии.
+    /// </summary>
+    /// <remarks>Профили создаются
+    /// автоматически при авторизации через Telegram. Но может пригодиться для админки или для ручного создания профилей.</remarks>
     [HttpPost]
     public async Task<IActionResult> Create(CreateProfileRequest request)
     {
@@ -28,7 +32,12 @@ public class ProfileController : ControllerBase
 
         return Ok(result.Value);
     }
-    
+    /// <summary>
+    /// Получить полный профиль по ID.
+    /// </summary>
+    /// <remarks>
+    /// Включая все его поля и связанные сущности (например, навыки). Используется для отображения профиля в личном кабинете пользователя.
+    /// </remarks>
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -39,7 +48,14 @@ public class ProfileController : ControllerBase
 
         return Ok(profile.Value);
     }
-    
+    /// <summary>
+    /// Добавить навык к профилю. 
+    /// </summary>
+    /// <remarks>
+    /// Клиент должен передать ID профиля и ID навыка, который он хочет добавить.
+    /// Сервер должен проверить, что оба ID валидные, и что навык существует,
+    /// а затем добавить связь между профилем и навыком в базе данных.
+    /// </remarks>
     [HttpPost("{profileId:guid}/skills/{skillId:guid}")]
     public async Task<IActionResult> AddSkill(Guid profileId, Guid skillId)
     {
@@ -48,7 +64,14 @@ public class ProfileController : ControllerBase
             return BadRequest(result.Error);
         return Ok();
     }
-    
+    /// <summary>
+    /// Получить скилл лист профиля.
+    /// </summary>
+    /// <remarks>
+    /// Клиент должен передать ID профиля, и
+    /// сервер должен вернуть список навыков, связанных с этим профилем.
+    /// Используется для отображения навыков в личном кабинете пользователя и на странице профиля.
+    /// </remarks>
     [HttpGet("{profileId:guid}/skills")]
     public async Task<IActionResult> GetSkills(Guid profileId)
     {
@@ -60,6 +83,12 @@ public class ProfileController : ControllerBase
         return Ok(profile.Value.Skills);
     }
     
+    /// <summary>
+    /// Получить всех пользователей с определенным навыком.
+    /// </summary>
+    /// <remarks>
+    /// Клиент должен передать
+    /// ID навыка, и сервер должен вернуть список профилей, которые связаны с этим навыком. Используется для функции поиска по навыкам.</remarks>
     [HttpGet("search/{skillId:guid}")]
     public async Task<IActionResult> SearchBySkill(Guid skillId)
     {
@@ -67,7 +96,15 @@ public class ProfileController : ControllerBase
 
         return Ok(result);
     }
-    
+    /// <summary>
+    /// Получить пользователя с информацией из GitHub.
+    /// </summary>
+    /// <remarks>
+    /// Клиент должен передать ID профиля,
+    /// и сервер должен вернуть профиль вместе с информацией из GitHub, которая связана с этим профилем (например, имя пользователя GitHub,
+    /// количество репозиториев, список языков программирования и т.д.).
+    /// Используется для отображения информации из GitHub в личном кабинете пользователя и на странице профиля.
+    /// </remarks>
     [HttpGet("{profileId:guid}/gitstats")]
     public async Task<IActionResult> GetWithGithubInfo(Guid profileId)
     {
