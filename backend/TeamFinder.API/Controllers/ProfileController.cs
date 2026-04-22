@@ -33,11 +33,14 @@ public class ProfileController : ControllerBase
         return Ok(result.Value);
     }
     /// <summary>
-    /// Получить полный профиль по ID.
+    /// Получить профиль по ID.
     /// </summary>
     /// <remarks>
-    /// Включая все его поля и связанные сущности (например, навыки). Используется для отображения профиля в личном кабинете пользователя.
+    /// Включая поле навыки. Не включая гитхаб.
     /// </remarks>
+    /// <param name="id">
+    /// ID профиля в нашей системе. Не путать с ID из Telegram или GitHub.
+    /// </param>
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -88,7 +91,11 @@ public class ProfileController : ControllerBase
     /// </summary>
     /// <remarks>
     /// Клиент должен передать
-    /// ID навыка, и сервер должен вернуть список профилей, которые связаны с этим навыком. Используется для функции поиска по навыкам.</remarks>
+    /// ID навыка, и сервер должен вернуть список профилей вместе со списком навыков, которые связаны с этим навыком.
+    /// </remarks>
+    /// <param name="skillId">
+    /// ID навыка
+    /// </param>
     [HttpGet("search/{skillId:guid}")]
     public async Task<IActionResult> SearchBySkill(Guid skillId)
     {
@@ -99,12 +106,14 @@ public class ProfileController : ControllerBase
     /// <summary>
     /// Получить пользователя с информацией из GitHub.
     /// </summary>
-    /// <remarks>
-    /// Клиент должен передать ID профиля,
-    /// и сервер должен вернуть профиль вместе с информацией из GitHub, которая связана с этим профилем (например, имя пользователя GitHub,
+    /// <param name="profileId">
+    /// ID профиля в нашей системе. Не путать с ID из Telegram или GitHub.
+    /// </param>
+    /// <returns>
+    /// Профиль вместе с информацией из GitHub, которая связана с этим профилем (например, имя пользователя GitHub,
     /// количество репозиториев, список языков программирования и т.д.).
-    /// Используется для отображения информации из GitHub в личном кабинете пользователя и на странице профиля.
-    /// </remarks>
+    /// Не выводит список навыков.
+    /// </returns>
     [HttpGet("{profileId:guid}/gitstats")]
     public async Task<IActionResult> GetWithGithubInfo(Guid profileId)
     {
