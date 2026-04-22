@@ -27,11 +27,13 @@ public class GitHubContreoller : ControllerBase
     [HttpGet("login")]
     public IActionResult Login()
     {
-        var clientId = _config["GitHub:ClientId"];
-        var profileId = User.FindFirst("sub")?.Value;
-        if(!Guid.TryParse(profileId, out var profileGuid))
+        var githubClientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
+        if (string.IsNullOrWhiteSpace(githubClientId))
+            return NotFound();
+        var profileId = User.FindFirst("tg:id")?.Value;
+        if(!int.TryParse(profileId, out var profileGuid))
             return BadRequest("Invalid profile ID.");
-        var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={clientId}&state={profileGuid}";
+        var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={githubClientId}&state={profileGuid}";
 
         return Redirect(redirectUrl);
     }
@@ -39,8 +41,8 @@ public class GitHubContreoller : ControllerBase
     [HttpGet("callback")]
     public async Task<IActionResult> Callback(string code, string state)
     {
-        var clientId = _config["GitHub:ClientId"];
-        var clientSecret = _config["GitHub:ClientSecret"];
+        var clientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
+        var clientSecret = Environment.GetEnvironmentVariable("GITHUB_CLIENT_SECRET");
 
         var accessToken = await _serviceExternal.GetAccessToken(code, clientId, clientSecret);
 

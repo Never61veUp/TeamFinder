@@ -11,15 +11,13 @@ public interface IGitHubServiceExternal
     Task<JsonDocument> GetUserEvents(string username);
 }
 
-public class GitHubServiceExternalExternal : IGitHubServiceExternal
+public class GitHubServiceExternal : IGitHubServiceExternal
 {
     private readonly HttpClient _http;
 
-    public GitHubServiceExternalExternal(HttpClient http)
+    public GitHubServiceExternal(HttpClient http)
     {
         _http = http;
-        _http.DefaultRequestHeaders.UserAgent.Add(
-            new ProductInfoHeaderValue("MyApp", "1.0"));
     }
 
     public async Task<string> GetAccessToken(string code, string clientId, string clientSecret)

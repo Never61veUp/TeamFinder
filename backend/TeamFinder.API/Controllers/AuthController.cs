@@ -48,7 +48,20 @@ public class AuthController : ControllerBase
 
         return Ok(new TelegramAuthResponse(token, result.User));
     }
-
+    
+    [HttpPost("auth/dev")]
+    [AllowAnonymous]
+    public async Task<IActionResult> DevAuth([FromBody] long userId)
+    {
+        if (!bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
+            return NotFound();
+        
+        var user = new TelegramWebAppUser(userId, "Dev","Dev", "dev_user", "ru", false);
+        var token = _jwt.CreateToken(user, _config);
+        
+        return Ok(new TelegramAuthResponse(token, user));
+    }
+    
     [HttpGet("me")]
     [Authorize]
     public IActionResult GetMe()
@@ -65,19 +78,6 @@ public class AuthController : ControllerBase
             firstName,
             lastName
         });
-    }
-    
-    [HttpPost("auth/dev")]
-    [AllowAnonymous]
-    public async Task<IActionResult> DevAuth([FromBody] long userId)
-    {
-        if (!bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
-            return NotFound();
-        
-        var user = new TelegramWebAppUser(userId, "Dev","Dev", "dev_user", "ru", false);
-        var token = _jwt.CreateToken(user, _config);
-        
-        return Ok(new TelegramAuthResponse(token, user));
     }
     
     [HttpGet("debug-token")]
