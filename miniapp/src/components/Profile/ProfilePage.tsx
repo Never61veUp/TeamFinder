@@ -4,10 +4,10 @@ import { SkillTags } from './Skills/SkillTags';
 import { GithubStats } from './Stats/GithubStats';
 import { AboutMe } from './About/AboutMe';
 import { AchievementsGrid } from './Achievements/AchievementsGrid';
-import { UserProfile } from '../../types/profile';
-import './Profile.css'; // Основной файл стилей
+import type { UserProfile } from '../../types/profile';
+import './Profile.css'; // Твой основной файл стилей
 
-// Пример данных
+// Пример моковых данных
 const mockUser: UserProfile = {
     name: 'Александр Петров',
     username: '@alexanderpetrov',

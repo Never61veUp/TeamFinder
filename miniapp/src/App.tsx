@@ -44,6 +44,19 @@ export function App() {
     }, [token])
 
     async function onLogin() {
+        // ТЕСТОВЫЙ РЕЖИМ: Если запустили приложение в браузере (нет initData от Telegram)
+        if (!initData) {
+            setMe({
+                id: 12345,
+                firstName: 'Александр',
+                lastName: 'Петров',
+                username: 'alexander_test',
+                photoUrl: '' 
+            } as any); // "as any" временно заглушит ошибки TypeScript из-за отсутствия некоторых полей
+            return;
+        }
+
+        // РЕАЛЬНЫЙ РЕЖИМ: Если мы в Telegram
         setBusy(true)
         setError('')
         try {
@@ -56,6 +69,21 @@ export function App() {
             setBusy(false)
         }
     }
+
+    //БУДЕТ ИСПОЛЬЗОВАТЬ НО ОТКЛЮЧИЛ ДЛЯ ТЕСТА
+    //async function onLogin() {
+    //    setBusy(true)
+    //    setError('')
+    //    try {
+    //        const data = await telegramLogin(initData)
+    //        localStorage.setItem('jwt', data.token)
+    //        setToken(data.token)
+    //    } catch (e: unknown) {
+    //        setError(e instanceof Error ? e.message : 'Unknown error')
+    //    } finally {
+    //        setBusy(false)
+    //    }
+    //}
 
     function onLogout() {
         localStorage.removeItem('jwt')
@@ -92,7 +120,7 @@ export function App() {
                         <div className="mt-3 flex gap-2">
                             <button
                                 className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
-                                disabled={busy || !initData}
+                                disabled={busy}//|| !initData} ДЛЯ ТЕСТА ОТКЛЮЧИЛ
                                 onClick={onLogin}
                             >
                                 {busy ? 'Logging in…' : 'Login with Telegram'}

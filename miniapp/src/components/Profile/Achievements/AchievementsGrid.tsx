@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserProfile } from '../../../types/profile';
+import type { UserProfile } from '../../../types/profile';
 
 interface AchievementsProps {
     achievements: UserProfile['achievements'];
