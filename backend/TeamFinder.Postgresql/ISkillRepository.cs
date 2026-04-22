@@ -1,5 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using TeamFinder.Core.Model;
 using TeamFinder.Postgresql.Model;
 
 namespace TeamFinder.Postgresql;

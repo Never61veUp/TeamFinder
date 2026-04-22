@@ -17,6 +17,7 @@ public class GithubService : IGithubService
     {
         _gitHubServiceExternal = gitHubServiceExternal;
     }
+
     public async Task<Result<GithubInfo>> CreateGithubInfo(string githubId, string username, string accessToken)
     {
         var repos = await _gitHubServiceExternal.GetUserRepos(username);
@@ -30,18 +31,19 @@ public class GithubService : IGithubService
 
         var topLanguage = GetTopLanguage(repoStats.Languages);
         var activityScore = CalculateActivityScore(repoStats, eventStats);
-        
+
         var githubInfo = GithubInfo.Create(
-            username: username,
-            profileUrl: $"https://github.com/{username}",
-            topLanguage: topLanguage,
-            totalStars: repoStats.TotalStars,
-            repositoriesCount: repoStats.RepoCount,
-            githubId: githubId
+            username,
+            $"https://github.com/{username}",
+            topLanguage,
+            repoStats.TotalStars,
+            repoStats.RepoCount,
+            githubId
         );
 
         return Result.Success(githubInfo);
     }
+
     private RepoStats CalculateRepoStats(JsonElement repoArray)
     {
         var totalStars = 0;
@@ -75,30 +77,30 @@ public class GithubService : IGithubService
             Languages = languages
         };
     }
-    
+
     private string GetTopLanguage(Dictionary<string, int> languages)
     {
         return languages
             .OrderByDescending(x => x.Value)
             .FirstOrDefault().Key ?? "Unknown";
     }
-    
+
     private int CalculateActivityScore(RepoStats repo, EventStats events)
     {
         return
-            (events.PushEvents * 2) +
-            (events.PullRequests * 3) +
-            (events.Issues * 1) +
-            (repo.RepoCount * 2) +
-            (repo.TotalStars / 5);
+            events.PushEvents * 2 +
+            events.PullRequests * 3 +
+            events.Issues * 1 +
+            repo.RepoCount * 2 +
+            repo.TotalStars / 5;
     }
-    
+
     private EventStats CalculateEventStats(JsonElement eventsArray)
     {
-        int pushEvents = 0;
-        int prEvents = 0;
-        int issueEvents = 0;
-        int createEvents = 0;
+        var pushEvents = 0;
+        var prEvents = 0;
+        var issueEvents = 0;
+        var createEvents = 0;
 
         DateTime? lastActivity = null;
 
@@ -107,13 +109,9 @@ public class GithubService : IGithubService
             var type = ev.GetProperty("type").GetString();
 
             if (ev.TryGetProperty("created_at", out var createdAtProp))
-            {
                 if (DateTime.TryParse(createdAtProp.GetString(), out var dt))
-                {
                     if (lastActivity == null || dt > lastActivity)
                         lastActivity = dt;
-                }
-            }
 
             switch (type)
             {
@@ -133,7 +131,7 @@ public class GithubService : IGithubService
             LastActivity = lastActivity
         };
     }
-    
+
     public class RepoStats
     {
         public int RepoCount { get; set; }

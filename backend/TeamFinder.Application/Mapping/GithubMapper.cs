@@ -8,12 +8,12 @@ public static class GithubMapper
     public static GithubInfo ToDomain(this GithubEntity entity)
     {
         return GithubInfo.Create(
-            username: entity.Username,
-            profileUrl: entity.ProfileUrl,
-            topLanguage: entity.TopLanguage,
-            totalStars: entity.TotalStars,
-            repositoriesCount: entity.RepositoriesCount,
-            githubId: entity.GithubId
+            entity.Username,
+            entity.ProfileUrl,
+            entity.TopLanguage,
+            entity.TotalStars,
+            entity.RepositoriesCount,
+            entity.GithubId
         );
     }
 

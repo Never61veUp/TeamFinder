@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Web;
 
 namespace TeamFinder.Application.Services;
 
@@ -33,7 +34,7 @@ public class GitHubServiceExternal : IGitHubServiceExternal
         var response = await _http.PostAsync("https://github.com/login/oauth/access_token", content);
 
         var result = await response.Content.ReadAsStringAsync();
-        var parsed = System.Web.HttpUtility.ParseQueryString(result);
+        var parsed = HttpUtility.ParseQueryString(result);
 
         return parsed["access_token"];
     }

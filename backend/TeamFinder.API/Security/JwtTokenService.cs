@@ -21,7 +21,7 @@ public sealed class JwtTokenService
 
         var claims = new List<Claim>
         {
-            new("tg:id", user.TgId.ToString()),
+            new("tg:id", user.TgId.ToString())
         };
 
         if (!string.IsNullOrWhiteSpace(user.Username)) claims.Add(new Claim("tg:username", user.Username));
@@ -30,14 +30,13 @@ public sealed class JwtTokenService
         claims.Add(new Claim("profile:id", profileId.ToString()));
 
         var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            notBefore: DateTime.UtcNow.AddSeconds(-5),
-            expires: DateTime.UtcNow.AddHours(12),
-            signingCredentials: creds);
+            issuer,
+            audience,
+            claims,
+            DateTime.UtcNow.AddSeconds(-5),
+            DateTime.UtcNow.AddHours(12),
+            creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
-

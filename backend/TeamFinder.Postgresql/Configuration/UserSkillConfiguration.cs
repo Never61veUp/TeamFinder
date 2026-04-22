@@ -9,7 +9,7 @@ public class UserSkillConfiguration : IEntityTypeConfiguration<ProfileSkillEntit
     public void Configure(EntityTypeBuilder<ProfileSkillEntity> builder)
     {
         builder.ToTable("user_skills");
-        
+
         builder.HasKey(x => new { x.ProfileId, x.SkillId });
 
         builder.Property(x => x.Level)

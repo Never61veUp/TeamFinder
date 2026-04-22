@@ -18,7 +18,7 @@ public class SkillConfiguration : IEntityTypeConfiguration<SkillEntity>
 
         builder.HasIndex(x => x.Name)
             .IsUnique();
-        
+
         builder.HasMany<ProfileSkillEntity>()
             .WithOne(x => x.Skill)
             .HasForeignKey(x => x.SkillId);

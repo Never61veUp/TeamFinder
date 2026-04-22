@@ -1,23 +1,25 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TeamFinder.Core.Model;
-using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Configuration;
 using TeamFinder.Postgresql.Model;
-using Profile = TeamFinder.Core.Model.Profile;
 
 namespace TeamFinder.Postgresql;
 
 public class AppDbContext : DbContext
 {
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    {
+    }
+
     public DbSet<ProfileEntity> Profiles => Set<ProfileEntity>();
     public DbSet<SkillEntity> Skills => Set<SkillEntity>();
     public DbSet<SkillClosure> SkillClosures => Set<SkillClosure>();
     public DbSet<ProfileSkillEntity> ProfileSkillEntity => Set<ProfileSkillEntity>();
-    public DbSet<Team> Teams => Set<Team>();
-
-
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options) { }
+    public DbSet<TeamEntity> Teams => Set<TeamEntity>();
+    public DbSet<TeamMemberEntity> TeamMembers => Set<TeamMemberEntity>();
+    public DbSet<WantedProfileEntity> WantedProfiles => Set<WantedProfileEntity>();
+    public DbSet<WantedProfileSkillEntity> WantedProfileSkills => Set<WantedProfileSkillEntity>();
+    public DbSet<InvitationEntity> Invitations => Set<InvitationEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +27,15 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new SkillClosureConfiguration());
         modelBuilder.ApplyConfiguration(new ProfileConfiguration());
         modelBuilder.ApplyConfiguration(new UserSkillConfiguration());
+        modelBuilder.ApplyConfiguration(new TeamConfiguration());
 
+        modelBuilder.Entity<TeamMemberEntity>()
+            .HasKey(k => new { k.TeamId, k.ProfileId });
+
+        modelBuilder.Entity<WantedProfileSkillEntity>()
+            .HasKey(k => k.Id);
+
+        modelBuilder.Entity<WantedProfileEntity>()
+            .HasKey(k => k.Id);
     }
 }

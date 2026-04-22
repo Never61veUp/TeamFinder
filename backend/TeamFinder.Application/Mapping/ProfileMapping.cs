@@ -12,10 +12,7 @@ public static class ProfileMapping
         profile.AddTelegramId(entity.TgId);
         if (entity.GithubInfo != null) profile.ConnectGithubInfo(entity.GithubInfo.ToDomain());
 
-        foreach (var skill in entity.Skills)
-        {
-            profile.AddSkill(skill.Skill.ToDomain());
-        }
+        foreach (var skill in entity.Skills) profile.AddSkill(skill.Skill.ToDomain());
 
         return profile;
     }
