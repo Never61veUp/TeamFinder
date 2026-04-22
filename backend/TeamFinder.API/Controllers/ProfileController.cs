@@ -67,4 +67,12 @@ public class ProfileController : ControllerBase
 
         return Ok(result);
     }
+    
+    [HttpGet("{profileId:guid}/gitstats")]
+    public async Task<IActionResult> GetWithGithubInfo(Guid profileId)
+    {
+        var result = await _profileService.GetWithGithubInfoById(profileId);
+    
+        return Ok(result.Value);
+    }
 }

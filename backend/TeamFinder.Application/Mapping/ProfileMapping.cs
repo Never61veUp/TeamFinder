@@ -10,6 +10,7 @@ public static class ProfileMapping
     {
         var profile = Profile.Create(entity.Id, entity.UserName);
         profile.AddTelegramId(entity.TgId);
+        if (entity.GithubInfo != null) profile.ConnectGithubInfo(entity.GithubInfo.ToDomain());
 
         foreach (var skill in entity.Skills)
         {

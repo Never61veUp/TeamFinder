@@ -13,6 +13,7 @@ public interface IProfileRepository
     Task<Result> Update(ProfileEntity profile);
     Task<Result> ConnectGithubInfo(Guid profileId, GithubEntity githubInfo);
     Task<Result<ProfileEntity>> GetByTgId(long tgId);
+    Task<ProfileEntity?> GetWithGithubStatsById(Guid id);
 }
 
 public class ProfileRepository : IProfileRepository
@@ -88,5 +89,12 @@ public class ProfileRepository : IProfileRepository
         if (profile == null)
             return Result.Failure<ProfileEntity>("Profile not found");
         return Result.Success(profile);
+    }
+    
+    public async Task<ProfileEntity?> GetWithGithubStatsById(Guid id)
+    {
+        return await _context.Profiles
+            .Include(x => x.GithubInfo)
+            .FirstOrDefaultAsync(x => x.Id == id);
     }
 }

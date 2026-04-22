@@ -16,6 +16,7 @@ public interface IProfileService
     Task<List<Profile>> FindBySkill(Guid skillId);
     Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo);
     Task<Result<Profile>> CreateOrGetByTgId(long tgId, string name);
+    Task<Result<Profile>> GetWithGithubInfoById(Guid id);
 }
 
 public class ProfileService : IProfileService
@@ -139,5 +140,13 @@ public class ProfileService : IProfileService
         await _repo.Add(profileEntity);
 
         return Result.Success(profile);
+    }
+    
+    public async Task<Result<Profile>> GetWithGithubInfoById(Guid id)
+    {
+        var profileEntity = await _repo.GetWithGithubStatsById(id);
+        if (profileEntity == null)
+            return Result.Failure<Profile>("Profile not found");
+        return profileEntity.ToDomain();
     }
 }
