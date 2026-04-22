@@ -20,8 +20,7 @@ export function App() {
         try {
             window.Telegram?.WebApp?.ready?.()
             window.Telegram?.WebApp?.expand?.()
-        } catch {
-        }
+        } catch { /* empty */ }
     }, [])
 
     useEffect(() => {
@@ -52,7 +51,7 @@ export function App() {
                 lastName: 'Петров',
                 username: 'alexander_test',
                 photoUrl: '' 
-            } as any); // "as any" временно заглушит ошибки TypeScript из-за отсутствия некоторых полей
+            } as never); // "as never" временно заглушит ошибки TypeScript из-за отсутствия некоторых полей
             return;
         }
 

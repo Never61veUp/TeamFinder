@@ -7,7 +7,7 @@ interface HeaderProps {
 }
 
 export const ProfileHeader: React.FC<HeaderProps> = ({ name, username, avatarUrl }) => {
-    // Генерация инициалов, если нет аватарки
+
     const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
 
     return (

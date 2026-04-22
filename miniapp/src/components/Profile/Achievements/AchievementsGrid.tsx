@@ -7,14 +7,14 @@ interface AchievementsProps {
 
 export const AchievementsGrid: React.FC<AchievementsProps> = ({ achievements }) => {
     const items = [
-        { label: 'Хакатоны', value: achievements.hackathons },
-        { label: 'Победы', value: achievements.wins },
-        { label: 'Проекты', value: achievements.projects },
+        { label: 'РҐР°РєР°С‚РѕРЅС‹', value: achievements.hackathons },
+        { label: 'РџРѕР±РµРґС‹', value: achievements.wins },
+        { label: 'РџСЂРѕРµРєС‚С‹', value: achievements.projects },
     ];
 
     return (
         <section className="profile-section">
-            <h2>Достижения</h2>
+            <h2>РџСЂРѕС„РёР»СЊ</h2>
             <div className="achievements-row">
                 {items.map((item, index) => (
                     <div key={index} className="achievement-card">

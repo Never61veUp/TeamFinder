@@ -1,7 +1,7 @@
 .profile-container {
 	background-color: #f8f9fa;
 	min-height: 100vh;
-	padding-bottom: 80px; /* Отступ для нижнего меню навигации */
+	padding-bottom: 80px;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -75,7 +75,6 @@ h2 {
 	font-size: 14px;
 }
 
-/* Навыки */
 .skills-list {
 	display: flex;
 	flex-wrap: wrap;
@@ -92,7 +91,6 @@ h2 {
 	box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
-/* GitHub Статистика (Сетка 2x3 или 3x2) */
 .stats-grid {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
@@ -127,7 +125,6 @@ h2 {
 	color: #333;
 }
 
-/* Карточка О себе */
 .about-card {
 	background: white;
 	padding: 15px;
@@ -138,7 +135,6 @@ h2 {
 	color: #555;
 }
 
-/* Достижения (Ряд) */
 .achievements-row {
 	display: flex;
 	gap: 10px;
