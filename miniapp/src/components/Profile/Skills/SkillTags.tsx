@@ -1,22 +1,18 @@
-﻿import React from 'react';
+﻿import { Section } from "../../ui/Section";
+import type {Skill} from "../../../types/api.ts";
+import {Badge} from "../../ui/Badge.tsx";
 
-interface SkillsProps {
-    skills: string[];
-}
 
-export const SkillTags: React.FC<SkillsProps> = ({ skills }) => {
+export function SkillsList({ skills }: { skills: Skill[] }) {
     return (
-        <section className="profile-section">
-            <div className="section-header">
-                <h2>Навыки</h2>
+        <Section title="Навыки">
+            <div className="flex flex-wrap justify-center gap-2">
+                {skills.length > 0 ? (
+                    skills.map(skill => <Badge key={skill.id}>{skill.name}</Badge>)
+                ) : (
+                    <span className="text-sm text-slate-400">Нет навыков</span>
+                )}
             </div>
-            <div className="skills-list">
-                {skills.map((skill, index) => (
-                    <span key={index} className="skill-tag">
-                        {skill}
-                    </span>
-                ))}
-            </div>
-        </section>
-    );
-};
+        </Section>
+    )
+}

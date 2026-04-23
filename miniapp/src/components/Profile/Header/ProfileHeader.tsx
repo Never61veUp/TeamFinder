@@ -3,7 +3,7 @@ import React from 'react';
 interface HeaderProps {
     name: string;
     username: string;
-    avatarUrl?: string;
+    avatarUrl?: string | null;
 }
 
 export const ProfileHeader: React.FC<HeaderProps> = ({ name, username, avatarUrl }) => {

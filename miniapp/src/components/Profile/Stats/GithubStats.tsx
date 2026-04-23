@@ -1,32 +1,41 @@
-﻿import React from 'react';
-import type { UserProfile } from '../../../types/profile';
+﻿import {Section} from "../../ui/Section.tsx";
+import type {GithubInfo} from "../../../types/api.ts";
+import {Button} from "../../ui/Button.tsx";
 
-interface GithubStatsProps {
-    stats: UserProfile['githubStats'];
+
+interface GithubStatsSectionProps {
+    githubInfo?: GithubInfo | null
+    isConnecting?: boolean
+    onConnect: () => void
 }
 
-export const GithubStats: React.FC<GithubStatsProps> = ({ stats }) => {
-    const statCards = [
-        { label: 'Repositories', value: stats.repositories, icon: '📁' },
-        { label: 'Stars', value: stats.stars, icon: '⭐' },
-        { label: 'Pull Requests', value: stats.pullRequests, icon: '🔀' },
-        { label: 'Top Language', value: stats.topLanguage, icon: '💻' },
-        { label: 'Issues', value: stats.issues, icon: '❗' },
-        { label: 'Followers', value: stats.followers, icon: '👥' },
-    ];
+export function GithubStatsSection({ githubInfo, isConnecting, onConnect }: GithubStatsSectionProps) {
+    if (!githubInfo) {
+        return (
+            <Section title="GitHub">
+                <Button variant="secondary" isLoading={isConnecting} onClick={onConnect} className="w-full">
+                    Подключить GitHub
+                </Button>
+            </Section>
+        )
+    }
+
+    const stats = [
+        { label: 'Repos', value: githubInfo.repositoriesCount },
+        { label: 'Stars', value: githubInfo.totalStars },
+        { label: 'Top', value: githubInfo.topLanguage || 'N/A' },
+    ]
 
     return (
-        <section className="profile-section">
-            <h2>GitHub Статистика</h2>
-            <div className="stats-grid">
-                {statCards.map((stat, index) => (
-                    <div key={index} className="stat-card">
-                        <span className="stat-icon">{stat.icon}</span>
-                        <span className="stat-label">{stat.label}</span>
-                        <span className="stat-value">{stat.value}</span>
+        <Section title="GitHub">
+            <div className="grid grid-cols-3 gap-2">
+                {stats.map(stat => (
+                    <div key={stat.label} className="flex flex-col items-center rounded-xl bg-white p-3 shadow-sm">
+                        <span className="text-xs text-slate-500">{stat.label}</span>
+                        <span className="font-bold text-slate-900">{stat.value}</span>
                     </div>
                 ))}
             </div>
-        </section>
-    );
-};
+        </Section>
+    )
+}

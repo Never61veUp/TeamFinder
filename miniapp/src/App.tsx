@@ -1,16 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { getMe, telegramLogin, type TelegramUser } from './api'
 import { ProfilePage } from './components/Profile/ProfilePage'
 import { Navigation } from './components/Navigation/Navigation'
 import './style.css'
-
-function getTelegramInitData(): string {
-    return window.Telegram?.WebApp?.initData ?? ''
-}
+import type {TelegramUser} from "./types/api.ts";
+import {authService} from "./services";
 
 function App() {
-    const initData = useMemo(() => getTelegramInitData(), [])
+    const initData = window.Telegram?.WebApp?.initData ?? ''
     const [token, setToken] = useState<string>(() => localStorage.getItem('jwt') ?? '')
     const [me, setMe] = useState<TelegramUser | null>(null)
     const [error, setError] = useState<string>('')
@@ -27,9 +24,10 @@ function App() {
         if (!token) return
         let cancelled = false
         setError('')
-        getMe(token)
+        authService.getMe()
             .then((u) => {
                 if (!cancelled) setMe(u)
+                console.log(u);
             })
             .catch((e: unknown) => {
                 if (!cancelled) {
@@ -45,28 +43,32 @@ function App() {
     async function onLogin() {
         // ТЕСТОВЫЙ РЕЖИМ: Если запустили приложение в браузере (нет initData от Telegram)
         if (!initData) {
-            setMe({
-                id: 12345,
-                firstName: 'Александр',
-                lastName: 'Петров',
-                username: 'alexander_test',
-                photoUrl: '' 
-            } as never); // "as never" временно заглушит ошибки TypeScript из-за отсутствия некоторых полей
-            return;
+            try {
+                const data = await authService.loginDev()
+                localStorage.setItem('jwt', data.token)
+                setToken(data.token)
+            } catch (e: unknown) {
+                setError(e instanceof Error ? e.message : 'Unknown error')
+            } finally {
+                setBusy(false)
+            }
+
+        }else {
+            setError('')
+            try {
+                const data = await authService.loginWithTelegram(initData)
+                localStorage.setItem('jwt', data.token)
+                setToken(data.token)
+            } catch (e: unknown) {
+                setError(e instanceof Error ? e.message : 'Unknown error')
+            } finally {
+                setBusy(false)
+            }
         }
 
         // РЕАЛЬНЫЙ РЕЖИМ: Если мы в Telegram
-        setBusy(true)
-        setError('')
-        try {
-            const data = await telegramLogin(initData)
-            localStorage.setItem('jwt', data.token)
-            setToken(data.token)
-        } catch (e: unknown) {
-            setError(e instanceof Error ? e.message : 'Unknown error')
-        } finally {
-            setBusy(false)
-        }
+
+
     }
 
     //БУДЕТ ИСПОЛЬЗОВАТЬ НО ОТКЛЮЧИЛ ДЛЯ ТЕСТА
