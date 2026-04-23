@@ -11,6 +11,7 @@ declare global {
         close: () => void
         platform?: string
         version?: string
+        openLink: (url: string) => void
         colorScheme?: 'light' | 'dark'
       }
     }
