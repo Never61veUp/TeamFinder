@@ -12,7 +12,6 @@ public interface ISkillService
     Task<Result> AddSkill(string name);
     Task<Result<List<Skill>>> GetParents(Guid skillId);
     Task<Result<List<Skill>>> GetChildren(Guid skillId);
-    Task<Result<List<string>>> GetSkillsTreeDev();
 }
 
 public class SkillService : ISkillService
@@ -66,10 +65,6 @@ public class SkillService : ISkillService
         
         return Result.Success(result);
     }
-
-    public async Task<Result<List<string>>> GetSkillsTreeDev()
-    {
-        return await _skillRepository.GetSkillTreeDev();
-    }
+    
     
 }

@@ -12,5 +12,4 @@ public interface ISkillRepository
     Task<Result<SkillEntity>> GetSkillById(Guid skillId);
     Task<Result<List<SkillEntity>>> GetAllParents(Guid skillId);
     Task<Result<List<SkillEntity>>> GetAllChildren(Guid skillId);
-    Task<List<string>> GetSkillTreeDev();
 }
