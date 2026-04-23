@@ -45,7 +45,7 @@ public class GitHubContreoller : ControllerBase
         var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={githubClientId}&state={profileGuid}";
         if (bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
             return Ok(redirectUrl);
-        return Redirect(redirectUrl);
+        return Ok(new { redirectUrl });
     }
     /// <summary>
     /// Обрабатывает callback от GitHub после успешной авторизации пользователя.
