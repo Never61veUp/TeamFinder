@@ -43,7 +43,7 @@ public class GitHubContreoller : ControllerBase
         if(!Guid.TryParse(profileId, out var profileGuid))
             return BadRequest("Invalid profile ID.");
         var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={githubClientId}&state={profileGuid}";
-        return Ok(new { redirectUrl });
+        return Ok(new { url = redirectUrl });
     }
     /// <summary>
     /// Обрабатывает callback от GitHub после успешной авторизации пользователя.
