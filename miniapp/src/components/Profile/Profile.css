@@ -56,16 +56,15 @@
 }
 
 .section-header {
-	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 10px;
 }
 
 h2 {
-	font-size: 18px;
+	font-size: 30px;
 	margin: 0 0 15px 0;
-	color: #333;
+	color: #333333;
 }
 
 .edit-btn {
@@ -78,17 +77,22 @@ h2 {
 .skills-list {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 10px;
+	gap: 12px;
+	justify-content: center;
+	width: 100%;
 }
 
 .skill-tag {
 	background: white;
-	border: 1px solid #eaeaea;
-	padding: 8px 16px;
-	border-radius: 20px;
-	font-size: 14px;
-	color: #555;
-	box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+	border: 1px solid #f0f0f0;
+	padding: 10px 20px;
+	border-radius: 16px;
+	font-size: 18px;
+	color: #4a4a4a;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
+	transition: all 0.2s ease;
+	min-width: 80px;
+	text-align: center;
 }
 
 .stats-grid {
@@ -102,7 +106,7 @@ h2 {
 	padding: 15px 10px;
 	border-radius: 12px;
 	text-align: center;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	box-shadow: 0 2px 8px rgba(0,0,0,0.09);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -129,8 +133,8 @@ h2 {
 	background: white;
 	padding: 15px;
 	border-radius: 12px;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-	font-size: 14px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+	font-size: 18px;
 	line-height: 1.5;
 	color: #555;
 }
@@ -147,18 +151,19 @@ h2 {
 	padding: 15px 0;
 	border-radius: 12px;
 	text-align: center;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+	box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+	margin-bottom: 25px;
 }
 
 .achievement-value {
 	display: block;
-	font-size: 22px;
+	font-size: 24px;
 	font-weight: bold;
-	color: #8b5cf6;
+	color: #9333ea;
 	margin-bottom: 5px;
 }
 
 .achievement-label {
-	font-size: 12px;
+	font-size: 16px;
 	color: #666;
 }

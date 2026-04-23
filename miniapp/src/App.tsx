@@ -9,7 +9,7 @@ function getTelegramInitData(): string {
     return window.Telegram?.WebApp?.initData ?? ''
 }
 
-export function App() {
+function App() {
     const initData = useMemo(() => getTelegramInitData(), [])
     const [token, setToken] = useState<string>(() => localStorage.getItem('jwt') ?? '')
     const [me, setMe] = useState<TelegramUser | null>(null)
@@ -153,3 +153,5 @@ export function App() {
         </Router>
     )
 }
+
+export default App

@@ -9,7 +9,6 @@ export const SkillTags: React.FC<SkillsProps> = ({ skills }) => {
         <section className="profile-section">
             <div className="section-header">
                 <h2>Навыки</h2>
-                <button className="edit-btn">✎ Редактировать</button>
             </div>
             <div className="skills-list">
                 {skills.map((skill, index) => (

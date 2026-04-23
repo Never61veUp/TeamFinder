@@ -27,3 +27,12 @@ export async function getMe(token: string): Promise<TelegramUser> {
   return (await res.json()) as TelegramUser
 }
 
+export const profileApi = {
+  getSkills: (profileId: number) =>
+      fetch(`/api/profiles/${profileId}/skills`).then(res => res.json()),
+
+  connectGithub: () => {
+    window.location.href = `${window.location.origin}/api/github/login`;
+  }
+};
+
