@@ -101,4 +101,40 @@ public class SkillRepository : ISkillRepository
 
         return Result.Success(children);
     }
+    public async Task<List<string>> GetSkillTreeDev()
+    {
+        var paths = await _context.Database
+            .SqlQuery<string>($"""
+                                   WITH RECURSIVE tree AS (
+                                       SELECT
+                                           s."Id",
+                                           s."Name",
+                                           s."Id" as root_id,
+                                           s."Name"::text as path
+                                       FROM skills s
+                                       WHERE NOT EXISTS (
+                                           SELECT 1
+                                           FROM skill_closure sc
+                                           WHERE sc."DescendantId" = s."Id"
+                                             AND sc."Depth" = 1
+                                       )
+
+                                       UNION ALL
+
+                                       SELECT
+                                           child."Id",
+                                           child."Name",
+                                           t.root_id,
+                                           t.path || ' -> ' || child."Name"
+                                       FROM tree t
+                                       JOIN skill_closure sc
+                                           ON sc."AncestorId" = t."Id" AND sc."Depth" = 1
+                                       JOIN skills child
+                                           ON child."Id" = sc."DescendantId"
+                                   )
+                                   SELECT path FROM tree;
+                               """)
+            .ToListAsync();
+        return paths;
+    }
 }
