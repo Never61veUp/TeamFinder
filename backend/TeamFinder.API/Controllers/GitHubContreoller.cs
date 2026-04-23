@@ -7,14 +7,14 @@ namespace TeamFinder.API.Controllers;
 [Route("api/github")]
 public class GitHubContreoller : ControllerBase
 {
-    private readonly IGitHubServiceExternal _serviceExternal;
     private readonly IConfiguration _config;
-    private readonly IGitHubServiceExternal _githubServiceExternal;
     private readonly IGithubService _githubAppService;
+    private readonly IGitHubServiceExternal _githubServiceExternal;
     private readonly IProfileService _profileService;
+    private readonly IGitHubServiceExternal _serviceExternal;
 
-    public GitHubContreoller(IGitHubServiceExternal serviceExternal, 
-        IConfiguration config, IGitHubServiceExternal githubServiceExternal, 
+    public GitHubContreoller(IGitHubServiceExternal serviceExternal,
+        IConfiguration config, IGitHubServiceExternal githubServiceExternal,
         IGithubService githubAppService, IProfileService profileService)
     {
         _serviceExternal = serviceExternal;
@@ -23,15 +23,15 @@ public class GitHubContreoller : ControllerBase
         _githubAppService = githubAppService;
         _profileService = profileService;
     }
-    
+
     /// <summary>
-    /// Инициирует процесс авторизации через GitHub.
+    ///     Инициирует процесс авторизации через GitHub.
     /// </summary>
     /// <remarks>
-    /// Клиент должен быть уже авторизован
-    /// в системе (например, через Telegram), и у него должен быть действующий JWT. Сервер проверит JWT,
-    /// извлечет из него ID профиля, и сформирует URL для перенаправления пользователя на страницу авторизации GitHub.
-    /// Клиент должен будет открыть этот URL, пройти авторизацию
+    ///     Клиент должен быть уже авторизован
+    ///     в системе (например, через Telegram), и у него должен быть действующий JWT. Сервер проверит JWT,
+    ///     извлечет из него ID профиля, и сформирует URL для перенаправления пользователя на страницу авторизации GitHub.
+    ///     Клиент должен будет открыть этот URL, пройти авторизацию
     /// </remarks>
     [HttpGet("login")]
     public IActionResult Login()
@@ -40,21 +40,24 @@ public class GitHubContreoller : ControllerBase
         if (string.IsNullOrWhiteSpace(githubClientId))
             return NotFound();
         var profileId = User.FindFirst("profile:id")?.Value;
-        if(!Guid.TryParse(profileId, out var profileGuid))
+        if (!Guid.TryParse(profileId, out var profileGuid))
             return BadRequest("Invalid profile ID.");
         var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={githubClientId}&state={profileGuid}";
         return Ok(new { url = redirectUrl });
     }
+
     /// <summary>
-    /// Обрабатывает callback от GitHub после успешной авторизации пользователя.
+    ///     Обрабатывает callback от GitHub после успешной авторизации пользователя.
     /// </summary>
     /// <remarks>
-    /// GitHub перенаправит пользователя на этот URL,
-    /// передав в query параметры code и state. Сервер должен будет использовать code для получения access token от GitHub,
-    /// а state использовать для извлечения ID профиля. Затем сервер должен будет получить информацию о пользователе из GitHub,
-    /// создать или обновить запись в базе данных, связывающую профиль с GitHub аккаунтом, и вернуть успешный ответ клиенту.
-    /// Если на любом этапе возникнет ошибка (например, не удастся получить access token или информацию о пользователе),
-    /// сервер должен вернуть соответствующий код ошибки и сообщение.
+    ///     GitHub перенаправит пользователя на этот URL,
+    ///     передав в query параметры code и state. Сервер должен будет использовать code для получения access token от GitHub,
+    ///     а state использовать для извлечения ID профиля. Затем сервер должен будет получить информацию о пользователе из
+    ///     GitHub,
+    ///     создать или обновить запись в базе данных, связывающую профиль с GitHub аккаунтом, и вернуть успешный ответ
+    ///     клиенту.
+    ///     Если на любом этапе возникнет ошибка (например, не удастся получить access token или информацию о пользователе),
+    ///     сервер должен вернуть соответствующий код ошибки и сообщение.
     /// </remarks>
     [HttpGet("callback")]
     public async Task<IActionResult> Callback(string code, string state)
@@ -70,9 +73,9 @@ public class GitHubContreoller : ControllerBase
 
         var githubId = root.GetProperty("id").ToString();
         var username = root.GetProperty("login").GetString();
-        
+
         var profileId = Guid.Parse(state);
-        
+
         var githubInfoResult = await _githubAppService
             .CreateGithubInfo(githubId, username, accessToken);
 
@@ -87,5 +90,4 @@ public class GitHubContreoller : ControllerBase
 
         return Ok();
     }
-    
 }

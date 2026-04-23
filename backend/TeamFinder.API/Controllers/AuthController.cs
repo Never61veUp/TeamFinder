@@ -9,11 +9,11 @@ namespace TeamFinder.API.Controllers;
 [Route("api")]
 public class AuthController : ControllerBase
 {
-    private readonly TelegramWebAppValidator _validator;
-    private readonly JwtTokenService _jwt;
     private readonly IConfiguration _config;
-    private readonly IProfileService _profileService;
+    private readonly JwtTokenService _jwt;
     private readonly ILogger<AuthController> _log;
+    private readonly IProfileService _profileService;
+    private readonly TelegramWebAppValidator _validator;
 
     public AuthController(
         TelegramWebAppValidator validator,
@@ -29,13 +29,13 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Авторизация через Telegram Web App.
+    ///     Авторизация через Telegram Web App.
     /// </summary>
     /// <remarks>
-    /// Клиент должен передать initData,
-    /// полученные от Telegram при открытии Web App.
-    /// Сервер проверит их валидность и выдаст JWT,
-    /// который клиент будет использовать для авторизации в дальнейшем.
+    ///     Клиент должен передать initData,
+    ///     полученные от Telegram при открытии Web App.
+    ///     Сервер проверит их валидность и выдаст JWT,
+    ///     который клиент будет использовать для авторизации в дальнейшем.
     /// </remarks>
     [HttpPost("auth/telegram")]
     [AllowAnonymous]
@@ -46,11 +46,11 @@ public class AuthController : ControllerBase
             return Problem("Missing TELEGRAM_BOT_TOKEN environment variable.", statusCode: 500);
 
         var result = _validator.ValidateInitData(body.InitData, botToken);
-        
+
         var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.FirstName);
-        if(profile.IsFailure)
+        if (profile.IsFailure)
             return Problem(profile.Error, statusCode: 500);
-        
+
         if (!result.IsValid || result.User is null)
         {
             var initDataLen = body.InitData?.Length ?? 0;
@@ -62,15 +62,16 @@ public class AuthController : ControllerBase
         }
 
         var token = _jwt.CreateToken(profile.Value.Id, result.User, _config);
-        
+
         return Ok(new TelegramAuthResponse(token, result.User));
     }
+
     /// <summary>
-    /// Авторизация для разработки. 
+    ///     Авторизация для разработки.
     /// </summary>
     /// <remarks>Позволяет получить JWT для любого Telegram ID, указав его в теле запроса.</remarks>
     /// <param name="tgId">
-    /// Telegram ID пользователя. Используется только в dev-режиме.
+    ///     Telegram ID пользователя. Используется только в dev-режиме.
     /// </param>
     [HttpPost("auth/dev")]
     [AllowAnonymous]
@@ -78,18 +79,19 @@ public class AuthController : ControllerBase
     {
         if (!bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
             return NotFound();
-        
+
         var profile = await _profileService.CreateOrGetByTgId(tgId, "Dev");
-        if(profile.IsFailure)
+        if (profile.IsFailure)
             return Problem(profile.Error, statusCode: 500);
-        
-        var user = new TelegramWebAppUser(tgId, "Dev","Dev", "dev_user", "ru", false);
+
+        var user = new TelegramWebAppUser(tgId, "Dev", "Dev", "dev_user", "ru", false);
         var token = _jwt.CreateToken(profile.Value.Id, user, _config);
-        
+
         return Ok(new TelegramAuthResponse(token, user));
     }
+
     /// <summary>
-    /// Эндпоинт для проверки работоспособности авторизации.
+    ///     Эндпоинт для проверки работоспособности авторизации.
     /// </summary>
     /// <remarks> Требует JWT в заголовке Authorization.</remarks>
     [HttpGet("me")]
@@ -111,11 +113,16 @@ public class AuthController : ControllerBase
             lastName
         });
     }
+
     /// <summary>
-    /// Эндпоинт для отладки. 
+    ///     Эндпоинт для отладки.
     /// </summary>
-    /// <remarks>Возвращает информацию о JWT, который был отправлен в заголовке Authorization, а также параметры, используемые для его генерации.
-    /// Не использовать в продакшене, так как может раскрывать чувствительную информацию. Доступен только при включенной разработческой авторизации.</remarks>
+    /// <remarks>
+    ///     Возвращает информацию о JWT, который был отправлен в заголовке Authorization, а также параметры, используемые для
+    ///     его генерации.
+    ///     Не использовать в продакшене, так как может раскрывать чувствительную информацию. Доступен только при включенной
+    ///     разработческой авторизации.
+    /// </remarks>
     [HttpGet("debug-token")]
     public IActionResult DebugToken()
     {

@@ -14,7 +14,7 @@ public sealed class TelegramWebAppValidator
     {
         if (string.IsNullOrWhiteSpace(initData))
             return new TelegramValidationResult(false, null, "initData_missing");
-        
+
         Dictionary<string, string> kv;
         try
         {
@@ -52,12 +52,12 @@ public sealed class TelegramWebAppValidator
                 return new TelegramValidationResult(false, null, "user_id_missing");
 
             user = new TelegramWebAppUser(
-                TgId: id,
-                Username: root.TryGetProperty("username", out var u) ? u.GetString() : null,
-                FirstName: root.TryGetProperty("first_name", out var fn) ? fn.GetString() : null,
-                LastName: root.TryGetProperty("last_name", out var ln) ? ln.GetString() : null,
-                LanguageCode: root.TryGetProperty("language_code", out var lc) ? lc.GetString() : null,
-                IsPremium: root.TryGetProperty("is_premium", out var ip) ? ip.GetBoolean() : null
+                id,
+                root.TryGetProperty("username", out var u) ? u.GetString() : null,
+                root.TryGetProperty("first_name", out var fn) ? fn.GetString() : null,
+                root.TryGetProperty("last_name", out var ln) ? ln.GetString() : null,
+                root.TryGetProperty("language_code", out var lc) ? lc.GetString() : null,
+                root.TryGetProperty("is_premium", out var ip) ? ip.GetBoolean() : null
             );
         }
         catch
@@ -112,7 +112,7 @@ public sealed class TelegramWebAppValidator
     private static Dictionary<string, string> ParseQueryString(string query)
     {
         query = query.TrimStart('?');
-        
+
         var parsed = QueryHelpers.ParseQuery(query);
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (key, values) in parsed)

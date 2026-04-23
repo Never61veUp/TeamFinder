@@ -1,11 +1,13 @@
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.HttpOverrides;
+using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using TeamFinder.API.Security;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.DataProtection;
-using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
 using TeamFinder.Application.Services;
 using TeamFinder.Postgresql;
 using TeamFinder.Postgresql.Repositories;
@@ -21,7 +23,7 @@ builder.Logging.AddConsole();
     try
     {
         // Ensure directory exists
-        var dir = new System.IO.DirectoryInfo(keysFolder);
+        var dir = new DirectoryInfo(keysFolder);
         if (!dir.Exists) dir.Create();
 
         var dpBuilder = builder.Services.AddDataProtection()
@@ -31,7 +33,6 @@ builder.Logging.AddConsole();
         // Optionally protect keys with a PFX certificate (path inside container or mounted secret)
         var pfxPath = builder.Configuration["DP_PROTECT_PFX_PATH"];
         if (!string.IsNullOrWhiteSpace(pfxPath))
-        {
             try
             {
                 var pfxPassword = builder.Configuration["DP_PROTECT_PFX_PASSWORD"];
@@ -46,7 +47,6 @@ builder.Logging.AddConsole();
                 // If certificate loading fails, continue but warn (do not throw to avoid killing startup)
                 Console.WriteLine($"Warning: failed to load DP protection certificate: {ex.Message}");
             }
-        }
     }
     catch (Exception ex)
     {
@@ -61,10 +61,7 @@ builder.Logging.AddConsole();
 
 var connectionString = builder.Configuration.GetConnectionString("Postgres");
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseNpgsql(connectionString);
-});
+builder.Services.AddDbContext<AppDbContext>(options => { options.UseNpgsql(connectionString); });
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -86,7 +83,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services
-    .AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         var issuer = builder.Configuration["JWT_ISSUER"] ?? "MiniApp";
@@ -95,7 +92,7 @@ builder.Services
         if (string.IsNullOrWhiteSpace(key))
             throw new InvalidOperationException("Missing JWT signing key. Set environment variable JWT_KEY.");
 
-        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
@@ -103,9 +100,9 @@ builder.Services
             ValidateLifetime = true,
             ValidIssuer = issuer,
             ValidAudience = audience,
-            IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(
-                System.Text.Encoding.UTF8.GetBytes(key)),
-            RoleClaimType = ClaimTypes.Role,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(key)),
+            RoleClaimType = ClaimTypes.Role
         };
     });
 
@@ -116,6 +113,8 @@ builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<IGithubService, GithubService>();
+builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddHttpClient<IGitHubServiceExternal, GitHubServiceExternal>(client =>
 {
     client.DefaultRequestHeaders.UserAgent.Add(
@@ -149,8 +148,8 @@ app.UseHttpsRedirection();
 
 if (app.Environment.IsDevelopment())
 {
-    
 }
+
 app.UseCors(app.Environment.IsDevelopment() ? "cors-dev" : "cors-prod");
 
 app.UseAuthentication();

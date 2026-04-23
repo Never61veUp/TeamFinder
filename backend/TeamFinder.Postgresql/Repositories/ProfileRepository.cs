@@ -44,13 +44,13 @@ public class ProfileRepository : IProfileRepository
         await _context.Profiles.AddAsync(profile);
         await _context.SaveChangesAsync();
     }
-    
+
     public async Task<Result> Update(ProfileEntity profile)
     {
         _context.Profiles.Update(profile);
         return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to update profile");
     }
-    
+
     public async Task<List<ProfileEntity>> GetProfilesBySkillAsync(Guid ancestorSkillId)
     {
         var query =
@@ -63,7 +63,7 @@ public class ProfileRepository : IProfileRepository
         var test = await _context.SkillClosures
             .Where(x => x.AncestorId == ancestorSkillId)
             .ToListAsync();
-        
+
         var users = await query
             .Distinct()
             .Include(p => p.Skills)
@@ -71,18 +71,20 @@ public class ProfileRepository : IProfileRepository
             .ToListAsync();
         return users;
     }
-    
+
     public async Task<Result> ConnectGithubInfo(Guid profileId, GithubEntity githubInfo)
     {
         var profile = await _context.Profiles.FindAsync(profileId);
         if (profile == null)
             return Result.Failure("Profile not found");
-        
+
         profile.GithubInfo = githubInfo;
         _context.Profiles.Update(profile);
-        return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to connect Github info");
+        return await _context.SaveChangesAsync() > 0
+            ? Result.Success()
+            : Result.Failure("Failed to connect Github info");
     }
-    
+
     public async Task<Result<ProfileEntity>> GetByTgId(long tgId)
     {
         var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.TgId == tgId);
@@ -90,7 +92,7 @@ public class ProfileRepository : IProfileRepository
             return Result.Failure<ProfileEntity>("Profile not found");
         return Result.Success(profile);
     }
-    
+
     public async Task<ProfileEntity?> GetWithGithubStatsById(Guid id)
     {
         return await _context.Profiles

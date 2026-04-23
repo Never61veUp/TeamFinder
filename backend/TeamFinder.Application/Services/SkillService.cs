@@ -12,6 +12,7 @@ public interface ISkillService
     Task<Result> AddSkill(string name);
     Task<Result<List<Skill>>> GetParents(Guid skillId);
     Task<Result<List<Skill>>> GetChildren(Guid skillId);
+    Task<Result<List<string>>> GetSkillsTreeDev();
 }
 
 public class SkillService : ISkillService
@@ -33,17 +34,17 @@ public class SkillService : ISkillService
         var result = await _skillRepository.AddRelation(parentId, childId, weight);
         if (result.IsFailure)
             return Result.Failure(result.Error);
-        
+
         return Result.Success();
     }
-    
+
     public Task<Result> AddSkill(string name)
     {
         var skill = Skill.Create(Guid.NewGuid(), name);
         var skillEntity = skill.ToEntity();
         return _skillRepository.AddSkill(skillEntity);
     }
-    
+
     public async Task<Result<List<Skill>>> GetParents(Guid skillId)
     {
         var parents = await _skillRepository.GetAllParents(skillId);
@@ -51,20 +52,23 @@ public class SkillService : ISkillService
             return Result.Failure<List<Skill>>(parents.Error);
 
         var result = parents.Value.Select(p => p.ToDomain()).ToList();
-        
+
         return Result.Success(result);
     }
-    
+
     public async Task<Result<List<Skill>>> GetChildren(Guid skillId)
     {
         var children = await _skillRepository.GetAllChildren(skillId);
         if (children.IsFailure)
             return Result.Failure<List<Skill>>(children.Error);
-        
+
         var result = children.Value.Select(c => c.ToDomain()).ToList();
-        
+
         return Result.Success(result);
     }
-    
-    
+
+    public async Task<Result<List<string>>> GetSkillsTreeDev()
+    {
+        return await _skillRepository.GetSkillTreeDev();
+    }
 }

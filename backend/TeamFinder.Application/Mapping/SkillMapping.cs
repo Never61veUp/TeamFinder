@@ -6,12 +6,16 @@ namespace TeamFinder.Application.Services;
 public static class SkillMapping
 {
     public static Skill ToDomain(this SkillEntity entity)
-        => Skill.Create(entity.Id, entity.Name);
+    {
+        return Skill.Create(entity.Id, entity.Name);
+    }
 
     public static SkillEntity ToEntity(this Skill domain)
-        => new SkillEntity
+    {
+        return new SkillEntity
         {
             Id = domain.Id,
             Name = domain.Name
         };
+    }
 }
