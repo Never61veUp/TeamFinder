@@ -10,6 +10,7 @@ import { SkillsList } from "./Skills/SkillTags";
 import './profile.css';
 import { profileService } from '../../services';
 
+
 const HARD_SKILLS: string[] = [
     'JavaScript','TypeScript','React','Redux','Next.js','Node.js','Express','NestJS',
     'HTML','CSS','Sass','Tailwind CSS','Webpack','Vite','Babel','GraphQL','REST',

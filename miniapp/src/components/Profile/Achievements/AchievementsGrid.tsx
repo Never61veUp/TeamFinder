@@ -22,7 +22,7 @@ export const AchievementsGrid: React.FC<AchievementsProps> = ({ achievements, is
     if (isEditing) {
         return (
             <div className="w-full text-left bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                <label className="text-[16px] text-gray-400 font-black uppercase mb-4 block tracking-widest text-center">
+                <label className="text-[16px] text-[#303160] font-black uppercase mb-4 block tracking-widest text-center">
                     Достижения
                 </label>
                 <div className="flex flex-col gap-4">
