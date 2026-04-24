@@ -22,7 +22,7 @@ public class TeamService : ITeamService
 
     public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers)
     {
-        var team = Team.Create(ownerId, name, maxMembers);
+        var team = Team.Create(Guid.NewGuid(), ownerId, [], name, maxMembers);
         if (team.IsFailure)
             return Result.Failure(team.Error);
         return await _repository.SaveTeam(team.Value.MapToEntity());
@@ -30,20 +30,6 @@ public class TeamService : ITeamService
 
     public async Task<Result<Guid>> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
     {
-        var teamResult = await _repository.GetById(teamId);
-        if (teamResult.IsFailure)
-            return Result.Failure<Guid>(teamResult.Error);
-
-        var team = teamResult.Value.MapToDomain();
-        var inviteResult = team.SendInvitation(inviterId, inviteeId);
-        if (inviteResult.IsFailure)
-            return Result.Failure<Guid>(inviteResult.Error);
-
-        var invitationId = inviteResult.Value;
-        var saveResult = await _repository.SaveTeam(team.MapToEntity());
-        if (saveResult.IsFailure)
-            return Result.Failure<Guid>(saveResult.Error);
-
-        return Result.Success(invitationId);
+        throw new NotImplementedException();
     }
 }
