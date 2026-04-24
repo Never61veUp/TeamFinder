@@ -24,6 +24,15 @@ public class Invitation : Entity<Guid>
 
         return new Invitation(id, inviteeId, invitedBy, expiresAt);
     }
+    
+    public static Invitation Restore(Guid id, Guid inviteeId, Guid invitedBy, InvitationStatus status, DateTime? expiresAt)
+    {
+        var invitation = new Invitation(id, inviteeId, invitedBy, expiresAt)
+        {
+            Status = status
+        };
+        return invitation;
+    }
 
     public Result Accept()
     {
