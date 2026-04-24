@@ -26,8 +26,16 @@ class HttpClient {
         })
 
         if (!response.ok) {
-            const text = await response.text()
-            throw new Error(text || `Request failed: ${response.status}`)
+            const text = await response.text();
+            let parsed;
+            try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
+            const message = parsed?.message || parsed || `Request failed: ${response.status}`;
+            const err: any = new Error(message);
+            err.status = response.status;
+            err.data = parsed;
+            console.error('HTTP error', { url: `${this.baseUrl}${endpoint}`, status: response.status, body: parsed });
+            throw err;
+
         }
 
         const contentType = response.headers.get('content-type')

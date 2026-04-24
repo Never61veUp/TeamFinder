@@ -1,4 +1,5 @@
 import React from 'react';
+import '../profile.css';
 
 interface AchievementsProps {
     achievements: {

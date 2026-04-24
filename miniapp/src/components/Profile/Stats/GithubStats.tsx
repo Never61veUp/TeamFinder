@@ -1,7 +1,7 @@
 ﻿import {Section} from "../../ui/Section.tsx";
 import type {GithubInfo} from "../../../types/api.ts";
 import {Button} from "../../ui/Button.tsx";
-
+import '../profile.css';
 
 interface GithubStatsSectionProps {
     githubInfo?: GithubInfo | null
@@ -30,9 +30,9 @@ export function GithubStatsSection({ githubInfo, isConnecting, onConnect }: Gith
         <Section title="GitHub">
             <div className="grid grid-cols-3 gap-2">
                 {stats.map(stat => (
-                    <div key={stat.label} className="flex flex-col items-center rounded-xl bg-white p-3 shadow-sm">
-                        <span className="text-xs text-slate-500">{stat.label}</span>
-                        <span className="font-bold text-slate-900">{stat.value}</span>
+                    <div key={stat.label} className="flex flex-col items-center rounded-xl bg-gray-50 p-3 shadow-sm">
+                        <span className="text-xs text-black">{stat.label}</span>
+                        <span className="font-bold text-black">{stat.value}</span>
                     </div>
                 ))}
             </div>
