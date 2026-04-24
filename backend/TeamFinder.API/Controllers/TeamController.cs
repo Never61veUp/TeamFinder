@@ -27,5 +27,19 @@ public class TeamController : ControllerBase
             return BadRequest(result.Error);
         return Ok();
     }
+    
+    [HttpPost("/invite")]
+    public async Task<IActionResult> InviteProfile(InviteProfileRequest request)
+    {
+        var profileId = User.FindFirst("profile:id")?.Value;
+        if(!Guid.TryParse(profileId, out var profileGuid))
+            return Unauthorized();
+        
+        var result = await _teamService.InviteProfile(request.TeamId, profileGuid, request.InviteeId);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+        return Ok();
+    }
 }
 public record CreateTeamRequest(string TeamName, int MaxMembers);
+public record InviteProfileRequest(Guid TeamId, Guid InviteeId);

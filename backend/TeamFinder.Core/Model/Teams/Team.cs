@@ -6,28 +6,30 @@ public class Team : Entity<Guid>
 {
     private readonly List<Invitation> _invitations = [];
     private readonly List<Guid> _joinRequests = [];
-    private readonly List<Guid> _members = [];
+    private readonly List<Guid> _members;
     private readonly List<WantedProfile> _wantedProfiles = [];
 
-    private Team()
+    private Team(Guid id, Guid ownerId, string name, List<Guid> members, int maxMembers) : base(id)
     {
+        Name = name;
+        OwnerId = ownerId;
+        _members = members;
+        MaxMembers = maxMembers;
     }
 
     public string Name { get; private set; }
     public Guid OwnerId { get; private set; }
     public IReadOnlyList<Guid> Members => _members.AsReadOnly();
-    public int MaxMembers { get; private set; }
+    public int MaxMembers { get; }
     public IReadOnlyList<WantedProfile> WantedProfiles => _wantedProfiles.AsReadOnly();
     public IReadOnlyList<Guid> JoinRequests => _joinRequests.AsReadOnly();
     public IReadOnlyList<Invitation> Invitations => _invitations.AsReadOnly();
 
-    public bool IsFull()
-    {
-        return _members.Count >= MaxMembers;
-    }
+    public bool IsFull() => _members.Count >= MaxMembers;
 
-    public static Result<Team> Create(Guid ownerId, string name, int maxMembers,
-        IEnumerable<WantedProfile>? wantedProfiles = null)
+    public static Result<Team> Create(Guid id, Guid ownerId, List<Guid> members, string name, int maxMembers,
+        List<WantedProfile>? wantedProfiles = null, List<Invitation>? invitations = null,
+        List<Guid>? joinRequests = null)
     {
         if (ownerId == Guid.Empty)
             return Result.Failure<Team>("OwnerId is required");
@@ -35,19 +37,22 @@ public class Team : Entity<Guid>
             return Result.Failure<Team>("Name is required");
         if (maxMembers <= 0)
             return Result.Failure<Team>("MaxMembers must be > 0");
+        if (members.Count > maxMembers)
+            return Result.Failure<Team>("Members exceed maxMembers");
 
-        var team = new Team
-        {
-            Id = Guid.NewGuid(),
-            OwnerId = ownerId,
-            Name = name.Trim(),
-            MaxMembers = maxMembers
-        };
+        var normalizedMembers = members.Distinct().ToList();
+
+        if (!normalizedMembers.Contains(ownerId))
+            normalizedMembers.Add(ownerId);
+
+        var team = new Team(id, ownerId, name, normalizedMembers, maxMembers);
 
         if (wantedProfiles != null)
             team._wantedProfiles.AddRange(wantedProfiles);
-
-        team._members.Add(ownerId);
+        if (joinRequests != null)
+            team._joinRequests.AddRange(joinRequests);
+        if (invitations != null)
+            team._invitations.AddRange(invitations);
 
         return Result.Success(team);
     }
@@ -60,7 +65,11 @@ public class Team : Entity<Guid>
             return Result.Failure("Already a member");
         if (_joinRequests.Contains(profileId))
             return Result.Failure("Already requested");
+        if (IsFull())
+            return Result.Failure("Team is full");
+
         _joinRequests.Add(profileId);
+        
         return Result.Success();
     }
 
@@ -68,16 +77,13 @@ public class Team : Entity<Guid>
     {
         if (Members.Count >= MaxMembers)
             return Result.Failure("Team is full");
-        if (Members.Any(x => x == profileId))
-            return Result.Failure("Already in team");
-
-        var request = JoinRequests.FirstOrDefault(x => x == profileId);
-
-        if (!JoinRequests.Contains(profileId))
+        if (_members.Contains(profileId))
+            return Result.Failure("Already a member");
+        if (!_joinRequests.Remove(profileId))
             return Result.Failure("User has not requested to join the team");
 
-        _joinRequests.Remove(request);
         _members.Add(profileId);
+        
         return Result.Success();
     }
 
@@ -85,68 +91,42 @@ public class Team : Entity<Guid>
     {
         if (inviterId == Guid.Empty || inviteeId == Guid.Empty)
             return Result.Failure<Guid>("Invalid ids");
-
         if (!_members.Contains(inviterId))
             return Result.Failure<Guid>("Only team members can send invitations");
-
         if (_members.Contains(inviteeId))
             return Result.Failure<Guid>("User is already a member");
-
         if (IsFull())
             return Result.Failure<Guid>("Team is full");
+        if (_invitations.Any(i => i.InviteeId == inviteeId && i.Status == InvitationStatus.Pending))
+            return Result.Failure<Guid>("Invitation already sent");
+        if (_joinRequests.Contains(inviteeId))
+            return Result.Failure<Guid>("User already requested to join");
 
-        var invitation = new Invitation(inviteeId, inviterId, expiresAt);
-        _invitations.Add(invitation);
-        return Result.Success(invitation.Id);
-    }
-}
-
-public class WantedProfile
-{
-    public List<Guid> RequiredSkills { get; private set; } = [];
-    //TODO: Add more criteria like experience level, location, etc.
-}
-
-public class Invitation
-{
-    private Invitation()
-    {
+        var invitation = Invitation.Create(Guid.NewGuid(), inviteeId, inviterId, expiresAt);
+        if (invitation.IsFailure)
+            return Result.Failure<Guid>(invitation.Error);
+        
+        _invitations.Add(invitation.Value);
+        
+        return Result.Success(invitation.Value.Id);
     }
 
-    public Invitation(Guid inviteeId, Guid invitedBy, DateTime? expiresAt = null)
+    public Result AcceptInvitation(Guid invitationId)
     {
-        Id = Guid.NewGuid();
-        InviteeId = inviteeId;
-        InvitedBy = invitedBy;
-        Status = InvitationStatus.Pending;
-    }
-
-    public Guid Id { get; }
-    public Guid InviteeId { get; private set; }
-    public Guid InvitedBy { get; private set; }
-    public InvitationStatus Status { get; private set; }
-
-    public Result Accept()
-    {
-        if (Status != InvitationStatus.Pending)
-            return Result.Failure("Invitation is not pending");
-        Status = InvitationStatus.Accepted;
+        var invitation = _invitations.FirstOrDefault(i => i.Id == invitationId);
+        if (invitation == null)
+            return Result.Failure("Invitation not found");
+        
+        if (IsFull())
+            return Result.Failure("Team is full");
+        
+        var acceptResult = invitation.Accept();
+        if (acceptResult.IsFailure)
+            return acceptResult;
+        
+        _members.Add(invitation.InviteeId);
+        _joinRequests.Remove(invitation.InviteeId);
+        
         return Result.Success();
     }
-
-    public Result Revoke()
-    {
-        if (Status != InvitationStatus.Pending)
-            return Result.Failure("Invitation is not pending");
-        Status = InvitationStatus.Revoked;
-        return Result.Success();
-    }
-}
-
-public enum InvitationStatus
-{
-    Pending,
-    Accepted,
-    Revoked,
-    Expired
 }

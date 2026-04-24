@@ -7,7 +7,8 @@ public class TeamEntity
     public Guid OwnerId { get; set; }
     public int MaxMembers { get; set; }
 
-    public List<TeamMemberEntity> Members { get; set; } = new();
-    public List<WantedProfileEntity> WantedProfiles { get; set; } = new();
-    public List<InvitationEntity> Invitations { get; set; } = new();
+    public List<TeamMemberEntity> Members { get; set; } = [];
+    public List<WantedProfileEntity> WantedProfiles { get; set; } = [];
+    public List<InvitationEntity> Invitations { get; set; } = [];
+    public List<JoinRequestEntity> JoinRequests { get; set; } = [];
 }
