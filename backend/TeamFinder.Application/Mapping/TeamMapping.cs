@@ -56,6 +56,7 @@ public static class TeamMapping
             Invitations = t.Invitations.Select(inv => new InvitationEntity
             {
                 Id = inv.Id,
+                TeamId = t.Id,
                 InviteeId = inv.InviteeId,
                 InvitedBy = inv.InvitedBy,
                 Status = inv.Status.ToString(),

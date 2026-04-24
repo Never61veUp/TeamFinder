@@ -30,6 +30,14 @@ public class TeamService : ITeamService
 
     public async Task<Result<Guid>> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
     {
-        throw new NotImplementedException();
+        var teamEntity = await _repository.GetById(teamId);
+        if (teamEntity.IsFailure)
+            return Result.Failure<Guid>(teamEntity.Error);
+        var team = teamEntity.Value.MapToDomain();
+        var inviteResult = team.Value.SendInvitation(inviterId, inviteeId);
+        if(inviteResult.IsFailure)
+            return Result.Failure<Guid>(inviteResult.Error);
+        await _repository.UpdateTeam(team.Value.MapToEntity());
+        return Guid.NewGuid();
     }
 }

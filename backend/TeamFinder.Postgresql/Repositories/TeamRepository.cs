@@ -8,6 +8,7 @@ public interface ITeamRepository
 {
     Task<Result> SaveTeam(TeamEntity team);
     Task<Result<TeamEntity>> GetById(Guid id);
+    Task<Result> UpdateTeam(TeamEntity team);
 }
 
 public class TeamRepository : ITeamRepository
@@ -65,5 +66,17 @@ public class TeamRepository : ITeamRepository
             return Result.Failure<TeamEntity>("Team not found");
 
         return Result.Success(entity);
+    }
+
+    public async Task<Result> UpdateTeam(TeamEntity team)
+    {
+        await _context.Invitations.AddRangeAsync(team.Invitations);
+        return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to update profile");
+    }
+
+    public async Task<Result> AddInvitation(TeamEntity team)
+    {
+        await _context.Invitations.AddRangeAsync(team.Invitations);
+        return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to update profile");
     }
 }
