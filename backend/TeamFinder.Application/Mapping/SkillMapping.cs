@@ -1,7 +1,7 @@
 ﻿using TeamFinder.Core.Model;
 using TeamFinder.Postgresql.Model;
 
-namespace TeamFinder.Application.Services;
+namespace TeamFinder.Application.Mapping;
 
 public static class SkillMapping
 {
