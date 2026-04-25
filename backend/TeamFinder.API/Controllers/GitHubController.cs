@@ -56,6 +56,7 @@ public class GitHubController : BaseController
     ///     сервер должен вернуть соответствующий код ошибки и сообщение.
     /// </remarks>
     [HttpGet("callback")]
+    [AllowAnonymous]
     public async Task<IActionResult> Callback(string code, string state)
     {
         if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
