@@ -21,8 +21,8 @@ export const AchievementsGrid: React.FC<AchievementsProps> = ({ achievements, is
     // --- РЕЖИМ РЕДАКТИРОВАНИЯ ---
     if (isEditing) {
         return (
-            <div className="w-full text-left bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                <label className="text-[16px] text-[#303160] font-black uppercase mb-4 block tracking-widest text-center">
+            <div className="w-full bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                <label className="text-[16px] text-[#303160] font-black mb-4 block tracking-widest ">
                     Достижения
                 </label>
                 <div className="flex flex-col gap-4">
@@ -68,14 +68,14 @@ export const AchievementsGrid: React.FC<AchievementsProps> = ({ achievements, is
 
     // --- РЕЖИМ ПРОСМОТРА ---
     return (
-        <div className="w-full flex flex-col items-center">
+        <div className="w-full flex flex-col">
             <h2 className="text-[16px] text-gray-800 font-bold mb-4">Достижения</h2>
             <div className="flex w-full justify-between gap-3">
                 {items.map((item, index) => (
                     <div key={index} className="flex-1 flex flex-col items-center justify-center bg-white py-4 px-2 rounded-2xl border border-gray-100 shadow-sm">
                         {/* Если при сохранении оставили пустым, показываем 0 */}
                         <span className="text-2xl font-bold text-violet-600 mb-1">{item.value === '' ? 0 : item.value}</span>
-                        <span className="text-[11px] uppercase font-black text-gray-400">{item.label}</span>
+                        <span className="font-medium text-gray-400">{item.label}</span>
                     </div>
                 ))}
             </div>

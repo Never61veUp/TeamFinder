@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ProfilePage } from './components/Profile/ProfilePage'
 import { Navigation } from './components/Navigation/Navigation'
+import { CreateTeamPage } from './components/CreateTeam/CreateTeamPage'
 import './style.css'
 import type {TelegramUser} from "./types/api.ts";
 import {authService} from "./services";
@@ -142,11 +143,8 @@ function App() {
                 <Routes>
                     <Route path="/" element={<div className="p-4"><h1>Главная (Лента)</h1></div>} />
                     <Route path="/search" element={<div className="p-4"><h1>Поиск команд</h1></div>} />
-                    <Route path="/create" element={<div className="p-4"><h1>Создать проект</h1></div>} />
-
-                    {/* Передаем данные профиля и функцию выхода */}
+                    <Route path="/create" element={<CreateTeamPage />} />
                     <Route path="/profile" element={<ProfilePage user={me} onLogout={onLogout} />} />
-
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
 
