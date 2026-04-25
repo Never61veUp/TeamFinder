@@ -35,6 +35,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result> AddSkill(Guid profileId, Guid skillId)
     {
+        //TODO: move to repository
         var profileEntity = await _profileRepository.GetById(profileId);
         if (profileEntity == null)
             return Result.Failure("Profile not found");
@@ -74,6 +75,7 @@ public class ProfileService : IProfileService
         var profileEntity = await _profileRepository.GetById(id);
         if (profileEntity == null)
             return Result.Failure<Profile>("Profile not found");
+        
         return profileEntity.ToDomain();
     }
 
