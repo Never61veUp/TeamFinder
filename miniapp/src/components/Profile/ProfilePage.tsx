@@ -9,6 +9,7 @@ import { GithubStatsSection } from "./Stats/GithubStats";
 import { SkillsList } from "./Skills/SkillTags";
 import './profile.css';
 import { profileService } from '../../services';
+import { Pencil } from 'lucide-react';
 
 
 const HARD_SKILLS: string[] = [
@@ -165,13 +166,16 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                 <div className="flex justify-end pt-4">
                     <button
                         onClick={handleToggleEdit}
-                        className="edit-btn"
+                        className="edit-btn flex items-center gap-2"
                         disabled={isSaving}
                     >
-                        {isEditing ? (isSaving ? 'Сохранение...' : 'Сохранить') : 'Редактировать'}
+                        {!isEditing && <Pencil size={18} strokeWidth={2} />}
+
+                        <span>
+                {isEditing ? (isSaving ? 'Сохранение...' : 'Сохранить') : 'Редактировать'}
+            </span>
                     </button>
                 </div>
-
                 <SkillsList
                     skills={allProfileSkills ?? (profile?.skills ?? [])}
                     isEditing={isEditing}
