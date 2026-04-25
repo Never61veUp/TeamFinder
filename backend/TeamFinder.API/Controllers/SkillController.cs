@@ -92,4 +92,14 @@ public class SkillController : ControllerBase
 
         return Ok(parents.Value);
     }
+
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllSkills()
+    {
+        var skills = await _skillService.GetAllSkills();
+        if (skills.IsFailure)
+            return BadRequest(skills.Error);
+
+        return Ok(skills.Value);
+    }
 }

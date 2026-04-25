@@ -138,4 +138,9 @@ public class SkillRepository : ISkillRepository
             .ToListAsync();
         return paths;
     }
+
+    public async Task<Result<List<SkillEntity>>> GetAllSkills()
+    {
+        return await _context.Skills.AsNoTracking().ToListAsync();
+    }
 }

@@ -143,4 +143,36 @@ public class ProfileRepository : IProfileRepository
             };
         }
     }
+    
+    public async Task<Result> UpdateSkills(Guid profileId, List<Guid> skillIds)
+    {
+        //TODO: подумать над заменой единичного добавления (AddSkill), производительностью данного метода
+        var existingSkills = _context.ProfileSkillEntity
+            .Where(x => x.ProfileId == profileId);
+        
+        _context.ProfileSkillEntity.RemoveRange(existingSkills);
+        
+        var updatedSkills = skillIds.Distinct().Select(skillId => new ProfileSkillEntity
+        {
+            ProfileId = profileId,
+            SkillId = skillId
+        });
+        
+        await _context.ProfileSkillEntity.AddRangeAsync(updatedSkills);
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Result.Success();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
+        {
+            return pg.SqlState switch
+            {
+                PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Profile or skill not found"),
+                PostgresErrorCodes.UniqueViolation => Result.Failure("Skill already added"),
+                _ => Result.Failure("Database error")
+            };
+        }
+    }
 }

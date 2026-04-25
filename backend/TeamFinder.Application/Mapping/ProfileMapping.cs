@@ -41,7 +41,8 @@ public static class ProfileMapping
             entity.UserName,
             entity.TgId,
             githubInfo,
-            skills);
+            skills,
+            entity.Description);
 
         return Result.Success(profile);
     }

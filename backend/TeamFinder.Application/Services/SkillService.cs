@@ -73,4 +73,15 @@ public class SkillService : ISkillService
     {
         return await _skillRepository.GetSkillTreeDev();
     }
+
+    public async Task<Result<List<Skill>>> GetAllSkills()
+    {
+        var skills = await _skillRepository.GetAllSkills();
+        if (skills.IsFailure)
+            return Result.Failure<List<Skill>>(skills.Error);
+        
+        var result = skills.Value.Select(s => s.ToDomain()).ToList();
+        return Result.Combine(result)
+            .Map(() => result.Select(r => r.Value).ToList());
+    }
 }

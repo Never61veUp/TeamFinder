@@ -120,4 +120,7 @@ public class ProfileService : IProfileService
 
         return await _profileRepository.UpdateDescription(profileId, description);
     }
+    
+    public async Task<Result> UpdateSkills(Guid profileId, List<Guid> skillId) 
+        => await _profileRepository.UpdateSkills(profileId, skillId);
 }
