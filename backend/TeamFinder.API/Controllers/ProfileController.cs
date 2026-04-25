@@ -157,4 +157,27 @@ public class ProfileController : BaseController
 
         return Ok(result.Value);
     }
+
+    [HttpPost("description")]
+    public async Task<IActionResult> AddDescription(UpdateDescriptionRequest request)
+    {
+        var result = await _profileService.AddDescription(CurrentProfileId, request.Description);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+        
+        return Ok();
+    }
+    
+    [HttpPut("skills")]
+    public async Task<IActionResult> UpdateSkills(UpdateSkillsRequest request)
+    {
+        var result = await _profileService.UpdateSkills(CurrentProfileId, request.Skills);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+        
+        return Ok();
+    }
 }
+
+public record UpdateDescriptionRequest(string Description);
+public record UpdateSkillsRequest(List<Guid> Skills);

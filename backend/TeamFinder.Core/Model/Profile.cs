@@ -16,6 +16,7 @@ public sealed class Profile : Entity<Guid>
     public string Name { get; private set; }
     public GithubInfo? GithubInfo { get; private set; }
     public long TelegramId { get; private set; }
+    public string Description {get; private set;}
 
     public static Result<Profile> Create(string name, long tgId)
     {
@@ -24,11 +25,12 @@ public sealed class Profile : Entity<Guid>
         
         return new Profile(Guid.NewGuid(), name, tgId);
     }
-    public static Profile Restore(Guid id, string name, long tgId, GithubInfo? githubInfo = null, List<Skill>? skills = null)
+    public static Profile Restore(Guid id, string name, long tgId, GithubInfo? githubInfo = null, List<Skill>? skills = null, string? description = "")
     {
         var profile = new Profile(id, name, tgId)
         {
-            GithubInfo = githubInfo
+            GithubInfo = githubInfo,
+            Description = description
         };
 
         if (skills != null)
@@ -61,6 +63,17 @@ public sealed class Profile : Entity<Guid>
             return Result.Failure("Profile already has connected Telegram ID");
 
         TelegramId = tgId;
+        return Result.Success();
+    }
+    
+    public Result AddDescription(string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            return Result.Failure("Description cannot be empty");
+        if(description.Length > 100)
+            return Result.Failure("Description cannot be longer than 100 characters");
+
+        Description = description;
         return Result.Success();
     }
 }

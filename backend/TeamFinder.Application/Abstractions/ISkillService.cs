@@ -11,4 +11,5 @@ public interface ISkillService
     Task<Result<List<Skill>>> GetParents(Guid skillId);
     Task<Result<List<Skill>>> GetChildren(Guid skillId);
     Task<Result<List<string>>> GetSkillsTreeDev();
+    Task<Result<List<Skill>>> GetAllSkills();
 }

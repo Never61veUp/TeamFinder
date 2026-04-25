@@ -101,7 +101,7 @@ public class ProfileRepository : IProfileRepository
                 PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Profile or skill not found"),
                 PostgresErrorCodes.UniqueViolation => Result.Failure("Skill already added"),
                 PostgresErrorCodes.NotNullViolation => Result.Failure("Required data is missing"),
-                _ => Result.Failure($"Database error: {pg.MessageText}")
+                _ => Result.Failure("Database error")
             };
         }
     }
@@ -119,6 +119,60 @@ public class ProfileRepository : IProfileRepository
         catch (Exception ex)
         {
             return Result.Failure<List<ProfileEntity>>(ex.Message);
+        }
+    }
+    
+    public async Task<Result> UpdateDescription(Guid profileId, string description)
+    {
+        try
+        {
+            var rowsChanged = await _context.Profiles.Where(p => p.Id == profileId)
+                .ExecuteUpdateAsync(s => 
+                    s.SetProperty(p => p.Description, description));
+            
+            return rowsChanged == 0 
+                ? Result.Failure("Profile not found") 
+                : Result.Success();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
+        {
+            return pg.SqlState switch
+            {
+                PostgresErrorCodes.NotNullViolation => Result.Failure("Description cannot be null"),
+                _ => Result.Failure("Database error")
+            };
+        }
+    }
+    
+    public async Task<Result> UpdateSkills(Guid profileId, List<Guid> skillIds)
+    {
+        //TODO: подумать над заменой единичного добавления (AddSkill), производительностью данного метода
+        var existingSkills = _context.ProfileSkillEntity
+            .Where(x => x.ProfileId == profileId);
+        
+        _context.ProfileSkillEntity.RemoveRange(existingSkills);
+        
+        var updatedSkills = skillIds.Distinct().Select(skillId => new ProfileSkillEntity
+        {
+            ProfileId = profileId,
+            SkillId = skillId
+        });
+        
+        await _context.ProfileSkillEntity.AddRangeAsync(updatedSkills);
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Result.Success();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
+        {
+            return pg.SqlState switch
+            {
+                PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Profile or skill not found"),
+                PostgresErrorCodes.UniqueViolation => Result.Failure("Skill already added"),
+                _ => Result.Failure("Database error")
+            };
         }
     }
 }

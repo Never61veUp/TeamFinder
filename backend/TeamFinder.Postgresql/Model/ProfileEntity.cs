@@ -6,6 +6,7 @@ public class ProfileEntity
     public string UserName { get; set; } = null!;
     public GithubEntity? GithubInfo { get; set; }
     public long TgId { get; set; }
+    public string? Description { get; set; }
 
     public ICollection<ProfileSkillEntity> Skills { get; set; } = new List<ProfileSkillEntity>();
 }
