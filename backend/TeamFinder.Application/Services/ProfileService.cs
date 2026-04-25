@@ -107,8 +107,8 @@ public class ProfileService : IProfileService
             .Where(p => p.Skills.Any(s =>
                 expandedSkills.Contains(s.SkillId)))
             .ToList();
-        return profileEntities.Select(p => Profile.Restore(p.Id, p.UserName)).ToList();
-        //TODO: Переписать await _profileRepository.GetAll(), маппинг резалтов
+        return profileEntities.Select(p => Profile.Restore(p.Id, p.UserName, p.TgId)).ToList();
+        //TODO: Переписать await _profileRepository.GetAll(), маппинг резалтов (не тянуть все профили)
     }
 
     public async Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo)

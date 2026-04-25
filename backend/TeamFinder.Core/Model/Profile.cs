@@ -23,7 +23,7 @@ public sealed class Profile : Entity<Guid>
         
         return new Profile(Guid.NewGuid(), name);
     }
-    public static Profile Restore(Guid id, string name, GithubInfo? githubInfo = null, long tgId = 0, List<Skill>? skills = null)
+    public static Profile Restore(Guid id, string name, long tgId, GithubInfo? githubInfo = null, List<Skill>? skills = null)
     {
         var profile = new Profile(id, name)
         {

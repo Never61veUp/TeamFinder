@@ -39,8 +39,8 @@ public static class ProfileMapping
         var profile = Profile.Restore(
             entity.Id,
             entity.UserName,
-            githubInfo,
             entity.TgId,
+            githubInfo,
             skills);
 
         return Result.Success(profile);
