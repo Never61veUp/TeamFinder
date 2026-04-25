@@ -6,8 +6,8 @@ export const profileService = {
     return httpClient.get<Profile>(`/profiles/${profileId}`);
   },
 
-  getWithGithubStats(profileId: string) {
-    return httpClient.get<ProfileWithGithub>(`/profiles/${profileId}/gitstats`);
+  getWithGithubStats() {
+    return httpClient.get<ProfileWithGithub>(`/profiles`);
   },
 
   getSkills(profileId: string) {
