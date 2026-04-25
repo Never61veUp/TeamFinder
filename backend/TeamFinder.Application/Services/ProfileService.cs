@@ -34,7 +34,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<Guid>> Create(string name)
     {
-        var profile = Profile.Create(name);
+        var profile = Profile.Create(name, 1);
         if (profile.IsFailure) 
             return Result.Failure<Guid>(profile.Error);
 
@@ -133,7 +133,7 @@ public class ProfileService : IProfileService
         if (existingProfile.IsSuccess)
             return Result.Success(existingProfile.Value);
 
-        var profile = Profile.Create(name);
+        var profile = Profile.Create(name, tgId);
         if(profile.IsFailure)
             return Result.Failure<Profile>(profile.Error);
         
