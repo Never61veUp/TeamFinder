@@ -16,9 +16,10 @@ public sealed class Profile : Entity<Guid>
     public GithubInfo? GithubInfo { get; private set; }
     public long TelegramId { get; private set; }
 
-    public static Profile Create(Guid id, string name)
+    public static Result<Profile> Create(string name)
     {
-        return new Profile(id, name);
+        //TODO: Validation
+        return new Profile(Guid.NewGuid(), name);
     }
     public static Profile Restore(Guid id, string name, GithubInfo? githubInfo = null, long tgId = 0, List<Skill>? skills = null)
     {

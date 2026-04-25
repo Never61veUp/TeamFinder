@@ -21,30 +21,31 @@ public interface IProfileService
 
 public class ProfileService : IProfileService
 {
-    private readonly IProfileRepository _repo;
+    private readonly IProfileRepository _profileRepository;
     private readonly ISkillRepository _skillRepository;
 
 
-    public ProfileService(IProfileRepository repo, ISkillRepository skillRepository)
+    public ProfileService(IProfileRepository profileRepository, ISkillRepository skillRepository)
     {
-        _repo = repo;
+        _profileRepository = profileRepository;
         _skillRepository = skillRepository;
     }
 
     public async Task<Result<Guid>> Create(string name)
     {
-        var profile = Profile.Create(Guid.NewGuid(), name);
+        var profile = Profile.Create(name);
+        if (profile.IsFailure) 
+            return Result.Failure<Guid>(profile.Error);
 
-        var profileEntity = profile.ToEntity();
+        var profileEntity = profile.Value.ToEntity();
+        await _profileRepository.Add(profileEntity);
 
-        await _repo.Add(profileEntity);
-
-        return profile.Id;
+        return profile.Value.Id;
     }
 
     public async Task<Result> AddSkill(Guid profileId, Guid skillId)
     {
-        var profileEntity = await _repo.GetById(profileId);
+        var profileEntity = await _profileRepository.GetById(profileId);
         if (profileEntity == null)
             return Result.Failure("Profile not found");
 
@@ -72,7 +73,7 @@ public class ProfileService : IProfileService
 
         profileEntity.Skills.Add(profileSkill);
 
-        var result = await _repo.Update(profileEntity);
+        var result = await _profileRepository.Update(profileEntity);
         if (result.IsFailure)
             return Result.Failure(result.Error);
         return Result.Success();
@@ -80,7 +81,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<Profile>> GetById(Guid id)
     {
-        var profileEntity = await _repo.GetById(id);
+        var profileEntity = await _profileRepository.GetById(id);
         if (profileEntity == null)
             return Result.Failure<Profile>("Profile not found");
         return profileEntity.ToDomain();
@@ -88,7 +89,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<List<Profile>>> GetBySkill(Guid skillId)
     {
-        var profileEntities = await _repo.GetProfilesBySkillAsync(skillId);
+        var profileEntities = await _profileRepository.GetProfilesBySkillAsync(skillId);
         var profiles = profileEntities.Select(p => p.ToDomain()).ToList();
         
         return Result.Combine(profiles)
@@ -99,13 +100,14 @@ public class ProfileService : IProfileService
     {
         var expandedSkills = await _skillRepository.GetByParentId(skillId);
 
-        var profiles = await _repo.GetAll();
+        var profiles = await _profileRepository.GetAll();
 
         var profileEntities = profiles
             .Where(p => p.Skills.Any(s =>
                 expandedSkills.Contains(s.SkillId)))
             .ToList();
-        return profileEntities.Select(p => Profile.Create(p.Id, p.UserName)).ToList();
+        return profileEntities.Select(p => Profile.Restore(p.Id, p.UserName)).ToList();
+        //TODO: Переписать await _profileRepository.GetAll(), маппинг резалтов
     }
 
     public async Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo)
@@ -118,7 +120,7 @@ public class ProfileService : IProfileService
         if (result.IsFailure || profile.Value.GithubInfo == null)
             return Result.Failure(result.Error);
         var githubEntity = profile.Value.GithubInfo.ToEntity();
-        var saveResult = await _repo.ConnectGithubInfo(profileId, githubEntity);
+        var saveResult = await _profileRepository.ConnectGithubInfo(profileId, githubEntity);
         if (saveResult.IsFailure)
             return Result.Failure(saveResult.Error);
         return Result.Success();
@@ -130,21 +132,25 @@ public class ProfileService : IProfileService
         if (existingProfile.IsSuccess)
             return Result.Success(existingProfile.Value);
 
-        var profile = Profile.Create(Guid.NewGuid(), name);
-        var addingTgResult = profile.AddTelegramId(tgId);
+        var profile = Profile.Create(name);
+        if(profile.IsFailure)
+            return Result.Failure<Profile>(profile.Error);
+        
+        var addingTgResult = profile.Value.AddTelegramId(tgId);
         if (addingTgResult.IsFailure)
             return Result.Failure<Profile>(addingTgResult.Error);
 
-        var profileEntity = profile.ToEntity();
+        var profileEntity = profile.Value.ToEntity();
+        var saveResult = await _profileRepository.Add(profileEntity);
 
-        await _repo.Add(profileEntity);
-
-        return Result.Success(profile);
+        return saveResult.IsFailure 
+            ? Result.Failure<Profile>(saveResult.Error) 
+            : Result.Success(profile.Value);
     }
 
     public async Task<Result<Profile>> GetWithGithubInfoById(Guid id)
     {
-        var profileEntity = await _repo.GetWithGithubStatsById(id);
+        var profileEntity = await _profileRepository.GetWithGithubStatsById(id);
         if (profileEntity == null)
             return Result.Failure<Profile>("Profile not found");
         return profileEntity.ToDomain();
@@ -152,7 +158,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<Profile>> GetByTgId(long tgId)
     {
-        var profileEntity = await _repo.GetByTgId(tgId);
+        var profileEntity = await _profileRepository.GetByTgId(tgId);
         if (profileEntity.IsFailure)
             return Result.Failure<Profile>(profileEntity.Error);
         return profileEntity.Value.ToDomain();

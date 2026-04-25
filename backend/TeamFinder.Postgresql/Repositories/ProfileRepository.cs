@@ -8,7 +8,7 @@ public interface IProfileRepository
 {
     Task<ProfileEntity?> GetById(Guid id);
     Task<List<ProfileEntity>> GetAll();
-    Task Add(ProfileEntity profile);
+    Task<Result> Add(ProfileEntity profile);
     Task<List<ProfileEntity>> GetProfilesBySkillAsync(Guid ancestorSkillId);
     Task<Result> Update(ProfileEntity profile);
     Task<Result> ConnectGithubInfo(Guid profileId, GithubEntity githubInfo);
@@ -39,10 +39,13 @@ public class ProfileRepository : IProfileRepository
             .ToListAsync();
     }
 
-    public async Task Add(ProfileEntity profile)
+    public async Task<Result> Add(ProfileEntity profile)
     {
         await _context.Profiles.AddAsync(profile);
-        await _context.SaveChangesAsync();
+        
+        return await _context.SaveChangesAsync() > 0 
+            ? Result.Success() 
+            : Result.Failure("Failed to add profile");
     }
 
     public async Task<Result> Update(ProfileEntity profile)

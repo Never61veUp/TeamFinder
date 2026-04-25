@@ -22,39 +22,6 @@ namespace TeamFinder.Postgresql.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("TeamFinder.Postgresql.Model.GithubEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("GithubId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProfileUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("RepositoriesCount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("TopLanguage")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("TotalStars")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("GithubEntity");
-                });
-
             modelBuilder.Entity("TeamFinder.Postgresql.Model.InvitationEntity", b =>
                 {
                     b.Property<Guid>("Id")
@@ -112,9 +79,6 @@ namespace TeamFinder.Postgresql.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("GithubInfoId")
-                        .HasColumnType("uuid");
-
                     b.Property<long>("TgId")
                         .HasColumnType("bigint");
 
@@ -124,8 +88,6 @@ namespace TeamFinder.Postgresql.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GithubInfoId");
 
                     b.HasIndex("UserName");
 
@@ -282,9 +244,40 @@ namespace TeamFinder.Postgresql.Migrations
 
             modelBuilder.Entity("TeamFinder.Postgresql.Model.ProfileEntity", b =>
                 {
-                    b.HasOne("TeamFinder.Postgresql.Model.GithubEntity", "GithubInfo")
-                        .WithMany()
-                        .HasForeignKey("GithubInfoId");
+                    b.OwnsOne("TeamFinder.Postgresql.Model.GithubEntity", "GithubInfo", b1 =>
+                        {
+                            b1.Property<Guid>("ProfileEntityId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("GithubId")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("ProfileUrl")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<int>("RepositoriesCount")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("TopLanguage")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<int>("TotalStars")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Username")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.HasKey("ProfileEntityId");
+
+                            b1.ToTable("profiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ProfileEntityId");
+                        });
 
                     b.Navigation("GithubInfo");
                 });
