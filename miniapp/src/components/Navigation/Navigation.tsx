@@ -1,5 +1,5 @@
 ﻿import { NavLink } from 'react-router-dom';
-import { Home, User, Users, CirclePlus } from 'lucide-react'; // Импортируем иконки
+import { Home, User, Users, CirclePlus } from 'lucide-react';
 import './Navigation.css';
 
 export const Navigation = () => {
@@ -15,7 +15,6 @@ export const Navigation = () => {
                 <span className="nav-label">Профиль</span>
             </NavLink>
 
-            {/* На скриншоте для Поиска иконка Users, но если нужен лупа — используйте Search */}
             <NavLink to="/search" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
                 <Users size={24} strokeWidth={1.5} />
                 <span className="nav-label">Поиск</span>
