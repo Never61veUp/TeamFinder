@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TeamFinder.Application.Services;
 
 namespace TeamFinder.API.Controllers;
@@ -34,6 +35,7 @@ public class GitHubContreoller : ControllerBase
     ///     Клиент должен будет открыть этот URL, пройти авторизацию
     /// </remarks>
     [HttpGet("login")]
+    [Authorize]
     public IActionResult Login()
     {
         var githubClientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
@@ -60,6 +62,7 @@ public class GitHubContreoller : ControllerBase
     ///     сервер должен вернуть соответствующий код ошибки и сообщение.
     /// </remarks>
     [HttpGet("callback")]
+    [Authorize]
     public async Task<IActionResult> Callback(string code, string state)
     {
         var clientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
