@@ -10,7 +10,7 @@ interface AboutProps {
 export const AboutMe: React.FC<AboutProps> = ({ text, isEditing = false, onChange }) => {
     return (
         <section className="profile-section">
-            <h2>Обо мне</h2>
+            <h2>О себе</h2>
             <div className="about-card">
                 {!isEditing ? (
                     <p className="about-text">{text || 'Расскажите о себе'}</p>

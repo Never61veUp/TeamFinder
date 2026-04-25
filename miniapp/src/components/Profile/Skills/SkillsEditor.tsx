@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { HARD_SKILLS } from '../../../constants/hard-skills';
-import '../../profile.css';
+import '../profile.css';
 
 interface Props {
     initialSelectedIds: string[];

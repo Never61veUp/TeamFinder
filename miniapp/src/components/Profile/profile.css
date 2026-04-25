@@ -1,7 +1,6 @@
 /* === БАЗА === */
 .profile-container {
 	width: 100%;
-	max-width: 900px;
 	margin: 0 auto;
 	background: #f8fafc;
 	min-height: 100vh;
@@ -26,8 +25,8 @@
 }
 
 .avatar-container {
-	width: 80px;
-	height: 80px;
+	width: 100px;
+	height: 100px;
 	margin-bottom: 12px;
 }
 
@@ -43,7 +42,7 @@
 	justify-content: center;
 
 	font-weight: bold;
-	font-size: 24px;
+	font-size: 34px;
 	color: #7c3aed;
 }
 
@@ -77,13 +76,6 @@
 /* === СЕКЦИИ === */
 .profile-section {
 	margin-top: 10px;
-}
-
-.profile-section h2 {
-	font-size: 18px;
-	font-weight: 700;
-	color: #111827;
-	margin-bottom: 10px;
 }
 
 /* === ABOUT === */
