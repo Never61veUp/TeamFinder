@@ -136,10 +136,6 @@ public class ProfileService : IProfileService
         var profile = Profile.Create(name, tgId);
         if(profile.IsFailure)
             return Result.Failure<Profile>(profile.Error);
-        
-        var addingTgResult = profile.Value.AddTelegramId(tgId);
-        if (addingTgResult.IsFailure)
-            return Result.Failure<Profile>(addingTgResult.Error);
 
         var profileEntity = profile.Value.ToEntity();
         var saveResult = await _profileRepository.Add(profileEntity);
