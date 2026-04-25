@@ -3,31 +3,35 @@
     bottom: 0;
     left: 0;
     right: 0;
-    width: 100%;
-    box-sizing: border-box;
-    height: 65px;
-    background: white;
+    height: 70px; /* Немного увеличим высоту для комфорта */
+    background: #ffffff;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #f0f0f0;
     z-index: 1000;
-    padding: 0 10px;
 }
 
 .nav-item {
     text-decoration: none;
-    color: #888;
+    color: #94a3b8; /* Спокойный серый цвет для неактивных иконок */
     display: flex;
     flex-direction: column;
     align-items: center;
-    font-size: 12px;
+    gap: 4px; /* Отступ между иконкой и текстом */
+    transition: color 0.2s ease;
 }
 
-    .nav-item.active {
-        color: #8b5cf6;
-    }
+.nav-item.active {
+    color: #8b5cf6; /* Тот самый фиолетовый */
+}
 
-.nav-icon {
-    font-size: 20px;
+.nav-label {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* Стилизация самих SVG, если нужно подправить размер через CSS */
+.nav-item svg {
+    display: block;
 }
