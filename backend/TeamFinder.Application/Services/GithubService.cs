@@ -40,8 +40,10 @@ public class GithubService : IGithubService
             repoStats.RepoCount,
             githubId
         );
-
-        return Result.Success(githubInfo);
+        if(githubInfo.IsFailure)
+            return Result.Failure<GithubInfo>(githubInfo.Error);
+        
+        return Result.Success(githubInfo.Value);
     }
 
     private RepoStats CalculateRepoStats(JsonElement repoArray)

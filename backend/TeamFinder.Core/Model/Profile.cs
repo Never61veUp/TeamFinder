@@ -6,10 +6,9 @@ public sealed class Profile : Entity<Guid>
 {
     private readonly List<Skill> _skills = [];
 
-    private Profile(Guid id, string name, GithubInfo? githubInfo) : base(id)
+    private Profile(Guid id, string name) : base(id)
     {
         Name = name;
-        GithubInfo = githubInfo;
     }
 
     public IReadOnlyCollection<Skill> Skills => _skills.AsReadOnly();
@@ -17,9 +16,22 @@ public sealed class Profile : Entity<Guid>
     public GithubInfo? GithubInfo { get; private set; }
     public long TelegramId { get; private set; }
 
-    public static Profile Create(Guid id, string name, GithubInfo? githubInfo = null)
+    public static Profile Create(Guid id, string name)
     {
-        return new Profile(id, name, githubInfo);
+        return new Profile(id, name);
+    }
+    public static Profile Restore(Guid id, string name, GithubInfo? githubInfo = null, long tgId = 0, List<Skill>? skills = null)
+    {
+        var profile = new Profile(id, name)
+        {
+            TelegramId = tgId,
+            GithubInfo = githubInfo
+        };
+
+        if (skills != null)
+            profile._skills.AddRange(skills);
+
+        return profile;
     }
 
     public Result AddSkill(Skill skill)

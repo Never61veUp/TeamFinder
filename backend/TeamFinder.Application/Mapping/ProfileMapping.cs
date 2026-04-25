@@ -1,4 +1,5 @@
-﻿using TeamFinder.Application.Services;
+﻿using CSharpFunctionalExtensions;
+using TeamFinder.Application.Services;
 using TeamFinder.Core.Model;
 using TeamFinder.Postgresql.Model;
 
@@ -6,20 +7,48 @@ namespace TeamFinder.Application.Mapping;
 
 public static class ProfileMapping
 {
-    public static Profile ToDomain(this ProfileEntity entity)
+    public static Result<Profile> ToDomain(this ProfileEntity entity)
     {
-        var profile = Profile.Create(entity.Id, entity.UserName);
-        profile.AddTelegramId(entity.TgId);
-        if (entity.GithubInfo != null) profile.ConnectGithubInfo(entity.GithubInfo.ToDomain());
+        GithubInfo? githubInfo = null;
+        if (entity.GithubInfo != null)
+        {
+            var githubResult = GithubInfo.Create(
+                entity.UserName, 
+                entity.GithubInfo.ProfileUrl,
+                entity.GithubInfo.TopLanguage, 
+                entity.GithubInfo.TotalStars, 
+                entity.GithubInfo.RepositoriesCount, 
+                entity.GithubInfo.GithubId);
 
-        foreach (var skill in entity.Skills) profile.AddSkill(skill.Skill.ToDomain());
+            if (githubResult.IsFailure) 
+                return Result.Failure<Profile>($"Invalid GitHubInfo while mapping to domain: {githubResult.Error}");
+            githubInfo = githubResult.Value;
+        }
+        
+        var skills = new List<Skill>();
+        foreach (var s in entity.Skills)
+        {
+            var skillResult = s.Skill.ToDomain();
+            
+            if (skillResult.IsFailure) 
+                return Result.Failure<Profile>($"Invalid Skill while mapping to domain: {skillResult.Error}");
+            
+            skills.Add(skillResult.Value);
+        }
+        
+        var profile = Profile.Restore(
+            entity.Id,
+            entity.UserName,
+            githubInfo,
+            entity.TgId,
+            skills);
 
-        return profile;
+        return Result.Success(profile);
     }
 
     public static ProfileEntity ToEntity(this Profile domain)
     {
-        return new ProfileEntity
+        var profileEntity = new ProfileEntity
         {
             Id = domain.Id,
             UserName = domain.Name,
@@ -32,5 +61,12 @@ public static class ProfileMapping
                 })
                 .ToList()
         };
+        
+        if (domain.GithubInfo != null)
+        {
+            profileEntity.GithubInfo = domain.GithubInfo.ToEntity();
+        }
+        
+        return profileEntity;
     }
 }

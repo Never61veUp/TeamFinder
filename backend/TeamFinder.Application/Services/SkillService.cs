@@ -39,11 +39,18 @@ public class SkillService : ISkillService
         return Result.Success();
     }
 
-    public Task<Result> AddSkill(string name)
+    public async Task<Result> AddSkill(string name)
     {
         var skill = Skill.Create(Guid.NewGuid(), name);
-        var skillEntity = skill.ToEntity();
-        return _skillRepository.AddSkill(skillEntity);
+        if(skill.IsFailure)
+            return Result.Failure(skill.Error);
+        
+        var skillEntity = skill.Value.ToEntity();
+        
+        var result = await _skillRepository.AddSkill(skillEntity);
+        return result.IsFailure 
+            ? Result.Failure(result.Error) 
+            : Result.Success();
     }
 
     public async Task<Result<List<Skill>>> GetParents(Guid skillId)
@@ -54,7 +61,8 @@ public class SkillService : ISkillService
 
         var result = parents.Value.Select(p => p.ToDomain()).ToList();
 
-        return Result.Success(result);
+        return Result.Combine(result)
+            .Map(() => result.Select(r => r.Value).ToList());
     }
 
     public async Task<Result<List<Skill>>> GetChildren(Guid skillId)
@@ -65,7 +73,8 @@ public class SkillService : ISkillService
 
         var result = children.Value.Select(c => c.ToDomain()).ToList();
 
-        return Result.Success(result);
+        return Result.Combine(result)
+            .Map(() => result.Select(r => r.Value).ToList());
     }
 
     public async Task<Result<List<string>>> GetSkillsTreeDev()

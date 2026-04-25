@@ -14,7 +14,7 @@ public static class GithubMapper
             entity.TotalStars,
             entity.RepositoriesCount,
             entity.GithubId
-        );
+        ).Value;
     }
 
     public static GithubEntity ToEntity(this GithubInfo domain)

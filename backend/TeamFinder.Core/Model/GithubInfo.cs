@@ -1,6 +1,8 @@
-﻿namespace TeamFinder.Core.Model;
+﻿using CSharpFunctionalExtensions;
 
-public class GithubInfo
+namespace TeamFinder.Core.Model;
+
+public class GithubInfo : ValueObject
 {
     private GithubInfo(string username, string profileUrl, string topLanguage, int totalStars, int repositoriesCount,
         string githubId)
@@ -21,9 +23,18 @@ public class GithubInfo
     public string GithubId { get; }
     public int Score => 0; // Placeholder for future scoring logic
 
-    public static GithubInfo Create(string username, string profileUrl, string topLanguage, int totalStars,
+    public static Result<GithubInfo> Create(string username, string profileUrl, string topLanguage, int totalStars,
         int repositoriesCount, string githubId)
     {
+        if (totalStars < 0 || repositoriesCount < 0) 
+            return Result.Failure<GithubInfo>("Stats cannot be negative");
+        
         return new GithubInfo(username, profileUrl, topLanguage, totalStars, repositoriesCount, githubId);
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Username;
+        yield return GithubId;
     }
 }

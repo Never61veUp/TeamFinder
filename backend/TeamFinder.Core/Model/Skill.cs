@@ -11,8 +11,11 @@ public class Skill : Entity<Guid>
 
     public string Name { get; }
 
-    public static Skill Create(Guid id, string name)
+    public static Result<Skill> Create(Guid id, string name)
     {
+        if(string.IsNullOrWhiteSpace(name))
+            return Result.Failure<Skill>("Name cannot be empty");
+        
         return new Skill(id, name);
     }
 }

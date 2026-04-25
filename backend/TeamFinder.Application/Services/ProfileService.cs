@@ -10,7 +10,7 @@ namespace TeamFinder.Application.Services;
 public interface IProfileService
 {
     Task<Result<Guid>> Create(string name);
-    Task<List<Profile>> GetBySkill(Guid skillId);
+    Task<Result<List<Profile>>> GetBySkill(Guid skillId);
     Task<Result<Profile>> GetById(Guid id);
     Task<Result> AddSkill(Guid profileId, Guid skillId);
     Task<List<Profile>> FindBySkill(Guid skillId);
@@ -49,13 +49,18 @@ public class ProfileService : IProfileService
             return Result.Failure("Profile not found");
 
         var profile = profileEntity.ToDomain();
+        if(profile.IsFailure)
+            return Result.Failure(profile.Error);
 
         var skillEntity = await _skillRepository.GetSkillById(skillId);
         if (skillEntity.IsFailure)
             return Result.Failure("Skill not found");
 
         var skill = skillEntity.Value.ToDomain();
-        var addingResult = profile.AddSkill(skill);
+        if(skill.IsFailure)
+            return Result.Failure(skill.Error);
+        
+        var addingResult = profile.Value.AddSkill(skill.Value);
         if (addingResult.IsFailure)
             return Result.Failure(addingResult.Error);
 
@@ -81,11 +86,13 @@ public class ProfileService : IProfileService
         return profileEntity.ToDomain();
     }
 
-    public async Task<List<Profile>> GetBySkill(Guid skillId)
+    public async Task<Result<List<Profile>>> GetBySkill(Guid skillId)
     {
         var profileEntities = await _repo.GetProfilesBySkillAsync(skillId);
         var profiles = profileEntities.Select(p => p.ToDomain()).ToList();
-        return profiles;
+        
+        return Result.Combine(profiles)
+            .Map(() => profiles.Select(r => r.Value).ToList());
     }
 
     public async Task<List<Profile>> FindBySkill(Guid skillId)
