@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 using TeamFinder.Contracts;
 
@@ -26,7 +27,7 @@ public class ProfileController : BaseController
     [HttpPost]
     public async Task<IActionResult> Create(CreateProfileRequest request)
     {
-        var result = await _profileService.Create(request.Name);
+        var result = await _profileService.DevCreateWithoutTg(request.Name);
         if (result.IsFailure)
             return BadRequest(result.Error);
 
@@ -150,10 +151,10 @@ public class ProfileController : BaseController
     [HttpGet("search/{skillId:guid}")]
     public async Task<IActionResult> SearchBySkill(Guid skillId)
     {
-        var result = await _profileService.GetBySkill(skillId);
+        var result = await _profileService.FindBySkill(skillId);
         if (result.IsFailure)
             return BadRequest(result.Error);
 
-        return Ok(result);
+        return Ok(result.Value);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TeamFinder.API.Security;
+using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 using TeamFinder.Postgresql;
 using TeamFinder.Postgresql.Abstractions;

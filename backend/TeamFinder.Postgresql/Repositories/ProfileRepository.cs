@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 
@@ -45,21 +46,9 @@ public class ProfileRepository : IProfileRepository
 
     public async Task<List<ProfileEntity>> GetProfilesBySkillAsync(Guid ancestorSkillId)
     {
-        var query =
-            from p in _context.Profiles
-            join ps in _context.ProfileSkillEntity on p.Id equals ps.ProfileId
-            join sc in _context.SkillClosures on ps.SkillId equals sc.DescendantId
-            where sc.AncestorId == ancestorSkillId
-            select p;
-
-        var test = await _context.SkillClosures
-            .Where(x => x.AncestorId == ancestorSkillId)
-            .ToListAsync();
-
-        var users = await query
-            .Distinct()
-            .Include(p => p.Skills)
-            .ThenInclude(s => s.Skill)
+        var users = await _context.Profiles
+            .Where(p => p.Skills.Any(s => s.SkillId == ancestorSkillId))
+            .Include(x => x.Skills).ThenInclude(us => us.Skill)
             .ToListAsync();
         return users;
     }
@@ -90,5 +79,46 @@ public class ProfileRepository : IProfileRepository
         return await _context.Profiles
             .Include(x => x.GithubInfo)
             .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
+    public async Task<Result> AddSkill(Guid profileId, Guid skillId)
+    {
+        await _context.ProfileSkillEntity.AddAsync(new ProfileSkillEntity
+        {
+            ProfileId = profileId,
+            SkillId = skillId
+        });
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Result.Success();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
+        {
+            return pg.SqlState switch
+            {
+                PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Profile or skill not found"),
+                PostgresErrorCodes.UniqueViolation => Result.Failure("Skill already added"),
+                PostgresErrorCodes.NotNullViolation => Result.Failure("Required data is missing"),
+                _ => Result.Failure($"Database error: {pg.MessageText}")
+            };
+        }
+    }
+    
+    public async Task<Result<List<ProfileEntity>>> FindBySkill(List<Guid> skillIds)
+    {
+        try
+        {
+            var profile = await _context.Profiles.AsNoTracking().Where(p => p.Skills.Any(s =>
+                skillIds.Contains(s.SkillId))).Include(x => x.Skills)
+                .ThenInclude(sk => sk.Skill).ToListAsync();
+            
+            return Result.Success(profile);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<List<ProfileEntity>>(ex.Message);
+        }
     }
 }

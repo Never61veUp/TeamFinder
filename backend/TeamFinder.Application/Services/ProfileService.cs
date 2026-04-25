@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Mapping;
 using TeamFinder.Core.Model;
 using TeamFinder.Postgresql;
@@ -7,18 +8,6 @@ using TeamFinder.Postgresql.Model;
 using TeamFinder.Postgresql.Repositories;
 
 namespace TeamFinder.Application.Services;
-
-public interface IProfileService
-{
-    Task<Result<Guid>> Create(string name);
-    Task<Result<List<Profile>>> GetBySkill(Guid skillId);
-    Task<Result<Profile>> GetById(Guid id);
-    Task<Result> AddSkill(Guid profileId, Guid skillId);
-    Task<List<Profile>> FindBySkill(Guid skillId);
-    Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo);
-    Task<Result<Profile>> CreateOrGetByTgId(long tgId, string name);
-    Task<Result<Profile>> GetWithGithubInfoById(Guid id);
-}
 
 public class ProfileService : IProfileService
 {
@@ -32,7 +21,7 @@ public class ProfileService : IProfileService
         _skillRepository = skillRepository;
     }
 
-    public async Task<Result<Guid>> Create(string name)
+    public async Task<Result<Guid>> DevCreateWithoutTg(string name)
     {
         var profile = Profile.Create(name, 1);
         if (profile.IsFailure) 
@@ -44,71 +33,29 @@ public class ProfileService : IProfileService
         return profile.Value.Id;
     }
 
-    public async Task<Result> AddSkill(Guid profileId, Guid skillId)
-    {
-        var profileEntity = await _profileRepository.GetById(profileId);
-        if (profileEntity == null)
-            return Result.Failure("Profile not found");
-
-        var profile = profileEntity.ToDomain();
-        if(profile.IsFailure)
-            return Result.Failure(profile.Error);
-
-        var skillEntity = await _skillRepository.GetSkillById(skillId);
-        if (skillEntity.IsFailure)
-            return Result.Failure("Skill not found");
-
-        var skill = skillEntity.Value.ToDomain();
-        if(skill.IsFailure)
-            return Result.Failure(skill.Error);
-        
-        var addingResult = profile.Value.AddSkill(skill.Value);
-        if (addingResult.IsFailure)
-            return Result.Failure(addingResult.Error);
-
-        var profileSkill = new ProfileSkillEntity
-        {
-            ProfileId = profileId,
-            SkillId = skillId
-        };
-
-        profileEntity.Skills.Add(profileSkill);
-
-        var result = await _profileRepository.Update(profileEntity);
-        if (result.IsFailure)
-            return Result.Failure(result.Error);
-        return Result.Success();
-    }
-
+    public async Task<Result> AddSkill(Guid profileId, Guid skillId) 
+        => await _profileRepository.AddSkill(profileId, skillId);
+    
     public async Task<Result<Profile>> GetById(Guid id)
     {
         var profileEntity = await _profileRepository.GetById(id);
         if (profileEntity == null)
             return Result.Failure<Profile>("Profile not found");
+        
         return profileEntity.ToDomain();
     }
 
-    public async Task<Result<List<Profile>>> GetBySkill(Guid skillId)
+    public async Task<Result<List<Profile>>> FindBySkill(Guid skillId)
     {
-        var profileEntities = await _profileRepository.GetProfilesBySkillAsync(skillId);
-        var profiles = profileEntities.Select(p => p.ToDomain()).ToList();
+        //TODO rewrite
+        var parenSkills = await _skillRepository.GetAllParents(skillId);
+        var parentSkillIds = parenSkills.Value.Select(s => s.Id).ToList();
+        parentSkillIds.AddRange(skillId);
+        var profileEntities = await _profileRepository.FindBySkill(parentSkillIds);
+        if(profileEntities.IsFailure)
+            return  Result.Failure<List<Profile>>(profileEntities.Error);
         
-        return Result.Combine(profiles)
-            .Map(() => profiles.Select(r => r.Value).ToList());
-    }
-
-    public async Task<List<Profile>> FindBySkill(Guid skillId)
-    {
-        var expandedSkills = await _skillRepository.GetByParentId(skillId);
-
-        var profiles = await _profileRepository.GetAll();
-
-        var profileEntities = profiles
-            .Where(p => p.Skills.Any(s =>
-                expandedSkills.Contains(s.SkillId)))
-            .ToList();
-        return profileEntities.Select(p => Profile.Restore(p.Id, p.UserName, p.TgId)).ToList();
-        //TODO: Переписать await _profileRepository.GetAll(), маппинг резалтов (не тянуть все профили)
+        return profileEntities.Value.Select(p => p.ToDomain().Value).ToList();
     }
 
     public async Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo)

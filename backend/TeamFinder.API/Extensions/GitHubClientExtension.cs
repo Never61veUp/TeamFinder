@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 
 namespace TeamFinder.API.Extensions;

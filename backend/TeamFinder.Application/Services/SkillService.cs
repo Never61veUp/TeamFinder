@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Mapping;
 using TeamFinder.Core.Model;
 using TeamFinder.Postgresql;
@@ -6,16 +7,6 @@ using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 
 namespace TeamFinder.Application.Services;
-
-public interface ISkillService
-{
-    Task<List<Guid>> GetAllDescendants(Guid skillId);
-    Task<Result> AddRelation(Guid parentId, Guid childId, double weight = 1D);
-    Task<Result> AddSkill(string name);
-    Task<Result<List<Skill>>> GetParents(Guid skillId);
-    Task<Result<List<Skill>>> GetChildren(Guid skillId);
-    Task<Result<List<string>>> GetSkillsTreeDev();
-}
 
 public class SkillService : ISkillService
 {

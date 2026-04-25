@@ -1,16 +1,9 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Web;
+using TeamFinder.Application.Abstractions;
 
 namespace TeamFinder.Application.Services;
-
-public interface IGitHubServiceExternal
-{
-    Task<string> GetAccessToken(string code, string clientId, string clientSecret);
-    Task<JsonDocument> GetUser(string accessToken);
-    Task<JsonDocument> GetUserRepos(string username);
-    Task<JsonDocument> GetUserEvents(string username);
-}
 
 public class GitHubServiceExternal : IGitHubServiceExternal
 {

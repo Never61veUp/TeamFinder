@@ -1,16 +1,11 @@
 ﻿using CSharpFunctionalExtensions;
+using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Mapping;
 using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Repositories;
 
 namespace TeamFinder.Application.Services;
-
-public interface ITeamService
-{
-    Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers);
-    Task<Result<Guid>> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId);
-}
 
 public class TeamService : ITeamService
 {
