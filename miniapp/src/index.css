@@ -31,7 +31,7 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  text-align: center;
+  text-align: left;
   border-inline: none;
 
   min-height: var(--tg-viewport-height, 100vh);

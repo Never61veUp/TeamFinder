@@ -191,8 +191,8 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                     onChange={handleAchievementChange}
                 />
 
-                <section className="w-full flex flex-col items-center">
-                    <h2 className="font-bold text-[#333] mb-4 text-center text-[16px] uppercase tracking-widest">
+                <section className="w-full flex flex-col items-left">
+                    <h2 className="font-bold text-[#333] mb-4 text-left text-[16px]  tracking-widest">
                         GitHub Статистика
                     </h2>
                     <GithubStatsSection githubInfo={profile?.githubInfo} isConnecting={isConnecting} onConnect={connect} />

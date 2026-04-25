@@ -13,7 +13,7 @@ interface Props {
 export function SkillsList({ skills, isEditing, onOpenEditor, selectedSkillIds }: Props) {
     return (
         <Section title="Навыки">
-            <div className="flex flex-wrap justify-center gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center">
                 {skills.length > 0 ? (
                     skills.map(skill => (
                         <Badge key={skill.id} className={selectedSkillIds?.includes(skill.id) ? 'ring-2 ring-violet-200' : ''}>

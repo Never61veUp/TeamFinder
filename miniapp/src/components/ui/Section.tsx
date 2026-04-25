@@ -9,7 +9,7 @@ export function Section({ title, children }: SectionProps) {
     return (
         <section className="w-full">
             {title && (
-                <h2 className="mb-4 text-center text-sm font-bold uppercase tracking-widest text-slate-500">
+                <h2 className="mb-4 text-left text-sm tracking-widest text-slate-500">
                     {title}
                 </h2>
             )}
