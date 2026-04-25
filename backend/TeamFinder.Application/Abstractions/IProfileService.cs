@@ -12,4 +12,5 @@ public interface IProfileService
     Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo);
     Task<Result<Profile>> CreateOrGetByTgId(long tgId, string name);
     Task<Result<Profile>> GetWithGithubInfoById(Guid id);
+    Task<Result> AddDescription(Guid profileId, string description);
 }

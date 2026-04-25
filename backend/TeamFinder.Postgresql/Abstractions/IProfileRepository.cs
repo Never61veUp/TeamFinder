@@ -15,4 +15,5 @@ public interface IProfileRepository
     Task<ProfileEntity?> GetWithGithubStatsById(Guid id);
     Task<Result> AddSkill(Guid profileId, Guid skillId);
     Task<Result<List<ProfileEntity>>> FindBySkill(List<Guid> skillIds);
+    Task<Result> UpdateDescription(Guid profileId, string description);
 }

@@ -107,4 +107,17 @@ public class ProfileService : IProfileService
             return Result.Failure<Profile>(profileEntity.Error);
         return profileEntity.Value.ToDomain();
     }
+    
+    public async Task<Result> AddDescription(Guid profileId, string description)
+    {
+        var profile = await GetById(profileId);
+        if (profile.IsFailure)
+            return Result.Failure(profile.Error);
+
+        var result = profile.Value.AddDescription(description);
+        if (result.IsFailure)
+            return Result.Failure(result.Error);
+
+        return await _profileRepository.UpdateDescription(profileId, description);
+    }
 }

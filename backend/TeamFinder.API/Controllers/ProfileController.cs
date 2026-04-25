@@ -157,4 +157,16 @@ public class ProfileController : BaseController
 
         return Ok(result.Value);
     }
+
+    [HttpPost("description")]
+    public async Task<IActionResult> AddDescription(UpdateDescriptionRequest request)
+    {
+        var result = await _profileService.AddDescription(CurrentProfileId, request.Description);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+        
+        return Ok();
+    }
 }
+
+public record UpdateDescriptionRequest(string Description);
