@@ -12,7 +12,7 @@ interface GithubStatsSectionProps {
 export function GithubStatsSection({ githubInfo, isConnecting, onConnect }: GithubStatsSectionProps) {
     if (!githubInfo) {
         return (
-            <Section title="GitHub">
+            <Section>
                 <Button variant="secondary" isLoading={isConnecting} onClick={onConnect} className="w-full">
                     Подключить GitHub
                 </Button>
