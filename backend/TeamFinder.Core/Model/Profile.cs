@@ -18,7 +18,9 @@ public sealed class Profile : Entity<Guid>
 
     public static Result<Profile> Create(string name)
     {
-        //TODO: Validation
+        if(string.IsNullOrWhiteSpace(name))
+            return Result.Failure<Profile>("Profile name cannot be empty");
+        
         return new Profile(Guid.NewGuid(), name);
     }
     public static Profile Restore(Guid id, string name, GithubInfo? githubInfo = null, long tgId = 0, List<Skill>? skills = null)
