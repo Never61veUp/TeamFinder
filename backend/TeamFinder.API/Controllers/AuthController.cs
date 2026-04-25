@@ -7,7 +7,8 @@ namespace TeamFinder.API.Controllers;
 
 [ApiController]
 [Route("api")]
-public class AuthController : ControllerBase
+[Authorize]
+public class AuthController : BaseController
 {
     private readonly IConfiguration _config;
     private readonly JwtTokenService _jwt;
@@ -41,16 +42,12 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> TelegramAuth([FromBody] TelegramAuthRequest body)
     {
+        //TODO think about move out of here
         var botToken = _config["TELEGRAM_BOT_TOKEN"];
         if (string.IsNullOrWhiteSpace(botToken))
             return Problem("Missing TELEGRAM_BOT_TOKEN environment variable.", statusCode: 500);
 
         var result = _validator.ValidateInitData(body.InitData, botToken);
-
-        var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.FirstName);
-        if (profile.IsFailure)
-            return Problem(profile.Error, statusCode: 500);
-
         if (!result.IsValid || result.User is null)
         {
             var initDataLen = body.InitData?.Length ?? 0;
@@ -60,6 +57,10 @@ public class AuthController : ControllerBase
                 initDataLen);
             return Unauthorized();
         }
+
+        var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.FirstName);
+        if (profile.IsFailure)
+            return Problem(profile.Error, statusCode: 500);
 
         var token = _jwt.CreateToken(profile.Value.Id, result.User, _config);
 
@@ -77,6 +78,7 @@ public class AuthController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> DevAuth([FromBody] long tgId)
     {
+        //TODO think about move out of here
         if (!bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
             return NotFound();
 
@@ -95,7 +97,6 @@ public class AuthController : ControllerBase
     /// </summary>
     /// <remarks> Требует JWT в заголовке Authorization.</remarks>
     [HttpGet("me")]
-    [Authorize]
     public IActionResult GetMe()
     {
         var profileId = User.FindFirst("profile:id")?.Value;
@@ -111,28 +112,6 @@ public class AuthController : ControllerBase
             username,
             firstName,
             lastName
-        });
-    }
-
-    /// <summary>
-    ///     Эндпоинт для отладки.
-    /// </summary>
-    /// <remarks>
-    ///     Возвращает информацию о JWT, который был отправлен в заголовке Authorization, а также параметры, используемые для
-    ///     его генерации.
-    ///     Не использовать в продакшене, так как может раскрывать чувствительную информацию. Доступен только при включенной
-    ///     разработческой авторизации.
-    /// </remarks>
-    [HttpGet("debug-token")]
-    public IActionResult DebugToken()
-    {
-        var raw = Request.Headers.Authorization.ToString();
-        return Ok(new
-        {
-            authHeader = raw,
-            issuer = _config["JWT_ISSUER"],
-            audience = _config["JWT_AUDIENCE"],
-            keyLen = _config["JWT_KEY"]?.Length
         });
     }
 }
