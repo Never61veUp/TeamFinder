@@ -13,4 +13,6 @@ public interface IProfileRepository
     Task<Result> ConnectGithubInfo(Guid profileId, GithubEntity githubInfo);
     Task<Result<ProfileEntity>> GetByTgId(long tgId);
     Task<ProfileEntity?> GetWithGithubStatsById(Guid id);
+    Task<Result> AddSkill(Guid profileId, Guid skillId);
+    Task<Result<List<ProfileEntity>>> FindBySkill(List<Guid> skillIds);
 }
