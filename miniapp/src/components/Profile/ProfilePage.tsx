@@ -7,7 +7,7 @@ import { useProfile } from "../hooks/useProfile";
 import { useGithub } from "../hooks/useGithub";
 import { GithubStatsSection } from "./Stats/GithubStats";
 import { SkillsList } from "./Skills/SkillTags";
-import './Profile.css';
+import './profile.css';
 import { profileService } from '../../services';
 
 
