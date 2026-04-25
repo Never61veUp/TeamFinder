@@ -2,6 +2,7 @@
 using TeamFinder.Application.Mapping;
 using TeamFinder.Core.Model;
 using TeamFinder.Postgresql;
+using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 using TeamFinder.Postgresql.Repositories;
 

@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using TeamFinder.Postgresql.Model;
 
-namespace TeamFinder.Postgresql;
+namespace TeamFinder.Postgresql.Abstractions;
 
 public interface ISkillRepository
 {

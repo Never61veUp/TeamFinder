@@ -1,15 +1,9 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
+using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 
 namespace TeamFinder.Postgresql.Repositories;
-
-public interface ITeamRepository
-{
-    Task<Result> SaveTeam(TeamEntity team);
-    Task<Result<TeamEntity>> GetById(Guid id);
-    Task<Result> UpdateTeam(TeamEntity team);
-}
 
 public class TeamRepository : ITeamRepository
 {
