@@ -6,21 +6,17 @@ namespace TeamFinder.API.Controllers;
 
 [ApiController]
 [Route("api/github")]
-public class GitHubContreoller : ControllerBase
+[Authorize]
+public class GitHubController : BaseController
 {
-    private readonly IConfiguration _config;
     private readonly IGithubService _githubAppService;
-    private readonly IGitHubServiceExternal _githubServiceExternal;
     private readonly IProfileService _profileService;
     private readonly IGitHubServiceExternal _serviceExternal;
 
-    public GitHubContreoller(IGitHubServiceExternal serviceExternal,
-        IConfiguration config, IGitHubServiceExternal githubServiceExternal,
+    public GitHubController(IGitHubServiceExternal serviceExternal,
         IGithubService githubAppService, IProfileService profileService)
     {
         _serviceExternal = serviceExternal;
-        _config = config;
-        _githubServiceExternal = githubServiceExternal;
         _githubAppService = githubAppService;
         _profileService = profileService;
     }
@@ -35,16 +31,14 @@ public class GitHubContreoller : ControllerBase
     ///     Клиент должен будет открыть этот URL, пройти авторизацию
     /// </remarks>
     [HttpGet("login")]
-    [Authorize]
     public IActionResult Login()
     {
+        //TODO think about move out of here
         var githubClientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
         if (string.IsNullOrWhiteSpace(githubClientId))
             return NotFound();
-        var profileId = User.FindFirst("profile:id")?.Value;
-        if (!Guid.TryParse(profileId, out var profileGuid))
-            return BadRequest("Invalid profile ID.");
-        var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={githubClientId}&state={profileGuid}";
+        
+        var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={githubClientId}&state={CurrentProfileId}";
         return Ok(new { url = redirectUrl });
     }
 
@@ -62,9 +56,12 @@ public class GitHubContreoller : ControllerBase
     ///     сервер должен вернуть соответствующий код ошибки и сообщение.
     /// </remarks>
     [HttpGet("callback")]
-    [Authorize]
     public async Task<IActionResult> Callback(string code, string state)
     {
+        if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
+            return BadRequest("Invalid callback request.");
+        
+        //TODO think about move out of here
         var clientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
         var clientSecret = Environment.GetEnvironmentVariable("GITHUB_CLIENT_SECRET");
 
@@ -81,13 +78,11 @@ public class GitHubContreoller : ControllerBase
 
         var githubInfoResult = await _githubAppService
             .CreateGithubInfo(githubId, username, accessToken);
-
         if (githubInfoResult.IsFailure)
             return BadRequest(githubInfoResult.Error);
 
         var connectResult = await _profileService
             .ConnectGithub(profileId, githubInfoResult.Value);
-
         if (connectResult.IsFailure)
             return BadRequest(connectResult.Error);
 
