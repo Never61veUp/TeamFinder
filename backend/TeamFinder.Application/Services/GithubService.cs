@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using CSharpFunctionalExtensions;
+using TeamFinder.Application.Abstractions;
 using TeamFinder.Core.Model;
 
 namespace TeamFinder.Application.Services;

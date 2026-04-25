@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TeamFinder.API.Security;
+using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 
 namespace TeamFinder.API.Controllers;
