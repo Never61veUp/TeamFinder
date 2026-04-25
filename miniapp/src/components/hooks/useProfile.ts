@@ -13,16 +13,14 @@ export function useProfile(profileId: string | undefined) {
     setIsLoading(true)
     setError(null)
     try {
-      const [profileData, skillsData] = await Promise.all([
-        profileService.getWithGithubStats(profileId),
-        profileService.getSkills(profileId),
-      ])
-      setProfile(profileData)
-      setSkills(skillsData)
+        const data = await profileService.getMyProfile()
+        setProfile(data)
+        console.log(data)
+        setSkills(data.skills || [])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to fetch profile')
+        setError(e instanceof Error ? e.message : 'Failed to fetch profile')
     } finally {
-      setIsLoading(false)
+        setIsLoading(false)
     }
   }, [profileId])
 

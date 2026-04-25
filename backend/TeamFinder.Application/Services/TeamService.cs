@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using TeamFinder.Application.Mapping;
 using TeamFinder.Core.Model.Teams;
+using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Repositories;
 
 namespace TeamFinder.Application.Services;

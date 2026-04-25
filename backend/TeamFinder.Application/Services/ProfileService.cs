@@ -2,6 +2,7 @@
 using TeamFinder.Application.Mapping;
 using TeamFinder.Core.Model;
 using TeamFinder.Postgresql;
+using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 using TeamFinder.Postgresql.Repositories;
 
@@ -33,7 +34,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<Guid>> Create(string name)
     {
-        var profile = Profile.Create(name);
+        var profile = Profile.Create(name, 1);
         if (profile.IsFailure) 
             return Result.Failure<Guid>(profile.Error);
 
@@ -106,8 +107,8 @@ public class ProfileService : IProfileService
             .Where(p => p.Skills.Any(s =>
                 expandedSkills.Contains(s.SkillId)))
             .ToList();
-        return profileEntities.Select(p => Profile.Restore(p.Id, p.UserName)).ToList();
-        //TODO: Переписать await _profileRepository.GetAll(), маппинг резалтов
+        return profileEntities.Select(p => Profile.Restore(p.Id, p.UserName, p.TgId)).ToList();
+        //TODO: Переписать await _profileRepository.GetAll(), маппинг резалтов (не тянуть все профили)
     }
 
     public async Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo)
@@ -132,13 +133,9 @@ public class ProfileService : IProfileService
         if (existingProfile.IsSuccess)
             return Result.Success(existingProfile.Value);
 
-        var profile = Profile.Create(name);
+        var profile = Profile.Create(name, tgId);
         if(profile.IsFailure)
             return Result.Failure<Profile>(profile.Error);
-        
-        var addingTgResult = profile.Value.AddTelegramId(tgId);
-        if (addingTgResult.IsFailure)
-            return Result.Failure<Profile>(addingTgResult.Error);
 
         var profileEntity = profile.Value.ToEntity();
         var saveResult = await _profileRepository.Add(profileEntity);

@@ -58,7 +58,7 @@ public class ProfileController : BaseController
     /// <remarks>
     ///     Включая поле навыки и гитхаб.
     /// </remarks>
-    [HttpGet]
+    [HttpGet("me")]
     public async Task<IActionResult> GetMyProfile()
     {
         var profile = await _profileService.GetById(CurrentProfileId);

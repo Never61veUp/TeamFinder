@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
+using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 
 namespace TeamFinder.Postgresql.Repositories;

@@ -6,9 +6,10 @@ public sealed class Profile : Entity<Guid>
 {
     private readonly List<Skill> _skills = [];
 
-    private Profile(Guid id, string name) : base(id)
+    private Profile(Guid id, string name, long tgId) : base(id)
     {
         Name = name;
+        TelegramId = tgId;
     }
 
     public IReadOnlyCollection<Skill> Skills => _skills.AsReadOnly();
@@ -16,18 +17,17 @@ public sealed class Profile : Entity<Guid>
     public GithubInfo? GithubInfo { get; private set; }
     public long TelegramId { get; private set; }
 
-    public static Result<Profile> Create(string name)
+    public static Result<Profile> Create(string name, long tgId)
     {
         if(string.IsNullOrWhiteSpace(name))
             return Result.Failure<Profile>("Profile name cannot be empty");
         
-        return new Profile(Guid.NewGuid(), name);
+        return new Profile(Guid.NewGuid(), name, tgId);
     }
-    public static Profile Restore(Guid id, string name, GithubInfo? githubInfo = null, long tgId = 0, List<Skill>? skills = null)
+    public static Profile Restore(Guid id, string name, long tgId, GithubInfo? githubInfo = null, List<Skill>? skills = null)
     {
-        var profile = new Profile(id, name)
+        var profile = new Profile(id, name, tgId)
         {
-            TelegramId = tgId,
             GithubInfo = githubInfo
         };
 
