@@ -31,7 +31,11 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
 
     const [isEditing, setIsEditing] = useState(false);
     const [localAbout, setLocalAbout] = useState<string>('');
-    const [localAchievements, setLocalAchievements] = useState({
+    const [localAchievements, setLocalAchievements] = useState<{
+        hackathons: number | '';
+        wins: number | '';
+        projects: number | '';
+    }>({
         hackathons: 0,
         wins: 0,
         projects: 0,
@@ -81,38 +85,34 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
         }
 
         setIsSaving(true);
-        console.log('saveChanges: start', { profileId, about: localAbout, achievements: localAchievements, skills: localSkills });
 
         try {
-            let allSkills: Array<string | { id: string; name?: string }> = [];
+            const skillsMap: Record<string, string> = {};
             try {
-                allSkills = await profileService.getAllSkills?.() ?? [];
+                const allSkillsResponse = await profileService.getAllSkills?.();
+                if (allSkillsResponse && Array.isArray(allSkillsResponse)) {
+                    allSkillsResponse.forEach((s: any) => {
+                        if (typeof s === 'string') {
+                            skillsMap[s] = s;
+                        } else if (s && s.id && s.name) {
+                            skillsMap[s.name] = s.id;
+                        }
+                    });
+                }
             } catch (e) {
-                console.warn('saveChanges: getAllSkills failed, will try to send local values', e);
+                console.warn('saveChanges: Could not fetch skills map', e);
             }
 
-            const skillsMap: Record<string, string> = {};
-            (allSkills || []).forEach((s: any) => {
-                if (typeof s === 'string') skillsMap[s] = s;
-                else if (s && s.id && s.name) skillsMap[s.name] = s.id;
-            });
-
-            const skillIds = (localSkills || []).map((s: any) => {
-                if (typeof s === 'string') return skillsMap[s] ?? s;
-                return s?.id ?? s?.name ?? String(s);
-            });
-
-            console.log('saveChanges: sending skills', skillIds);
+            const skillIds = localSkills.map(name => skillsMap[name] ?? name);
 
             await profileService.updateProfile(profileId, {
                 about: localAbout,
-                hackathons: localAchievements.hackathons,
-                wins: localAchievements.wins,
-                projects: localAchievements.projects,
-                skills: skillIds,
+                hackathons: Number(localAchievements.hackathons) || 0,
+                wins: Number(localAchievements.wins) || 0,
+                projects: Number(localAchievements.projects) || 0,
+                skills: skillIds as any,
             });
 
-            console.log('saveChanges: profile updated via POST /profiles');
             setIsEditing(false);
         } catch (err) {
             console.warn('saveChanges: updateProfile failed', err);
@@ -125,7 +125,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
         }
     };
 
-    const handleAchievementChange = (key: 'hackathons' | 'wins' | 'projects', value: number) => {
+    const handleAchievementChange = (key: 'hackathons' | 'wins' | 'projects', value: number | '') => {
         setLocalAchievements(prev => ({ ...prev, [key]: value }));
     };
 
@@ -147,7 +147,6 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
         const selected = Object.keys(skillsModalSelected).filter(k => skillsModalSelected[k]);
         setLocalSkills(selected);
         setIsSkillsEditorOpen(false);
-        console.log('Skills modal saved', selected);
     };
 
     if (isLoading) {
@@ -172,10 +171,11 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                         {!isEditing && <Pencil size={18} strokeWidth={2} />}
 
                         <span>
-                {isEditing ? (isSaving ? 'Сохранение...' : 'Сохранить') : 'Редактировать'}
-            </span>
+                            {isEditing ? (isSaving ? 'Сохранение...' : 'Сохранить') : 'Редактировать'}
+                        </span>
                     </button>
                 </div>
+
                 <SkillsList
                     skills={allProfileSkills ?? (profile?.skills ?? [])}
                     isEditing={isEditing}
@@ -183,7 +183,6 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                     selectedSkillIds={localSkills}
                 />
 
-                {/* Используем контролируемый AboutMe — textarea рендерится внутри карточки */}
                 <AboutMe text={localAbout} isEditing={isEditing} onChange={setLocalAbout} />
 
                 <AchievementsGrid
