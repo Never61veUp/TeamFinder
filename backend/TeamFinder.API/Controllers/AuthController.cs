@@ -48,7 +48,6 @@ public class AuthController : BaseController
             return Problem("Missing TELEGRAM_BOT_TOKEN environment variable.", statusCode: 500);
 
         var result = _validator.ValidateInitData(body.InitData, botToken);
-
         if (!result.IsValid || result.User is null)
         {
             var initDataLen = body.InitData?.Length ?? 0;
@@ -62,7 +61,7 @@ public class AuthController : BaseController
         var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.FirstName);
         if (profile.IsFailure)
             return Problem(profile.Error, statusCode: 500);
-        
+
         var token = _jwt.CreateToken(profile.Value.Id, result.User, _config);
 
         return Ok(new TelegramAuthResponse(token, result.User));

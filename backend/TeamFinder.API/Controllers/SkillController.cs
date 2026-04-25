@@ -27,7 +27,6 @@ public class SkillController : ControllerBase
     public async Task<IActionResult> Create(CreateSkillRequest request)
     {
         var result = await _skillService.AddSkill(request.Name);
-
         if (result.IsFailure)
             return BadRequest(result.Error);
 
@@ -56,6 +55,7 @@ public class SkillController : ControllerBase
         var result = await _skillService.AddRelation(request.ParentId, request.ChildId);
         if (result.IsFailure)
             return BadRequest(result.Error);
+        
         return Ok();
     }
 
@@ -73,6 +73,7 @@ public class SkillController : ControllerBase
         var children = await _skillService.GetChildren(id);
         if (children.IsFailure)
             return BadRequest(children.Error);
+        
         return Ok(children.Value);
     }
 
