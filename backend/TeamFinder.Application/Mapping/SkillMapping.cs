@@ -1,11 +1,12 @@
-﻿using TeamFinder.Core.Model;
+﻿using CSharpFunctionalExtensions;
+using TeamFinder.Core.Model;
 using TeamFinder.Postgresql.Model;
 
 namespace TeamFinder.Application.Mapping;
 
 public static class SkillMapping
 {
-    public static Skill ToDomain(this SkillEntity entity)
+    public static Result<Skill> ToDomain(this SkillEntity entity)
     {
         return Skill.Create(entity.Id, entity.Name);
     }

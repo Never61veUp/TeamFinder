@@ -21,5 +21,8 @@ public class ProfileConfiguration : IEntityTypeConfiguration<ProfileEntity>
         builder.HasMany(x => x.Skills)
             .WithOne(x => x.Profile)
             .HasForeignKey(x => x.ProfileId);
+        
+        builder
+            .OwnsOne(p => p.GithubInfo);
     }
 }
