@@ -1,0 +1,222 @@
+/* === БАЗА === */
+.profile-container {
+	width: 100%;
+	max-width: 900px;
+	margin: 0 auto;
+	background: #f8fafc;
+	min-height: 100vh;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* === HEADER === */
+.profile-header {
+	width: 100%;
+	height: 220px;
+	background: linear-gradient(135deg, #7c3aed, #2563eb);
+	border-bottom-left-radius: 24px;
+	border-bottom-right-radius: 24px;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+
+	color: white;
+	text-align: center;
+}
+
+.avatar-container {
+	width: 80px;
+	height: 80px;
+	margin-bottom: 12px;
+}
+
+.avatar-img,
+.avatar-placeholder {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	background: #e5e7eb;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	font-weight: bold;
+	font-size: 24px;
+	color: #7c3aed;
+}
+
+.profile-name {
+	font-size: 22px;
+	font-weight: 700;
+	margin-bottom: 4px;
+	color: white;
+}
+
+.profile-username {
+	font-size: 14px;
+	opacity: 0.9;
+}
+
+/* === CONTENT === */
+.profile-content {
+	margin-top: 12px;
+}
+
+/* === КНОПКА РЕДАКТИРОВАНИЯ === */
+.edit-btn {
+	color: #7c3aed;
+	font-weight: 600;
+	font-size: 14px;
+	background: none;
+	border: none;
+	cursor: pointer;
+}
+
+/* === СЕКЦИИ === */
+.profile-section {
+	margin-top: 10px;
+}
+
+.profile-section h2 {
+	font-size: 18px;
+	font-weight: 700;
+	color: #111827;
+	margin-bottom: 10px;
+}
+
+/* === ABOUT === */
+.about-card {
+	background: white;
+	padding: 16px;
+	border-radius: 16px;
+	border: 1px solid #f1f5f9;
+}
+
+.about-text {
+	color: #374151;
+	font-size: 14px;
+	line-height: 1.5;
+}
+
+.about-textarea {
+	width: 100%;
+	border: 2px solid #ede9fe;
+	border-radius: 12px;
+	padding: 12px;
+	outline: none;
+	font-size: 14px;
+	resize: none;
+}
+
+.about-textarea:focus {
+	border-color: #7c3aed;
+}
+
+/* === SKILLS (чтобы вписались красиво) === */
+.section-title {
+	font-size: 18px;
+	font-weight: 700;
+	color: black;
+}
+
+.badge {
+	background: #eef2ff;
+	color: #4f46e5;
+	padding: 6px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+/* === ДОСТИЖЕНИЯ === */
+.achievements-grid {
+	display: flex;
+	gap: 10px;
+	width: 100%;
+}
+
+.achievement-card {
+	flex: 1;
+	background: white;
+	border-radius: 16px;
+	padding: 14px;
+	border: 1px solid #f1f5f9;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.achievement-value {
+	font-size: 24px;
+	font-weight: 700;
+	color: #7c3aed;
+}
+
+.achievement-label {
+	font-size: 11px;
+	text-transform: uppercase;
+	color: #9ca3af;
+	font-weight: 700;
+}
+
+/* === GITHUB === */
+.github-section {
+	margin-top: 10px;
+}
+
+.github-grid {
+	display: flex;
+	gap: 10px;
+}
+
+.github-card {
+	flex: 1;
+	background: #f9fafb;
+	border-radius: 12px;
+	padding: 12px;
+	text-align: center;
+}
+
+.github-card span:first-child {
+	font-size: 12px;
+	color: #6b7280;
+}
+
+.github-card span:last-child {
+	font-weight: 700;
+	color: #111827;
+}
+
+/* === МОДАЛКА === */
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+	background: white;
+	border-radius: 20px;
+	padding: 20px;
+	width: 90%;
+	max-width: 500px;
+}
+
+/* === SCROLL / MOBILE === */
+@media (max-width: 640px) {
+	.profile-header {
+		height: 200px;
+	}
+
+	.profile-name {
+		font-size: 20px;
+	}
+
+	.achievement-value {
+		font-size: 20px;
+	}
+}

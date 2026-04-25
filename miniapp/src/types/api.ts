@@ -18,6 +18,10 @@ export interface Profile {
   photoUrl?: string
   telegramId?: number
   skills?: Skill[]
+  about?: string;
+  hackathons?: number;
+  wins?: number;
+  projects?: number;
 }
 
 export interface ProfileWithGithub extends Profile {
