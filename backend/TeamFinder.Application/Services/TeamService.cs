@@ -25,7 +25,7 @@ public class TeamService : ITeamService
         return await _repository.SaveTeam(team.Value.MapToEntity());
     }
 
-    public async Task<Result<Guid>> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
+    public async Task<Result> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
     {
         var teamEntity = await _repository.GetById(teamId);
         if (teamEntity.IsFailure)
@@ -37,9 +37,7 @@ public class TeamService : ITeamService
         if(inviteResult.IsFailure)
             return Result.Failure<Guid>(inviteResult.Error);
         
-        await _repository.AddInvitation(inviteResult.Value.MapToEntity());
-        
-        return Result.Success(inviteResult.Value.Id);
+        return await _repository.AddInvitation(inviteResult.Value.MapToEntity());
     }
     
     public async Task<Result> CreateJoinRequest(Guid teamId, Guid profileId)
@@ -54,10 +52,7 @@ public class TeamService : ITeamService
         if(requestResult.IsFailure)
             return Result.Failure(requestResult.Error);
         
-        var result = await _repository.AddJoinRequest(teamId, profileId);
-        return result.IsFailure 
-            ? Result.Failure(result.Error) 
-            : Result.Success();
+        return await _repository.AddJoinRequest(teamId, profileId);
     }
     
     public async Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId, Guid acceptInitiatorId)
@@ -73,9 +68,6 @@ public class TeamService : ITeamService
         if(acceptResult.IsFailure)
             return Result.Failure(acceptResult.Error);
         
-        var result = await _repository.AcceptJoinRequest(teamId, profileId);
-        return result.IsFailure 
-            ? Result.Failure(result.Error) 
-            : Result.Success();
+        return await _repository.AcceptJoinRequest(teamId, profileId);
     }
 }
