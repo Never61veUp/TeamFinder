@@ -15,11 +15,14 @@ public class ProfileRepository : IProfileRepository
         _context = context;
     }
 
-    public async Task<ProfileEntity?> GetById(Guid id)
+    public async Task<Result<ProfileEntity>> GetById(Guid id)
     {
-        return await _context.Profiles
+        var result =  await _context.Profiles
             .Include(x => x.Skills).ThenInclude(us => us.Skill)
             .FirstOrDefaultAsync(x => x.Id == id);
+        return result == null 
+            ? Result.Failure<ProfileEntity>("Profile not found")
+            : Result.Success(result);
     }
 
     public async Task<List<ProfileEntity>> GetAll()
@@ -74,11 +77,15 @@ public class ProfileRepository : IProfileRepository
         return Result.Success(profile);
     }
 
-    public async Task<ProfileEntity?> GetWithGithubStatsById(Guid id)
+    public async Task<Result<ProfileEntity>> GetWithGithubStatsById(Guid id)
     {
-        return await _context.Profiles
+        var profile =  await _context.Profiles
             .Include(x => x.GithubInfo)
             .FirstOrDefaultAsync(x => x.Id == id);
+        
+        if (profile == null)
+            return Result.Failure<ProfileEntity>("Profile not found");
+        return Result.Success(profile);
     }
 
     public async Task<Result> AddSkill(Guid profileId, Guid skillId)

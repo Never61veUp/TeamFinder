@@ -25,26 +25,15 @@ public static class ProfileMapping
             githubInfo = githubResult.Value;
         }
         
-        var skills = new List<Skill>();
-        foreach (var s in entity.Skills)
-        {
-            var skillResult = s.Skill.ToDomain();
-            
-            if (skillResult.IsFailure) 
-                return Result.Failure<Profile>($"Invalid Skill while mapping to domain: {skillResult.Error}");
-            
-            skills.Add(skillResult.Value);
-        }
-        
-        var profile = Profile.Restore(
-            entity.Id,
-            entity.UserName,
-            entity.TgId,
-            githubInfo,
-            skills,
-            entity.Description);
-
-        return Result.Success(profile);
+        return entity.Skills
+            .MapToDomainList(s => s.Skill.ToDomain())
+            .Map(skills => Profile.Restore(
+                entity.Id,
+                entity.UserName,
+                entity.TgId,
+                githubInfo,
+                skills,
+                entity.Description));
     }
 
     public static ProfileEntity ToEntity(this Profile domain)
@@ -54,6 +43,7 @@ public static class ProfileMapping
             Id = domain.Id,
             UserName = domain.Name,
             TgId = domain.TelegramId,
+            Description = domain.Description,
             Skills = domain.Skills
                 .Select(s => new ProfileSkillEntity
                 {

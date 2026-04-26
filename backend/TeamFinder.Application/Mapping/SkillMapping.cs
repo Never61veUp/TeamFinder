@@ -19,12 +19,4 @@ public static class SkillMapping
             Name = domain.Name
         };
     }
-    
-    public static Result<List<Skill>> MapToDomainList(this IEnumerable<SkillEntity> entities)
-    {
-        return entities
-            .Select(e => e.ToDomain())
-            .Combine()
-            .Map(skills => skills.ToList());
-    }
 }

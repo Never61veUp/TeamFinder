@@ -37,13 +37,13 @@ public class SkillService : ISkillService
     public async Task<Result<List<Skill>>> GetParents(Guid skillId)
     {
         return await _skillRepository.GetAllParents(skillId)
-            .Bind(entities => entities.MapToDomainList());
+            .Bind(entities => entities.MapToDomainList(s => s.ToDomain()));
     }
 
     public async Task<Result<List<Skill>>> GetChildren(Guid skillId)
     {
         return await _skillRepository.GetAllChildren(skillId)
-            .Bind(entities => entities.MapToDomainList());
+            .Bind(entities => entities.MapToDomainList(s => s.ToDomain()));
     }
 
     public async Task<Result<List<string>>> GetSkillsTreeDev()
@@ -54,6 +54,6 @@ public class SkillService : ISkillService
     public async Task<Result<List<Skill>>> GetAllSkills()
     {
         return await _skillRepository.GetAllSkills()
-            .Bind(entities => entities.MapToDomainList());
+            .Bind(entities => entities.MapToDomainList(s => s.ToDomain()));
     }
 }
