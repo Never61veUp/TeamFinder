@@ -6,4 +6,6 @@ public class BaseController : ControllerBase
 {
     protected Guid CurrentProfileId => 
         Guid.TryParse(User.FindFirst("profile:id")?.Value, out var id) ? id : Guid.Empty;
+    
+    //TODO: mapping Result to IActionResult
 }

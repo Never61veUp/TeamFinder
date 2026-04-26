@@ -28,20 +28,20 @@ public class TeamController : BaseController
         return Ok();
     }
     
-    [HttpPost("invite")]
-    public async Task<IActionResult> InviteProfile(InviteProfileRequest request)
+    [HttpPost("{teamId:guid}/invitations/{inviteeId:guid}")]
+    public async Task<IActionResult> InviteProfile(Guid teamId, Guid inviteeId)
     {
-        var result = await _teamService.InviteProfile(request.TeamId, CurrentProfileId, request.InviteeId);
+        var result = await _teamService.InviteProfile(teamId, CurrentProfileId, inviteeId);
         if(result.IsFailure)
             return BadRequest(result.Error);
         
         return Ok();
     }
 
-    [HttpPost("request-join")]
-    public async Task<IActionResult> RequestToJoin(AcceptInvitationRequest request)
+    [HttpPost("{teamId:guid}/request-join/")]
+    public async Task<IActionResult> RequestToJoin(Guid teamId)
     {
-        var result = await _teamService.CreateJoinRequest(request.TeamId, CurrentProfileId);
+        var result = await _teamService.CreateJoinRequest(teamId, CurrentProfileId);
         if(result.IsFailure)
             return BadRequest(result.Error);
         
