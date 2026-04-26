@@ -44,3 +44,19 @@ export interface GithubInfo {
 export interface GithubLoginResponse {
   url: string
 }
+
+export interface TeamMember {
+  id: string;
+  initials: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  event?: string;
+  description: string;
+  currentMembers: number;
+  maxMembers: number;
+  skills: string[];
+  members: TeamMember[];
+}

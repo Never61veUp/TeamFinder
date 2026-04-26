@@ -12,8 +12,8 @@
 	width: 100%;
 	height: 220px;
 	background: linear-gradient(to right, #6b48ff, #823cf4, #a03af0);
-	border-bottom-left-radius: 36px;
-	border-bottom-right-radius: 36px;
+	border-bottom-left-radius: 30px;
+	border-bottom-right-radius: 30px;
 
 	display: flex;
 	flex-direction: column;
