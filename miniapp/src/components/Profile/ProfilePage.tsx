@@ -68,6 +68,14 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
         setSkillsModalSelected(map);
     }, [profile]);
 
+    const handleRemoveSkill = (skillToRemove: string) => {
+        setLocalSkills(prev => prev.filter(skill => skill !== skillToRemove));
+        setSkillsModalSelected(prev => ({
+            ...prev,
+            [skillToRemove]: false
+        }));
+    };
+
     const handleToggleEdit = () => {
         if (isEditing) {
             saveChanges();
@@ -83,26 +91,23 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
 
             const skillIds = localSkills
                 .map(localName => {
-                    // Ищем объект навыка по имени
                     const found = allSkills.find((s: any) =>
                         s.name?.toLowerCase() === localName.toLowerCase()
                     );
                     return found ? found.id : null;
                 })
-                .filter((id): id is string => id !== null); // Убираем пустые результаты
-
-            console.log('ID навыков для отправки:', skillIds);
+                .filter((id): id is string => id !== null);
+            const descriptionToSave = localAbout.trim() === "" ? "Пользователь пока ничего не рассказал о себе" : localAbout;
 
             await Promise.all([
-                profileService.updateDescription(localAbout),
+                profileService.updateDescription(descriptionToSave),
                 profileService.updateSkills(skillIds)
             ]);
 
             setIsEditing(false);
-            alert('Данные успешно обновлены!');
-        } catch (err) {
+        } catch (err: any) {
             console.error('Ошибка при сохранении:', err);
-            alert('Произошла ошибка при сохранении профиля.');
+            alert(`Ошибка сохранения: ${err.response?.data?.message || 'Сервер отклонил запрос'}`);
         } finally {
             setIsSaving(false);
             if (typeof refetch === 'function') refetch();
@@ -160,12 +165,43 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                     </button>
                 </div>
 
-                <SkillsList
-                    skills={allProfileSkills ?? (profile?.skills ?? [])}
-                    isEditing={isEditing}
-                    onOpenEditor={openSkillsEditor}
-                    selectedSkillIds={localSkills}
-                />
+                {isEditing ? (
+                    <div className="w-full flex flex-col items-left">
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={openSkillsEditor}
+                                className="px-4 py-2 text-sm font-medium text-violet-600 bg-violet-50 rounded-full hover:bg-violet-100 transition-colors"
+                            >
+                                + Добавить навык
+                            </button>
+
+                            {localSkills.map((skill) => (
+                                <div
+                                    key={skill}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-full bg-white text-sm shadow-sm"
+                                >
+                                    <span className="text-slate-800 font-medium">{skill}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveSkill(skill)}
+                                        className="text-gray-400 hover:text-red-500 text-lg leading-none focus:outline-none flex items-center justify-center cursor-pointer transition-colors"
+                                        aria-label={`Удалить ${skill}`}
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <SkillsList
+                        skills={allProfileSkills ?? (profile?.skills ?? [])}
+                        isEditing={isEditing}
+                        onOpenEditor={openSkillsEditor}
+                        selectedSkillIds={localSkills}
+                    />
+                )}
 
                 <AboutMe text={localAbout} isEditing={isEditing} onChange={setLocalAbout} />
 

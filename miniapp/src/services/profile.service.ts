@@ -19,7 +19,9 @@ export const profileService = {
   },
 
   updateDescription(description: string) {
-    return httpClient.post('/profiles/description', { description });
+    return httpClient.post('/profiles/description', {
+      description: description || ""
+    });
   },
 
   updateSkills(skillIds: string[]) {
