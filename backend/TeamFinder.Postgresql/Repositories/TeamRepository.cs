@@ -1,6 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 
@@ -63,87 +62,16 @@ public class TeamRepository : ITeamRepository
         return Result.Success(entity);
     }
 
-    public async Task<Result> AddInvitation(InvitationEntity invitationEntity)
+    public async Task<Result> UpdateTeam(TeamEntity team)
     {
-        await _context.Invitations.AddAsync(invitationEntity);
-        
-        try
-        {
-            await _context.SaveChangesAsync();
-            return Result.Success();
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
-        {
-            return pg.SqlState switch
-            {
-                PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Team, Invitee or Inviter not found"),
-                PostgresErrorCodes.UniqueViolation => Result.Failure("Invite already added"),
-                PostgresErrorCodes.NotNullViolation => Result.Failure("Required data is missing"),
-                _ => Result.Failure("Database error")
-            };
-        }
+        await _context.Invitations.AddRangeAsync(team.Invitations);
+        return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to update profile");
     }
-    
-    public async Task<Result> AddJoinRequest(Guid teamId, Guid profileId)
-    {
-        await _context.JoinRequests.AddAsync(new JoinRequestEntity
-        {
-            TeamId = teamId,
-            ProfileId = profileId
-        });
-        
-        try
-        {
-            await _context.SaveChangesAsync();
-            return Result.Success();
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
-        {
-            return pg.SqlState switch
-            {
-                PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Team or Profile not found"),
-                PostgresErrorCodes.UniqueViolation => Result.Failure("JoinRequest already added"),
-                PostgresErrorCodes.NotNullViolation => Result.Failure("Required data is missing"),
-                _ => Result.Failure("Database error")
-            };
-        }
-    }
-    
-    public async Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId)
-    {
-        //TODO поискать применение транзакций в других местах
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            var deletedRows = await _context.JoinRequests
-                .Where(jr => jr.TeamId == teamId && jr.ProfileId == profileId)
-                .ExecuteDeleteAsync();
-            if (deletedRows == 0)
-            {
-                await transaction.RollbackAsync();
-                return Result.Failure("Join request not found");
-            }
 
-            await _context.TeamMembers.AddAsync(new TeamMemberEntity
-            {
-                TeamId = teamId,
-                ProfileId = profileId
-            });
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return Result.Success();
-        }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
-        {
-            return pg.SqlState switch
-            {
-                PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Team or Profile not found"),
-                PostgresErrorCodes.UniqueViolation => Result.Failure("User is already a team member"),
-                PostgresErrorCodes.NotNullViolation => Result.Failure("Required data is missing"),
-                _ => Result.Failure("Database error")
-            };
-        }
+    public async Task<Result> AddInvitation(TeamEntity team)
+    {
+        await _context.Invitations.AddRangeAsync(team.Invitations);
+        return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to update profile");
     }
 
     public async Task<Result<IEnumerable<TeamEntity>>> GetAllTeams()
