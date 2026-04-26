@@ -18,9 +18,10 @@ public class TeamService : ITeamService
 
     public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers)
     {
-        var team = Team.Create(Guid.NewGuid(), ownerId, [], name, maxMembers);
+        var team = Team.Create(ownerId, name, maxMembers);
         if (team.IsFailure)
             return Result.Failure(team.Error);
+        
         return await _repository.SaveTeam(team.Value.MapToEntity());
     }
 
@@ -29,11 +30,52 @@ public class TeamService : ITeamService
         var teamEntity = await _repository.GetById(teamId);
         if (teamEntity.IsFailure)
             return Result.Failure<Guid>(teamEntity.Error);
+        
         var team = teamEntity.Value.MapToDomain();
+        
         var inviteResult = team.Value.SendInvitation(inviterId, inviteeId);
         if(inviteResult.IsFailure)
             return Result.Failure<Guid>(inviteResult.Error);
-        await _repository.UpdateTeam(team.Value.MapToEntity());
-        return Guid.NewGuid();
+        
+        await _repository.AddInvitation(inviteResult.Value.MapToEntity());
+        
+        return Result.Success(inviteResult.Value.Id);
+    }
+    
+    public async Task<Result> CreateJoinRequest(Guid teamId, Guid profileId)
+    {
+        var teamEntity = await _repository.GetById(teamId);
+        if (teamEntity.IsFailure)
+            return Result.Failure(teamEntity.Error);
+        
+        var team = teamEntity.Value.MapToDomain();
+        
+        var requestResult = team.Value.RequestToJoin(profileId);
+        if(requestResult.IsFailure)
+            return Result.Failure(requestResult.Error);
+        
+        var result = await _repository.AddJoinRequest(teamId, profileId);
+        return result.IsFailure 
+            ? Result.Failure(result.Error) 
+            : Result.Success();
+    }
+    
+    public async Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId, Guid acceptInitiatorId)
+    {
+        var teamEntity = await _repository.GetById(teamId);
+        if (teamEntity.IsFailure)
+            return Result.Failure(teamEntity.Error);
+        
+        var team = teamEntity.Value.MapToDomain();
+        
+        var acceptResult = team.Value.AcceptJoinRequest(profileId: profileId, 
+            acceptInitiatorId: acceptInitiatorId);
+        if(acceptResult.IsFailure)
+            return Result.Failure(acceptResult.Error);
+        
+        var result = await _repository.AcceptJoinRequest(teamId, profileId);
+        return result.IsFailure 
+            ? Result.Failure(result.Error) 
+            : Result.Success();
     }
 }
