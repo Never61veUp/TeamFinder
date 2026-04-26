@@ -112,7 +112,15 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    transition: color 0.2s;
+    transition: all 0.2s ease;
+}
+
+.tag-remove-btn {
+    transition:  0.2s;
+}
+
+.tag-remove-btn:active {
+    transform: scale(0.9);
 }
 
 .tag-remove-btn:hover {
@@ -139,8 +147,12 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.tag-add-btn:active {
+    transform: scale(0.96);
 }
 
 .tag-add-btn:hover {
