@@ -10,5 +10,4 @@ public interface ITeamRepository
     Task<Result> AddInvitation(InvitationEntity invitationEntity);
     Task<Result> AddJoinRequest(Guid teamId, Guid profileId);
     Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId);
-    Task<Result<IEnumerable<TeamEntity>>> GetAllTeams();
 }

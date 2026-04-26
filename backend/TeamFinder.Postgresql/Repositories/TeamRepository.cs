@@ -145,16 +145,4 @@ public class TeamRepository : ITeamRepository
             };
         }
     }
-
-    public async Task<Result<IEnumerable<TeamEntity>>> GetAllTeams()
-    {
-        var teams = await _context.Teams
-            .Include(t => t.Members)
-            .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
-            .Include(t => t.Invitations).ToListAsync();
-
-        if(teams.Count == 0)
-            return Result.Failure<IEnumerable<TeamEntity>>("No teams found");
-        return Result.Success<IEnumerable<TeamEntity>>(teams);
-    }
 }

@@ -47,11 +47,4 @@ public class TeamService : ITeamService
             .Check(team => team.AcceptJoinRequest(profileId, acceptInitiatorId))
             .Bind(_ => _repository.AcceptJoinRequest(teamId, profileId));
     }
-    
-    public async Task<Result<List<Team>>> GetTeams()
-    {
-        return await _repository.GetAllTeams()
-            .Bind(entities => entities
-                .MapToDomainList(e => e.MapToDomain()));
-    }
 }
