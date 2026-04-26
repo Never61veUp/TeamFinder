@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeamFinder.Postgresql;
@@ -11,9 +12,11 @@ using TeamFinder.Postgresql;
 namespace TeamFinder.Postgresql.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260425212424_joinrequests")]
+    partial class joinrequests
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,13 +56,22 @@ namespace TeamFinder.Postgresql.Migrations
 
             modelBuilder.Entity("TeamFinder.Postgresql.Model.JoinRequestEntity", b =>
                 {
-                    b.Property<Guid>("TeamId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ProfileId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("TeamId", "ProfileId");
+                    b.Property<Guid?>("TeamEntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamEntityId");
 
                     b.ToTable("JoinRequests");
                 });
@@ -233,9 +245,7 @@ namespace TeamFinder.Postgresql.Migrations
                 {
                     b.HasOne("TeamFinder.Postgresql.Model.TeamEntity", null)
                         .WithMany("JoinRequests")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TeamEntityId");
                 });
 
             modelBuilder.Entity("TeamFinder.Postgresql.Model.ProfileEntity", b =>
