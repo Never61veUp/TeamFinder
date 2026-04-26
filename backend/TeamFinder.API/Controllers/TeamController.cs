@@ -57,4 +57,14 @@ public class TeamController : BaseController
         
         return Ok();
     }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetTeams()
+    {
+        var result = await _teamService.GetTeams();
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+        
+        return Ok();
+    }
 }
