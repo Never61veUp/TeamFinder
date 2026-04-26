@@ -227,9 +227,9 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
             </div>
 
             {isSkillsEditorOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 z-1000 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black opacity-40" onClick={closeSkillsEditor}></div>
-                    <div className="relative bg-white rounded-2xl p-6 w-[90%] max-w-lg shadow-lg">
+                    <div className="relative bg-white rounded-2xl p-6 w-[90%] max-w-120 shadow-lg">
                         <h3 className="font-bold text-lg mb-3">Выберите навыки</h3>
 
                         <div className="max-h-64 overflow-auto grid grid-cols-2 gap-2">
