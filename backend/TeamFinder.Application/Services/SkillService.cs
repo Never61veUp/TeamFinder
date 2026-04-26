@@ -24,49 +24,26 @@ public class SkillService : ISkillService
 
     public async Task<Result> AddRelation(Guid parentId, Guid childId, double weight = 1)
     {
-        var result = await _skillRepository.AddRelation(parentId, childId, weight);
-        if (result.IsFailure)
-            return Result.Failure(result.Error);
-
-        return Result.Success();
+        return await _skillRepository.AddRelation(parentId, childId, weight);
     }
 
     public async Task<Result> AddSkill(string name)
     {
-        var skill = Skill.Create(Guid.NewGuid(), name);
-        if(skill.IsFailure)
-            return Result.Failure(skill.Error);
-        
-        var skillEntity = skill.Value.ToEntity();
-        
-        var result = await _skillRepository.AddSkill(skillEntity);
-        return result.IsFailure 
-            ? Result.Failure(result.Error) 
-            : Result.Success();
+        return await Skill.Create(name)
+            .Map(skill => skill.ToEntity())
+            .Bind(entity => _skillRepository.AddSkill(entity));
     }
 
     public async Task<Result<List<Skill>>> GetParents(Guid skillId)
     {
-        var parents = await _skillRepository.GetAllParents(skillId);
-        if (parents.IsFailure)
-            return Result.Failure<List<Skill>>(parents.Error);
-
-        var result = parents.Value.Select(p => p.ToDomain()).ToList();
-
-        return Result.Combine(result)
-            .Map(() => result.Select(r => r.Value).ToList());
+        return await _skillRepository.GetAllParents(skillId)
+            .Bind(entities => entities.MapToDomainList());
     }
 
     public async Task<Result<List<Skill>>> GetChildren(Guid skillId)
     {
-        var children = await _skillRepository.GetAllChildren(skillId);
-        if (children.IsFailure)
-            return Result.Failure<List<Skill>>(children.Error);
-
-        var result = children.Value.Select(c => c.ToDomain()).ToList();
-
-        return Result.Combine(result)
-            .Map(() => result.Select(r => r.Value).ToList());
+        return await _skillRepository.GetAllChildren(skillId)
+            .Bind(entities => entities.MapToDomainList());
     }
 
     public async Task<Result<List<string>>> GetSkillsTreeDev()
@@ -76,12 +53,7 @@ public class SkillService : ISkillService
 
     public async Task<Result<List<Skill>>> GetAllSkills()
     {
-        var skills = await _skillRepository.GetAllSkills();
-        if (skills.IsFailure)
-            return Result.Failure<List<Skill>>(skills.Error);
-        
-        var result = skills.Value.Select(s => s.ToDomain()).ToList();
-        return Result.Combine(result)
-            .Map(() => result.Select(r => r.Value).ToList());
+        return await _skillRepository.GetAllSkills()
+            .Bind(entities => entities.MapToDomainList());
     }
 }
