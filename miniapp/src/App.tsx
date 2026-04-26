@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ProfilePage } from './components/Profile/ProfilePage'
 import { Navigation } from './components/Navigation/Navigation'
 import { CreateTeamPage } from './components/CreateTeam/CreateTeamPage'
+import { HomePage } from './components/Home/HomePage'
 import './style.css'
 import type {TelegramUser} from "./types/api.ts";
 import {authService} from "./services";
@@ -141,7 +142,7 @@ function App() {
         <Router>
             <div className="min-h-dvh bg-slate-50 pb-20">
                 <Routes>
-                    <Route path="/" element={<div className="p-4"><h1>Главная (Лента)</h1></div>} />
+                    <Route path="/" element={<HomePage user={me} />} />
                     <Route path="/search" element={<div className="p-4"><h1>Поиск команд</h1></div>} />
                     <Route path="/create" element={<CreateTeamPage />} />
                     <Route path="/profile" element={<ProfilePage user={me} onLogout={onLogout} />} />

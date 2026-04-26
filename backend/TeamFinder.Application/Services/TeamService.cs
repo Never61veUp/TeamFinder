@@ -18,7 +18,7 @@ public class TeamService : ITeamService
 
     public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers)
     {
-        return await Team.Create(ownerId, name, maxMembers)
+        return await Team.Create(Guid.NewGuid(), ownerId, [], name, maxMembers)
             .Map(team => team.MapToEntity())
             .Bind(entity => _repository.SaveTeam(entity));
     }

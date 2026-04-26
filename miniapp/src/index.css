@@ -18,7 +18,7 @@
   letter-spacing: 0.18px;
   color-scheme: light dark;
   color: var(--text);
-  background: var(--bg);
+  background: transparent;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -76,6 +76,8 @@ p {
   margin: 0;
   padding: 0 16px;
 }
+
+
 
 code {
   font-family: var(--mono), serif;
