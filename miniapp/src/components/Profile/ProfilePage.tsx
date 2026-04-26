@@ -13,11 +13,12 @@ import { Pencil } from 'lucide-react';
 
 
 const HARD_SKILLS: string[] = [
-    'JavaScript','TypeScript','React','Redux','Next.js','Node.js','Express','NestJS',
-    'HTML','CSS','Sass','Tailwind CSS','Webpack','Vite','Babel','GraphQL','REST',
-    'Postgres','MySQL','MongoDB','Docker','Kubernetes','AWS','GCP','Azure',
-    'Python','Django','Flask','Go','C#','Java','PHP','Laravel','Ruby','Rails',
-    'Git','CI/CD','Jest','Testing Library','Cypress','Storybook','Figma','UI/UX'
+    "Backend",
+    "Programming",
+    "Frontend",
+    "React",
+    "Python",
+    "Jango"
 ];
 
 interface Props {
@@ -49,17 +50,15 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
     useEffect(() => {
         if (!profile) return;
 
-        setLocalAbout((profile as any).about ?? '');
+        setLocalAbout((profile as any).description ?? (profile as any).about ?? '');
+
         setLocalAchievements({
             hackathons: (profile as any).hackathons ?? 0,
             wins: (profile as any).wins ?? 0,
             projects: (profile as any).projects ?? 0,
         });
 
-        const initialNames = (allProfileSkills && allProfileSkills.length > 0)
-            ? allProfileSkills.map(s => (s as any).name ?? (s as any).id ?? String(s))
-            : (profile?.skills ?? []).map((s: any) => s.name ?? s.id ?? String(s));
-
+        const initialNames = (profile.skills ?? []).map((s: any) => s.name ?? String(s));
         setLocalSkills(initialNames);
 
         const map: Record<string, boolean> = {};
@@ -67,7 +66,15 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
             map[name] = initialNames.includes(name);
         });
         setSkillsModalSelected(map);
-    }, [profile, allProfileSkills]);
+    }, [profile]);
+
+    const handleRemoveSkill = (skillToRemove: string) => {
+        setLocalSkills(prev => prev.filter(skill => skill !== skillToRemove));
+        setSkillsModalSelected(prev => ({
+            ...prev,
+            [skillToRemove]: false
+        }));
+    };
 
     const handleToggleEdit = () => {
         if (isEditing) {
@@ -78,50 +85,32 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
     };
 
     const saveChanges = async () => {
-        const profileId = profile?.id ?? user?.profileId;
-        if (!profileId) {
-            alert('Не удалось сохранить: отсутствует идентификатор профиля.');
-            return;
-        }
-
         setIsSaving(true);
-
         try {
-            const skillsMap: Record<string, string> = {};
-            try {
-                const allSkillsResponse = await profileService.getAllSkills?.();
-                if (allSkillsResponse && Array.isArray(allSkillsResponse)) {
-                    allSkillsResponse.forEach((s: any) => {
-                        if (typeof s === 'string') {
-                            skillsMap[s] = s;
-                        } else if (s && s.id && s.name) {
-                            skillsMap[s.name] = s.id;
-                        }
-                    });
-                }
-            } catch (e) {
-                console.warn('saveChanges: Could not fetch skills map', e);
-            }
+            const allSkills = await profileService.getAllSkills();
 
-            const skillIds = localSkills.map(name => skillsMap[name] ?? name);
+            const skillIds = localSkills
+                .map(localName => {
+                    const found = allSkills.find((s: any) =>
+                        s.name?.toLowerCase() === localName.toLowerCase()
+                    );
+                    return found ? found.id : null;
+                })
+                .filter((id): id is string => id !== null);
+            const descriptionToSave = localAbout.trim() === "" ? "Пользователь пока ничего не рассказал о себе" : localAbout;
 
-            await profileService.updateProfile(profileId, {
-                about: localAbout,
-                hackathons: Number(localAchievements.hackathons) || 0,
-                wins: Number(localAchievements.wins) || 0,
-                projects: Number(localAchievements.projects) || 0,
-                skills: skillIds as any,
-            });
+            await Promise.all([
+                profileService.updateDescription(descriptionToSave),
+                profileService.updateSkills(skillIds)
+            ]);
 
             setIsEditing(false);
-        } catch (err) {
-            console.warn('saveChanges: updateProfile failed', err);
-            alert('Не удалось сохранить профиль на сервере.');
+        } catch (err: any) {
+            console.error('Ошибка при сохранении:', err);
+            alert(`Ошибка сохранения: ${err.response?.data?.message || 'Сервер отклонил запрос'}`);
         } finally {
             setIsSaving(false);
-            if (typeof refetch === 'function') {
-                refetch().catch(rErr => console.warn('refetch failed', rErr));
-            }
+            if (typeof refetch === 'function') refetch();
         }
     };
 
@@ -176,12 +165,43 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                     </button>
                 </div>
 
-                <SkillsList
-                    skills={allProfileSkills ?? (profile?.skills ?? [])}
-                    isEditing={isEditing}
-                    onOpenEditor={openSkillsEditor}
-                    selectedSkillIds={localSkills}
-                />
+                {isEditing ? (
+                    <div className="w-full flex flex-col items-left">
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={openSkillsEditor}
+                                className="px-4 py-2 text-sm font-medium text-violet-600 bg-violet-50 rounded-full hover:bg-violet-100 transition-colors"
+                            >
+                                + Добавить навык
+                            </button>
+
+                            {localSkills.map((skill) => (
+                                <div
+                                    key={skill}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-full bg-white text-sm shadow-sm"
+                                >
+                                    <span className="text-slate-800 font-medium">{skill}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveSkill(skill)}
+                                        className="text-gray-400 hover:text-red-500 text-lg leading-none focus:outline-none flex items-center justify-center cursor-pointer transition-colors"
+                                        aria-label={`Удалить ${skill}`}
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <SkillsList
+                        skills={allProfileSkills ?? (profile?.skills ?? [])}
+                        isEditing={isEditing}
+                        onOpenEditor={openSkillsEditor}
+                        selectedSkillIds={localSkills}
+                    />
+                )}
 
                 <AboutMe text={localAbout} isEditing={isEditing} onChange={setLocalAbout} />
 
@@ -191,8 +211,8 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                     onChange={handleAchievementChange}
                 />
 
-                <section className="w-full flex flex-col items-center">
-                    <h2 className="font-bold text-[#333] mb-4 text-center text-[16px] uppercase tracking-widest">
+                <section className="w-full flex flex-col items-left">
+                    <h2 className="font-bold text-[#333] mb-4 text-left text-[16px]  tracking-widest">
                         GitHub Статистика
                     </h2>
                     <GithubStatsSection githubInfo={profile?.githubInfo} isConnecting={isConnecting} onConnect={connect} />
