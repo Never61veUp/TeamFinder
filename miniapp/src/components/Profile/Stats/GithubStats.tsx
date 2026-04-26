@@ -2,6 +2,7 @@
 import type { GithubInfo } from "../../../types/api.ts";
 import { Button } from "../../ui/Button.tsx";
 import { Folder, Star, CodeXml } from 'lucide-react';
+import '../profile.css';
 
 interface GithubStatsSectionProps {
     githubInfo?: GithubInfo | null

@@ -1,5 +1,5 @@
 import { type ButtonHTMLAttributes } from 'react'
-import {cn} from "../../lib/utils.ts";
+import { cn } from "../../lib/utils.ts";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost'
@@ -19,30 +19,41 @@ const sizes = {
   lg: 'px-6 py-3 text-lg',
 }
 
+// Отдельный объект для силы сжатия в зависимости от размера
+const tapAnimation = {
+  sm: 'active:scale-90',    // Маленькие кнопки сжимаются сильно
+  md: 'active:scale-[0.96]', // Средние — стандартно
+  lg: 'active:scale-[0.98]', // Большие — почти незаметно (деликатно)
+}
+
 export function Button({
-  variant = 'primary',
-  size = 'md',
-  isLoading,
-  disabled,
-  className,
-  children,
-  ...props
-}: ButtonProps) {
+                         variant = 'primary',
+                         size = 'md',
+                         isLoading,
+                         disabled,
+                         className,
+                         children,
+                         ...props
+                       }: ButtonProps) {
   return (
-    <button
-      disabled={disabled || isLoading}
-      className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-colors',
-        'disabled:cursor-not-allowed disabled:opacity-50',
-        variants[variant],
-        sizes[size],
-        className
-      )}
-      {...props}
-    >
-      {isLoading ? (
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-      ) : children}
-    </button>
+      <button
+          disabled={disabled || isLoading}
+          className={cn(
+              'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 ease-in-out',
+
+              // Применяем анимацию в зависимости от размера
+              tapAnimation[size],
+
+              'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',
+              variants[variant],
+              sizes[size],
+              className
+          )}
+          {...props}
+      >
+        {isLoading ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        ) : children}
+      </button>
   )
 }
