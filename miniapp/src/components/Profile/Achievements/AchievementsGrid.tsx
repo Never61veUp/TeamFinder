@@ -22,9 +22,9 @@ export const AchievementsGrid: React.FC<AchievementsProps> = ({ achievements, is
     if (isEditing) {
         return (
             <div className="w-full bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                <label className="text-[16px] text-[#303160] font-black mb-4 block tracking-widest ">
+                <h2>
                     Достижения
-                </label>
+                </h2>
                 <div className="flex flex-col gap-4">
                     {items.map((item) => (
                         <div key={item.key} className="flex flex-col">

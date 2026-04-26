@@ -49,17 +49,15 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
     useEffect(() => {
         if (!profile) return;
 
-        setLocalAbout((profile as any).about ?? '');
+        setLocalAbout((profile as any).description ?? (profile as any).about ?? '');
+
         setLocalAchievements({
             hackathons: (profile as any).hackathons ?? 0,
             wins: (profile as any).wins ?? 0,
             projects: (profile as any).projects ?? 0,
         });
 
-        const initialNames = (allProfileSkills && allProfileSkills.length > 0)
-            ? allProfileSkills.map(s => (s as any).name ?? (s as any).id ?? String(s))
-            : (profile?.skills ?? []).map((s: any) => s.name ?? s.id ?? String(s));
-
+        const initialNames = (profile.skills ?? []).map((s: any) => s.name ?? String(s));
         setLocalSkills(initialNames);
 
         const map: Record<string, boolean> = {};
@@ -67,7 +65,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
             map[name] = initialNames.includes(name);
         });
         setSkillsModalSelected(map);
-    }, [profile, allProfileSkills]);
+    }, [profile]);
 
     const handleToggleEdit = () => {
         if (isEditing) {
@@ -78,50 +76,35 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
     };
 
     const saveChanges = async () => {
-        const profileId = profile?.id ?? user?.profileId;
-        if (!profileId) {
-            alert('Не удалось сохранить: отсутствует идентификатор профиля.');
-            return;
-        }
-
         setIsSaving(true);
-
         try {
-            const skillsMap: Record<string, string> = {};
-            try {
-                const allSkillsResponse = await profileService.getAllSkills?.();
-                if (allSkillsResponse && Array.isArray(allSkillsResponse)) {
-                    allSkillsResponse.forEach((s: any) => {
-                        if (typeof s === 'string') {
-                            skillsMap[s] = s;
-                        } else if (s && s.id && s.name) {
-                            skillsMap[s.name] = s.id;
-                        }
-                    });
-                }
-            } catch (e) {
-                console.warn('saveChanges: Could not fetch skills map', e);
-            }
+            const allSkills = await profileService.getAllSkills();
 
-            const skillIds = localSkills.map(name => skillsMap[name] ?? name);
+            const skillIds = localSkills
+                .map(localName => {
+                    // Ищем объект навыка по имени
+                    const found = allSkills.find((s: any) =>
+                        s.name?.toLowerCase() === localName.toLowerCase()
+                    );
+                    return found ? found.id : null;
+                })
+                .filter((id): id is string => id !== null); // Убираем пустые результаты
 
-            await profileService.updateProfile(profileId, {
-                about: localAbout,
-                hackathons: Number(localAchievements.hackathons) || 0,
-                wins: Number(localAchievements.wins) || 0,
-                projects: Number(localAchievements.projects) || 0,
-                skills: skillIds as any,
-            });
+            console.log('ID навыков для отправки:', skillIds);
+
+            await Promise.all([
+                profileService.updateDescription(localAbout),
+                profileService.updateSkills(skillIds)
+            ]);
 
             setIsEditing(false);
+            alert('Данные успешно обновлены!');
         } catch (err) {
-            console.warn('saveChanges: updateProfile failed', err);
-            alert('Не удалось сохранить профиль на сервере.');
+            console.error('Ошибка при сохранении:', err);
+            alert('Произошла ошибка при сохранении профиля.');
         } finally {
             setIsSaving(false);
-            if (typeof refetch === 'function') {
-                refetch().catch(rErr => console.warn('refetch failed', rErr));
-            }
+            if (typeof refetch === 'function') refetch();
         }
     };
 

@@ -14,19 +14,23 @@ export const profileService = {
     return httpClient.get<Skill[]>(`/profiles/${profileId}/skills`);
   },
 
-  // Возвращает глобальный список доступных навыков (строки или объекты {id, name})
   getAllSkills() {
-    return httpClient.get<string[] | Skill[]>(`/skills`);
+    return httpClient.get<Skill[]>('/skills/all');
+  },
+
+  updateDescription(description: string) {
+    return httpClient.post('/profiles/description', { description });
+  },
+
+  updateSkills(skillIds: string[]) {
+    return httpClient.put('/profiles/skills', { skills: skillIds });
   },
 
   addSkill(profileId: string, skillIdOrName: string) {
     const encoded = encodeURIComponent(skillIdOrName);
     const attempts = [
-      // path variant: /profiles/:id/skills/:skillId
       () => httpClient.post(`/profiles/${profileId}/skills/${encoded}`),
-      // body variant: POST /profiles/:id/skills { skillId }
       () => httpClient.post(`/profiles/${profileId}/skills`, { skillId: skillIdOrName }),
-      // global endpoint: POST /profiles/skills { profileId, skillId }
       () => httpClient.post(`/profiles/skills`, { profileId, skillId: skillIdOrName }),
     ];
     return tryAttempts(attempts);
@@ -35,11 +39,8 @@ export const profileService = {
   removeSkill(profileId: string, skillIdOrName: string) {
     const encoded = encodeURIComponent(skillIdOrName);
     const attempts = [
-      // path variant: DELETE /profiles/:id/skills/:skillId
       () => httpClient.delete(`/profiles/${profileId}/skills/${encoded}`),
-      // query variant: DELETE /profiles/:id/skills?skillId=...
       () => httpClient.delete(`/profiles/${profileId}/skills?skillId=${encoded}`),
-      // fallback: POST /profiles/skills/remove { profileId, skillId }
       () => httpClient.post(`/profiles/skills/remove`, { profileId, skillId: skillIdOrName }),
     ];
     return tryAttempts(attempts);
@@ -54,22 +55,21 @@ export const profileService = {
     hackathons?: number;
     wins?: number;
     projects?: number;
-    skills?: string[]; // ожидаем массив id или массив объектов в зависимости от API
+    skills?: string[];
   }>) {
     try {
-      // получаем текущий профиль, чтобы собрать полный объект
       const current = await httpClient.get<Profile>(`/profiles/${profileId}`).catch(() => null);
 
-      const full: Partial<Profile> = {
+      const full: any = {
         id: profileId,
         name: (current as any)?.name ?? (payload as any).name ?? 'Unknown',
         username: (current as any)?.username,
         photoUrl: (current as any)?.photoUrl,
-        about: payload.about ?? (current as any)?.about,
+        // Если API ждет 'description', лучше переименовать здесь
+        description: payload.about ?? (current as any)?.description ?? (current as any)?.about,
         hackathons: payload.hackathons ?? (current as any)?.hackathons,
         wins: payload.wins ?? (current as any)?.wins,
         projects: payload.projects ?? (current as any)?.projects,
-        // если пришли skills — используем их; иначе берём из current
         skills: (payload as any).skills ?? (current as any)?.skills ?? [],
       };
 
@@ -111,7 +111,6 @@ async function tryAttempts(attempts: Array<() => Promise<any>>) {
       return await fn();
     } catch (err: any) {
       lastErr = err;
-      // если ошибка не 404/405 — пробрасываем, иначе пробуем следующий вариант
       if (err?.status && err.status !== 404 && err.status !== 405) {
         throw err;
       }
