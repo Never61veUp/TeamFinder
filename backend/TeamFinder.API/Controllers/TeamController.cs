@@ -48,16 +48,13 @@ public class TeamController : BaseController
         return Ok();
     }
 
-    [HttpPost("accept-join")]
-    public async Task<IActionResult> AcceptJoinRequest(AcceptJoinRequest request)
+    [HttpPost("{teamId:guid}/accept-join/{requestedProfileId:guid}")]
+    public async Task<IActionResult> AcceptJoinRequest(Guid teamId, Guid requestedProfileId)
     {
-        var result = await _teamService.AcceptJoinRequest(request.TeamId, request.ProfileId, CurrentProfileId);
+        var result = await _teamService.AcceptJoinRequest(teamId, requestedProfileId, CurrentProfileId);
         if(result.IsFailure)
             return BadRequest(result.Error);
         
         return Ok();
     }
 }
-
-public record AcceptInvitationRequest(Guid TeamId);
-public record AcceptJoinRequest(Guid TeamId, Guid ProfileId);
