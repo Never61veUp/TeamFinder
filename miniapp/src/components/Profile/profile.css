@@ -71,6 +71,7 @@
 	background: none;
 	border: none;
 	cursor: pointer;
+
 }
 
 /* === СЕКЦИИ === */
@@ -106,7 +107,7 @@
 	border-color: #7c3aed;
 }
 
-/* === SKILLS (чтобы вписались красиво) === */
+/* === SKILLS === */
 .section-title {
 	font-size: 18px;
 	font-weight: 700;
@@ -120,6 +121,22 @@
 	border-radius: 999px;
 	font-size: 12px;
 	font-weight: 600;
+}
+
+.skills-btn-add {
+	transition: all 0.2s ease;
+}
+
+.skills-btn-add:active {
+	transform: scale(0.9);
+}
+
+.skills-btn-cancel {
+	transition: all 0.2s ease;
+}
+
+.skills-btn-cancel:active {
+	transform: scale(0.9);
 }
 
 /* === ДОСТИЖЕНИЯ === */
@@ -180,6 +197,16 @@
 .github-card span:last-child {
 	font-weight: 700;
 	color: #111827;
+}
+
+/* === EXIT === */
+
+.exit-btn {
+	transition: all 0.2s ease;
+}
+
+.exit-btn:active {
+	transform: scale(0.9);
 }
 
 /* === МОДАЛКА === */

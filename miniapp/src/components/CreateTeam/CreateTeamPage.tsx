@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TagsInput } from './TagsInput';
-import { Button } from '../ui/Button'; // Убедись, что путь правильный
+import { Button } from '../ui/Button';
 import './CreateTeam.css';
 
 export const CreateTeamPage = () => {

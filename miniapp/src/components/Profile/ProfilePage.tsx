@@ -10,6 +10,7 @@ import { SkillsList } from "./Skills/SkillTags";
 import './profile.css';
 import { profileService } from '../../services';
 import { Pencil } from 'lucide-react';
+import {Button} from "../ui/Button.tsx";
 
 
 const HARD_SKILLS: string[] = [
@@ -152,7 +153,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
 
             <div className="profile-content px-4 space-y-4">
                 <div className="flex justify-end pt-4">
-                    <button
+                    <Button size="sm"
                         onClick={handleToggleEdit}
                         className="edit-btn flex items-center gap-2"
                         disabled={isSaving}
@@ -162,7 +163,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                         <span>
                             {isEditing ? (isSaving ? 'Сохранение...' : 'Сохранить') : 'Редактировать'}
                         </span>
-                    </button>
+                    </Button>
                 </div>
 
                 {isEditing ? (
@@ -171,7 +172,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                             <button
                                 type="button"
                                 onClick={openSkillsEditor}
-                                className="px-4 py-2 text-sm font-medium text-violet-600 bg-violet-50 rounded-full hover:bg-violet-100 transition-colors"
+                                className="skills-btn-add px-4 py-2 text-sm font-medium text-violet-600 bg-violet-50 rounded-full hover:bg-violet-100 transition-colors"
                             >
                                 + Добавить навык
                             </button>
@@ -185,7 +186,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveSkill(skill)}
-                                        className="text-gray-400 hover:text-red-500 text-lg leading-none focus:outline-none flex items-center justify-center cursor-pointer transition-colors"
+                                        className="skills-btn-cancel text-gray-400 hover:text-red-500 text-lg leading-none focus:outline-none flex items-center justify-center cursor-pointer transition-colors"
                                         aria-label={`Удалить ${skill}`}
                                     >
                                         &times;
@@ -219,7 +220,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                 </section>
 
                 <div className="flex justify-center pt-8">
-                    <button onClick={onLogout} className="text-red-400 text-sm font-bold">
+                    <button onClick={onLogout} className="exit-btn text-red-500 text-sm font-bold">
                         Выйти
                     </button>
                 </div>
@@ -245,14 +246,14 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                         </div>
 
                         <div className="flex justify-end gap-2 mt-4">
-                            <button className="px-4 py-2 rounded-md bg-gray-100" onClick={closeSkillsEditor}>Отмена</button>
-                            <button
+                            <button className="skills-btn-cancel px-4 py-2 rounded-md bg-gray-100" onClick={closeSkillsEditor}>Отмена</button>
+                            <Button size="md"
                                 className="px-4 py-2 rounded-md bg-violet-600 text-white"
                                 onClick={handleSkillsModalSave}
                                 data-testid="skills-save-btn"
                             >
                                 Сохранить
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
