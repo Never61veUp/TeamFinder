@@ -178,6 +178,3 @@ public class ProfileController : BaseController
         return Ok();
     }
 }
-
-public record UpdateDescriptionRequest(string Description);
-public record UpdateSkillsRequest(List<Guid> Skills);

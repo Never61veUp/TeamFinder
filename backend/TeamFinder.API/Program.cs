@@ -15,6 +15,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddCustomCors();
 
 
+builder.Services.AddTelegramOptions(builder.Configuration);
+
+
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplicationServices();
 

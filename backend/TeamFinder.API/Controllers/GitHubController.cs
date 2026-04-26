@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using TeamFinder.API.Options;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 
@@ -13,13 +15,15 @@ public class GitHubController : BaseController
     private readonly IGithubService _githubAppService;
     private readonly IProfileService _profileService;
     private readonly IGitHubServiceExternal _serviceExternal;
+    private readonly IOptions<GitHubOptions> _options;
 
     public GitHubController(IGitHubServiceExternal serviceExternal,
-        IGithubService githubAppService, IProfileService profileService)
+        IGithubService githubAppService, IProfileService profileService, IOptions<GitHubOptions> options)
     {
         _serviceExternal = serviceExternal;
         _githubAppService = githubAppService;
         _profileService = profileService;
+        _options = options;
     }
 
     /// <summary>
@@ -35,9 +39,7 @@ public class GitHubController : BaseController
     public IActionResult Login()
     {
         //TODO think about move out of here
-        var githubClientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
-        if (string.IsNullOrWhiteSpace(githubClientId))
-            return NotFound();
+        var githubClientId = _options.Value.ClientId;
         
         var redirectUrl = $"https://github.com/login/oauth/authorize?client_id={githubClientId}&state={CurrentProfileId}";
         return Ok(new { url = redirectUrl });
@@ -60,12 +62,12 @@ public class GitHubController : BaseController
     [AllowAnonymous]
     public async Task<IActionResult> Callback(string code, string state)
     {
+        //TODO move to service
         if (string.IsNullOrWhiteSpace(code) || string.IsNullOrWhiteSpace(state))
             return BadRequest("Invalid callback request.");
         
-        //TODO think about move out of here
-        var clientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
-        var clientSecret = Environment.GetEnvironmentVariable("GITHUB_CLIENT_SECRET");
+        var clientId = _options.Value.ClientId;
+        var clientSecret = _options.Value.ClientSecret;
 
         var accessToken = await _serviceExternal.GetAccessToken(code, clientId, clientSecret);
 
