@@ -18,7 +18,7 @@ export interface Profile {
   photoUrl?: string
   telegramId?: number
   skills?: Skill[]
-  about?: string;
+  description?: string;
   hackathons?: number;
   wins?: number;
   projects?: number;

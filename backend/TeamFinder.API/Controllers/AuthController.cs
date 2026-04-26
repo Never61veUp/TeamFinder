@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using TeamFinder.API.Options;
 using TeamFinder.API.Security;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
@@ -15,21 +17,23 @@ public class AuthController : BaseController
     private readonly JwtTokenService _jwt;
     private readonly ILogger<AuthController> _log;
     private readonly IProfileService _profileService;
+    private readonly IOptions<TelegramOptions> _options;
     private readonly TelegramWebAppValidator _validator;
 
     public AuthController(
         TelegramWebAppValidator validator,
         JwtTokenService jwt,
         IConfiguration config,
-        ILoggerFactory loggerFactory, IProfileService profileService)
+        ILoggerFactory loggerFactory, IProfileService profileService, IOptions<TelegramOptions> options)
     {
         _validator = validator;
         _jwt = jwt;
         _config = config;
         _profileService = profileService;
+        _options = options;
         _log = loggerFactory.CreateLogger<AuthController>();
     }
-
+    //TODO move config to service
     /// <summary>
     ///     Авторизация через Telegram Web App.
     /// </summary>
@@ -44,11 +48,7 @@ public class AuthController : BaseController
     public async Task<IActionResult> TelegramAuth([FromBody] TelegramAuthRequest body)
     {
         //TODO think about move out of here
-        var botToken = _config["TELEGRAM_BOT_TOKEN"];
-        if (string.IsNullOrWhiteSpace(botToken))
-            return Problem("Missing TELEGRAM_BOT_TOKEN environment variable.", statusCode: 500);
-
-        var result = _validator.ValidateInitData(body.InitData, botToken);
+        var result = _validator.ValidateInitData(body.InitData, _options.Value.BotToken);
         if (!result.IsValid || result.User is null)
         {
             var initDataLen = body.InitData?.Length ?? 0;

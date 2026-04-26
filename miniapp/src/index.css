@@ -1,6 +1,6 @@
 :root {
   --text: #6b6375;
-  --text-h: #fbfbfb;
+  --text-h: #192d53;
   --bg: #eaeaea;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
@@ -31,7 +31,7 @@
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  text-align: center;
+  text-align: left;
   border-inline: none;
 
   min-height: var(--tg-viewport-height, 100vh);
@@ -55,7 +55,7 @@ body {
 h1, h2 {
   font-family: var(--heading), serif;
   font-weight: 600;
-  color: var(--text-h);
+  color: #111827;
   padding: 0 16px;
 }
 

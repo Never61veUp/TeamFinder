@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<WantedProfileEntity> WantedProfiles => Set<WantedProfileEntity>();
     public DbSet<WantedProfileSkillEntity> WantedProfileSkills => Set<WantedProfileSkillEntity>();
     public DbSet<InvitationEntity> Invitations => Set<InvitationEntity>();
+    public DbSet<JoinRequestEntity> JoinRequests => Set<JoinRequestEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,6 +29,7 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ProfileConfiguration());
         modelBuilder.ApplyConfiguration(new UserSkillConfiguration());
         modelBuilder.ApplyConfiguration(new TeamConfiguration());
+        modelBuilder.ApplyConfiguration(new JoinRequestConfiguration());
 
         modelBuilder.Entity<TeamMemberEntity>()
             .HasKey(k => new { k.TeamId, k.ProfileId });

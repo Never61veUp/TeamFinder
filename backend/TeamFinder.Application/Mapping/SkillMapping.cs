@@ -8,7 +8,7 @@ public static class SkillMapping
 {
     public static Result<Skill> ToDomain(this SkillEntity entity)
     {
-        return Skill.Create(entity.Id, entity.Name);
+        return Skill.Restore(entity.Id, entity.Name);
     }
 
     public static SkillEntity ToEntity(this Skill domain)

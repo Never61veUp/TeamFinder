@@ -18,22 +18,33 @@ public class TeamService : ITeamService
 
     public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers)
     {
-        var team = Team.Create(Guid.NewGuid(), ownerId, [], name, maxMembers);
-        if (team.IsFailure)
-            return Result.Failure(team.Error);
-        return await _repository.SaveTeam(team.Value.MapToEntity());
+        return await Team.Create(ownerId, name, maxMembers)
+            .Map(team => team.MapToEntity())
+            .Bind(entity => _repository.SaveTeam(entity));
     }
 
-    public async Task<Result<Guid>> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
+    public async Task<Result> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
     {
-        var teamEntity = await _repository.GetById(teamId);
-        if (teamEntity.IsFailure)
-            return Result.Failure<Guid>(teamEntity.Error);
-        var team = teamEntity.Value.MapToDomain();
-        var inviteResult = team.Value.SendInvitation(inviterId, inviteeId);
-        if(inviteResult.IsFailure)
-            return Result.Failure<Guid>(inviteResult.Error);
-        await _repository.UpdateTeam(team.Value.MapToEntity());
-        return Guid.NewGuid();
+        return await _repository.GetById(teamId)
+            .Bind(entity => entity.MapToDomain())
+            .Bind(team => team.SendInvitation(inviterId, inviteeId))
+            .Map(invite => invite.MapToEntity())
+            .Bind(entity => _repository.AddInvitation(entity));
+    }
+    
+    public async Task<Result> CreateJoinRequest(Guid teamId, Guid profileId)
+    {
+        return await _repository.GetById(teamId)
+            .Bind(entity => entity.MapToDomain())
+            .Check(team => team.RequestToJoin(profileId))
+            .Bind(_ => _repository.AddJoinRequest(teamId, profileId));
+    }
+    
+    public async Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId, Guid acceptInitiatorId)
+    {
+        return await _repository.GetById(teamId)
+            .Bind(entity => entity.MapToDomain())
+            .Check(team => team.AcceptJoinRequest(profileId, acceptInitiatorId))
+            .Bind(_ => _repository.AcceptJoinRequest(teamId, profileId));
     }
 }

@@ -23,104 +23,62 @@ public class ProfileService : IProfileService
 
     public async Task<Result<Guid>> DevCreateWithoutTg(string name)
     {
-        var profile = Profile.Create(name, 1);
-        if (profile.IsFailure) 
-            return Result.Failure<Guid>(profile.Error);
-
-        var profileEntity = profile.Value.ToEntity();
-        await _profileRepository.Add(profileEntity);
-
-        return profile.Value.Id;
+        return await Profile.Create(name, 1)
+            .Tap(profile => _profileRepository.Add(profile.ToEntity()))
+            .Map(profile => profile.Id);
     }
 
     public async Task<Result> AddSkill(Guid profileId, Guid skillId) 
         => await _profileRepository.AddSkill(profileId, skillId);
     
+    public async Task<Result> UpdateSkills(Guid profileId, List<Guid> skillId) 
+        => await _profileRepository.UpdateSkills(profileId, skillId);
+    
     public async Task<Result<Profile>> GetById(Guid id)
     {
-        var profileEntity = await _profileRepository.GetById(id);
-        if (profileEntity == null)
-            return Result.Failure<Profile>("Profile not found");
-        
-        return profileEntity.ToDomain();
+        return await _profileRepository.GetById(id)
+            .Bind(entity => entity.ToDomain());
     }
 
     public async Task<Result<List<Profile>>> FindBySkill(Guid skillId)
     {
-        //TODO rewrite
-        var parenSkills = await _skillRepository.GetAllParents(skillId);
-        var parentSkillIds = parenSkills.Value.Select(s => s.Id).ToList();
-        parentSkillIds.AddRange(skillId);
-        var profileEntities = await _profileRepository.FindBySkill(parentSkillIds);
-        if(profileEntities.IsFailure)
-            return  Result.Failure<List<Profile>>(profileEntities.Error);
-        
-        return profileEntities.Value.Select(p => p.ToDomain().Value).ToList();
+        return await _skillRepository.GetAllParents(skillId)
+            .Map(parents => parents.Select(s => s.Id).Append(skillId).ToList())
+            .Bind(ids => _profileRepository.FindBySkill(ids))
+            .Bind(entities => entities.MapToDomainList(p => p.ToDomain()));
     }
 
     public async Task<Result> ConnectGithub(Guid profileId, GithubInfo githubInfo)
     {
-        var profile = await GetById(profileId);
-        if (profile.IsFailure)
-            return Result.Failure(profile.Error);
-
-        var result = profile.Value.ConnectGithubInfo(githubInfo);
-        if (result.IsFailure || profile.Value.GithubInfo == null)
-            return Result.Failure(result.Error);
-        var githubEntity = profile.Value.GithubInfo.ToEntity();
-        var saveResult = await _profileRepository.ConnectGithubInfo(profileId, githubEntity);
-        if (saveResult.IsFailure)
-            return Result.Failure(saveResult.Error);
-        return Result.Success();
+        return await GetById(profileId)
+            .Check(profile => profile.ConnectGithubInfo(githubInfo))
+            .Bind(profile => _profileRepository.ConnectGithubInfo(profileId, profile.GithubInfo!.ToEntity()));
     }
 
     public async Task<Result<Profile>> CreateOrGetByTgId(long tgId, string name)
     {
-        var existingProfile = await GetByTgId(tgId);
-        if (existingProfile.IsSuccess)
-            return Result.Success(existingProfile.Value);
-
-        var profile = Profile.Create(name, tgId);
-        if(profile.IsFailure)
-            return Result.Failure<Profile>(profile.Error);
-
-        var profileEntity = profile.Value.ToEntity();
-        var saveResult = await _profileRepository.Add(profileEntity);
-
-        return saveResult.IsFailure 
-            ? Result.Failure<Profile>(saveResult.Error) 
-            : Result.Success(profile.Value);
+        return await GetByTgId(tgId)
+            .OnFailureCompensate(() => 
+                Profile.Create(name, tgId)
+                    .Tap(profile => _profileRepository.Add(profile.ToEntity()))
+            );
     }
 
     public async Task<Result<Profile>> GetWithGithubInfoById(Guid id)
     {
-        var profileEntity = await _profileRepository.GetWithGithubStatsById(id);
-        if (profileEntity == null)
-            return Result.Failure<Profile>("Profile not found");
-        return profileEntity.ToDomain();
+        return await _profileRepository.GetWithGithubStatsById(id)
+            .Bind(profile => profile.ToDomain());
     }
 
     public async Task<Result<Profile>> GetByTgId(long tgId)
     {
-        var profileEntity = await _profileRepository.GetByTgId(tgId);
-        if (profileEntity.IsFailure)
-            return Result.Failure<Profile>(profileEntity.Error);
-        return profileEntity.Value.ToDomain();
+        return await _profileRepository.GetByTgId(tgId)
+            .Bind(profile => profile.ToDomain());
     }
     
     public async Task<Result> AddDescription(Guid profileId, string description)
     {
-        var profile = await GetById(profileId);
-        if (profile.IsFailure)
-            return Result.Failure(profile.Error);
-
-        var result = profile.Value.AddDescription(description);
-        if (result.IsFailure)
-            return Result.Failure(result.Error);
-
-        return await _profileRepository.UpdateDescription(profileId, description);
+        return await GetById(profileId).Check(profile => profile.AddDescription(description))
+            .Bind(profile => _profileRepository.UpdateDescription(profileId, description));
     }
-    
-    public async Task<Result> UpdateSkills(Guid profileId, List<Guid> skillId) 
-        => await _profileRepository.UpdateSkills(profileId, skillId);
 }

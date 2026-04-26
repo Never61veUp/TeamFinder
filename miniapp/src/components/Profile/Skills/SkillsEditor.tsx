@@ -11,7 +11,6 @@ interface Props {
 export const SkillsEditor: React.FC<Props> = ({ initialSelectedIds, onSave, onClose }) => {
     const [selected, setSelected] = useState<Record<string, boolean>>({});
     useEffect(() => {
-        // инициализация: отмечаем те, что в initialSelectedIds
         const map: Record<string, boolean> = {};
         HARD_SKILLS.forEach(name => {
             map[name] = initialSelectedIds.includes(name);
@@ -25,13 +24,12 @@ export const SkillsEditor: React.FC<Props> = ({ initialSelectedIds, onSave, onCl
 
     const handleSave = () => {
         const selectedIds = Object.keys(selected).filter(k => selected[k]);
-        // лог для отладки — убедимся, что кнопка работает
         console.log('SkillsEditor: saving', selectedIds);
         onSave(selectedIds);
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-left justify-center">
             <div className="absolute inset-0 bg-black opacity-40" onClick={onClose}></div>
             <div className="relative bg-white rounded-2xl p-6 w-[90%] max-w-lg shadow-lg">
                 <h3 className="font-bold text-lg mb-3">Выберите навыки</h3>

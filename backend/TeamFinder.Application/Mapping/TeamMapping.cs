@@ -14,18 +14,12 @@ public static class TeamMapping
             .ToList();
         
         var invitations = e.Invitations.Select(inv => 
-            Invitation.Restore(
-                inv.Id, 
-                inv.InviteeId, 
-                inv.InvitedBy, 
-                Enum.Parse<InvitationStatus>(inv.Status), 
-                inv.ExpiresAt)
-        ).ToList();
+            inv.MapToDomain()).ToList();
         
-        var joinRequests = e.JoinRequests.Select(jr => jr.ProfileId).ToList();
+        var joinRequests = e.JoinRequests.Select(jr => new JoinRequest(jr.TeamId, jr.ProfileId)).ToList();
         var members = e.Members.Select(m => m.ProfileId).ToList();
         
-        return Team.Create(
+        return Team.Restore(
             e.Id, 
             e.OwnerId, 
             members, 
@@ -46,22 +40,14 @@ public static class TeamMapping
             MaxMembers = t.MaxMembers,
             
             Members = t.Members.Select(m => new TeamMemberEntity { TeamId = t.Id, ProfileId = m }).ToList(),
-            JoinRequests = t.JoinRequests.Select(jr => new JoinRequestEntity { TeamId = t.Id, ProfileId = jr }).ToList(),
+            JoinRequests = t.JoinRequests.Select(jr => new JoinRequestEntity { TeamId = t.Id, ProfileId = jr.ProfileId }).ToList(),
             WantedProfiles = t.WantedProfiles.Select(wp => new WantedProfileEntity
             {
                 Id = wp.Id,
                 TeamId = t.Id,
                 RequiredSkills = wp.RequiredSkills.Select(s => new WantedProfileSkillEntity { SkillId = s }).ToList()
             }).ToList(),
-            Invitations = t.Invitations.Select(inv => new InvitationEntity
-            {
-                Id = inv.Id,
-                TeamId = t.Id,
-                InviteeId = inv.InviteeId,
-                InvitedBy = inv.InvitedBy,
-                Status = inv.Status.ToString(),
-                ExpiresAt = inv.ExpiresAt
-            }).ToList()
+            Invitations = t.Invitations.Select(inv => inv.MapToEntity()).ToList()
         };
     }
 }
