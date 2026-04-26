@@ -37,27 +37,4 @@ public class TeamController : BaseController
         
         return Ok();
     }
-
-    [HttpPost("request-join")]
-    public async Task<IActionResult> RequestToJoin(AcceptInvitationRequest request)
-    {
-        var result = await _teamService.CreateJoinRequest(request.TeamId, CurrentProfileId);
-        if(result.IsFailure)
-            return BadRequest(result.Error);
-        
-        return Ok();
-    }
-
-    [HttpPost("accept-join")]
-    public async Task<IActionResult> AcceptJoinRequest(AcceptJoinRequest request)
-    {
-        var result = await _teamService.AcceptJoinRequest(request.TeamId, request.ProfileId, CurrentProfileId);
-        if(result.IsFailure)
-            return BadRequest(result.Error);
-        
-        return Ok();
-    }
 }
-
-public record AcceptInvitationRequest(Guid TeamId);
-public record AcceptJoinRequest(Guid TeamId, Guid ProfileId);

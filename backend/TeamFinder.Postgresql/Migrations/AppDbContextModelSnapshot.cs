@@ -53,15 +53,24 @@ namespace TeamFinder.Postgresql.Migrations
 
             modelBuilder.Entity("TeamFinder.Postgresql.Model.JoinRequestEntity", b =>
                 {
-                    b.Property<Guid>("TeamId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("ProfileId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("TeamId", "ProfileId");
+                    b.Property<Guid?>("TeamEntityId")
+                        .HasColumnType("uuid");
 
-                    b.ToTable("JoinRequests");
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamEntityId");
+
+                    b.ToTable("JoinRequestEntity");
                 });
 
             modelBuilder.Entity("TeamFinder.Postgresql.Model.ProfileEntity", b =>
@@ -233,9 +242,7 @@ namespace TeamFinder.Postgresql.Migrations
                 {
                     b.HasOne("TeamFinder.Postgresql.Model.TeamEntity", null)
                         .WithMany("JoinRequests")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TeamEntityId");
                 });
 
             modelBuilder.Entity("TeamFinder.Postgresql.Model.ProfileEntity", b =>
