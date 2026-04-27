@@ -83,4 +83,14 @@ public class TeamController : BaseController
             });
         return Ok(tags);
     }
+
+    [HttpGet("my-team")]
+    public async Task<IActionResult> GetMyTeam()
+    {
+        var result = await _teamService.GetMyTeam(CurrentProfileId);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
 }
