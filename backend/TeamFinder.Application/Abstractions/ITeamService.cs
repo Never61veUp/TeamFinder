@@ -12,4 +12,6 @@ public interface ITeamService
     Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId, Guid acceptInitiatorId);
     Task<Result<List<Team>>> GetTeams();
     Task<Result<Team>> GetMyTeam(Guid profileId);
+    Task<Result> LeaveTeam(Guid profileId);
+    Task<Result> MakeInactive(Guid profileId);
 }

@@ -93,4 +93,24 @@ public class TeamController : BaseController
 
         return Ok(result.Value);
     }
+    
+    [HttpPost("leave")]
+    public async Task<IActionResult> LeaveTeam()
+    {
+        var result = await _teamService.LeaveTeam(CurrentProfileId);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok();
+    }
+    
+    [HttpPost("make-inactive")]
+    public async Task<IActionResult> DisbandTeam()
+    {
+        var result = await _teamService.MakeInactive(CurrentProfileId);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok();
+    }
 }
