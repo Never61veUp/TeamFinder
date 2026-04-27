@@ -16,11 +16,18 @@ public class TeamService : ITeamService
         _repository = repository;
     }
 
-    public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description)
+    public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description, string? eventTitle, DateOnly? eventStart, DateOnly? eventEnd)
     {
-        return await Team.Create(ownerId, name, maxMembers, description)
+        var eventDetailsResult = string.IsNullOrWhiteSpace(eventTitle)
+            ? Result.Success<EventDetails?>(null)
+            : EventDetails.Create(eventTitle, eventStart, eventEnd);
+        
+        if (eventDetailsResult.IsFailure)
+            return Result.Failure(eventDetailsResult.Error);
+        
+        return await Team.Create(ownerId, name, maxMembers, description, eventDetailsResult.Value)
             .Map(team => team.MapToEntity())
-            .Bind(entity => _repository.SaveTeam(entity));
+            .Bind(teamEntity => _repository.SaveTeam(teamEntity));
     }
 
     public async Task<Result> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
