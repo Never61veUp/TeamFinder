@@ -1,38 +1,28 @@
-import React, { useState, type KeyboardEvent } from 'react';
+import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import './Team.css';
 import type { Tag } from "../../types/api";
 
 interface TagsInputProps {
     tags: Tag[];
+    availableTags: Tag[];
     onChange: (tags: Tag[]) => void;
 }
 
-export const TagsInput: React.FC<TagsInputProps> = ({ tags, onChange }) => {
-    const [inputValue, setInputValue] = useState('');
+export const TagsInput: React.FC<TagsInputProps> = ({ tags, availableTags, onChange }) => {
+    const [selectedTagId, setSelectedTagId] = useState<string>('');
 
     const handleAdd = () => {
-        const val = inputValue.trim();
-        if (!val) return;
+        if (!selectedTagId) return;
 
-        // Проверяем дубликаты по свойству title
-        const isDuplicate = tags.some(t => t.title.toLowerCase() === val.toLowerCase());
+        const tagToAdd = availableTags.find(t => t.id === Number(selectedTagId));
 
-        if (!isDuplicate) {
-            const newTag: Tag = {
-                id: Date.now(), // Генерируем числовой id для интерфейса Tag
-                title: val
-            };
-            onChange([...tags, newTag]);
+        const isDuplicate = tags.some(t => t.id === tagToAdd?.id);
+
+        if (tagToAdd && !isDuplicate) {
+            onChange([...tags, tagToAdd]);
         }
-        setInputValue('');
-    };
-
-    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleAdd();
-        }
+        setSelectedTagId('');
     };
 
     const handleRemove = (tagToRemove: Tag) => {
@@ -45,8 +35,7 @@ export const TagsInput: React.FC<TagsInputProps> = ({ tags, onChange }) => {
                 <div className="tags-list">
                     {tags.map((tag) => (
                         <span key={tag.id} className="tag-item">
-                            {/* Выводим свойство title, а не весь объект */}
-                            {tag.title}
+                            {tag.name}
                             <button
                                 type="button"
                                 onClick={() => handleRemove(tag)}
@@ -60,14 +49,19 @@ export const TagsInput: React.FC<TagsInputProps> = ({ tags, onChange }) => {
             )}
 
             <div className="tags-input-row">
-                <input
-                    type="text"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Добавить направление..."
-                    className="form-input"
-                />
+                <select
+                    value={selectedTagId}
+                    onChange={(e) => setSelectedTagId(e.target.value)}
+                    className="form-input flex-1 bg-transparent"
+                    style={{ appearance: 'auto' }}
+                >
+                    <option value="" disabled>Выберите направление...</option>
+                    {availableTags.map((tag) => (
+                        <option key={tag.id} value={tag.id}>
+                            {tag.name}
+                        </option>
+                    ))}
+                </select>
                 <button
                     type="button"
                     onClick={handleAdd}

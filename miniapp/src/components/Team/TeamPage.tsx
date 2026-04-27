@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TagsInput } from './TagsInput';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Section } from '../ui/Section';
 import { httpClient } from '../../lib/http-client';
-import type {Team, Tag, CreateTeamRequest} from '../../types/api';
+import type { Team, Tag, CreateTeamRequest } from '../../types/api';
 import './Team.css';
 
 export const TeamPage = () => {
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -21,6 +22,23 @@ export const TeamPage = () => {
         maxMembers: '4',
         selectedTags: [] as Tag[]
     });
+
+    // Загружаем список тегов при монтировании компонента
+    useEffect(() => {
+        const fetchTags = async () => {
+            try {
+                const response = await httpClient.get<Tag[]>('/teams/event-tags');
+
+                const tagsData = Array.isArray(response) ? response : (response as any).data || [];
+                setAvailableTags(tagsData);
+            } catch (err) {
+                console.error('Ошибка при загрузке тегов:', err);
+                setError('Не удалось загрузить список направлений');
+            }
+        };
+
+        fetchTags();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -37,22 +55,21 @@ export const TeamPage = () => {
         setError('');
 
         try {
-            const payload: { request: CreateTeamRequest } = {
-                request: {
-                    teamName: formData.name,
-                    maxMembers: parseInt(formData.maxMembers, 10),
-                    description: formData.description || null,
-                    eventName: formData.event || null,
-                    eventStart: formData.startDate || null,
-                    eventEnd: formData.endDate || null,
-                    tags: formData.selectedTags.map(t => t.id) // Отправляем ID чисел
-                }
+            // Формируем плоский объект запроса, как того ожидает бэкенд
+            const payload: CreateTeamRequest = {
+                teamName: formData.name,
+                maxMembers: parseInt(formData.maxMembers, 10),
+                description: formData.description || null,
+                eventName: formData.event || null,
+                eventStart: formData.startDate || null,
+                eventEnd: formData.endDate || null,
+                // Отправляем реальные числовые ID
+                tags: formData.selectedTags.map(t => Number(t.id))
             };
 
             const response = await httpClient.post<{ id: string | number }>('/teams', payload);
 
             const createdTeam: Team = {
-                // 5. Берем id напрямую из ответа, так как там нет поля .data
                 id: String(response?.id || Date.now()),
                 name: formData.name,
                 description: formData.description || '',
@@ -67,19 +84,19 @@ export const TeamPage = () => {
 
             setCurrentTeam(createdTeam);
         } catch (err: any) {
-            const serverError = err.response?.data?.errors;
-            const errorMessage = serverError
-                ? Object.entries(serverError).map(([k, v]) => `${k}: ${v}`).join(', ')
-                : err.message;
-
-            setError(errorMessage || 'Ошибка при создании команды');
+            const serverErrors = err.response?.data?.errors;
+            if (serverErrors) {
+                const messages = Object.values(serverErrors).flat().join('. ');
+                setError(messages);
+            } else {
+                setError(err.message || 'Ошибка при создании команды');
+            }
             console.error('Submit error:', err);
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Весь остальной рендеринг (return) остается таким же, как в твоем исходном коде
     if (currentTeam) {
         return (
             <div className="team-page">
@@ -107,7 +124,7 @@ export const TeamPage = () => {
                             <div className="flex flex-wrap justify-center gap-2">
                                 {currentTeam.tags.map(tag => (
                                     <Badge key={tag.id} variant="primary">
-                                        {tag.title}
+                                        {tag.name}
                                     </Badge>
                                 ))}
                             </div>
@@ -160,9 +177,14 @@ export const TeamPage = () => {
                 </div>
                 <div className="form-group">
                     <label className="form-label">Направления проекта</label>
-                    <TagsInput tags={formData.selectedTags} onChange={handleTagsChange} />
+                    {/* Передаем скачанные теги в компонент */}
+                    <TagsInput
+                        tags={formData.selectedTags}
+                        availableTags={availableTags}
+                        onChange={handleTagsChange}
+                    />
                 </div>
-                {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
+                {error && <p className="text-red-500 text-sm text-center font-medium mt-2">{error}</p>}
                 <div className="submit-btn-wrapper">
                     <Button type="submit" isLoading={isSubmitting} className="team-submit-btn" size="lg">
                         Подтвердить создание

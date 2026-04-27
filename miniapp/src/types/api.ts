@@ -47,7 +47,7 @@ export interface GithubLoginResponse {
 
 export interface Tag {
   id: number;
-  title: string;
+  name: string;
 }
 
 export interface TeamMember {

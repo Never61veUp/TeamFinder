@@ -1,8 +1,14 @@
-import type {Team} from '../types/api'
+import type {Tag, Team} from '../types/api'
+import {httpClient} from "../lib/http-client.ts";
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
 
+
 export const feedService = {
+    async getEventTags(): Promise<Tag[]> {
+        return await httpClient.get<Tag[]>('/teams/event-tags');
+    },
+
     async getRecommendedTeams(): Promise<Team[]> {
         await delay(500) // Искусственная задержка для реалистичности
         return [
@@ -14,9 +20,9 @@ export const feedService = {
                 currentMembers: 2,
                 maxMembers: 4,
                 tags: [
-                    { id: 1, title: 'AI' },
-                    { id: 2, title: 'React' },
-                    { id: 3, title: 'Python' }
+                    { id: 1, name: 'AI' },
+                    { id: 2, name: 'React' },
+                    { id: 3, name: 'Python' }
                 ],
                 members: [
                     { id: 1, initials: 'M' },
@@ -30,9 +36,9 @@ export const feedService = {
                 currentMembers: 1,
                 maxMembers: 5,
                 tags: [
-                    { id: 1, title: 'Mobile' },
-                    { id: 2, title: 'React Native' },
-                    { id: 3, title: 'Node.js' }
+                    { id: 1, name: 'Mobile' },
+                    { id: 2, name: 'React Native' },
+                    { id: 3, name: 'Node.js' }
                 ],
                 members: [
                     { id: 3, initials: 'A' }
@@ -45,9 +51,9 @@ export const feedService = {
                 currentMembers: 2,
                 maxMembers: 3,
                 tags: [
-                    { id: 1, title: 'Blockchain' },
-                    { id: 2, title: 'Solidity' },
-                    { id: 3, title: 'Web3' }
+                    { id: 1, name: 'Blockchain' },
+                    { id: 2, name: 'Solidity' },
+                    { id: 3, name: 'Web3' }
                 ],
                 members: [
                     { id: 4, initials: 'И' },
