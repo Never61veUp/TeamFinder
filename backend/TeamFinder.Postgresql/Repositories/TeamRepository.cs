@@ -157,4 +157,18 @@ public class TeamRepository : ITeamRepository
             return Result.Failure<IEnumerable<TeamEntity>>("No teams found");
         return Result.Success<IEnumerable<TeamEntity>>(teams);
     }
+    
+    public async Task<Result<TeamEntity>> GetByProfileId(Guid id)
+    {
+        var entity = await _context.Teams
+            .Include(t => t.Members)
+            .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
+            .Include(t => t.Invitations)
+            .FirstOrDefaultAsync(t => t.OwnerId == id || t.Members.Any(m => m.ProfileId == id));
+
+        if (entity == null)
+            return Result.Failure<TeamEntity>("Team not found");
+
+        return Result.Success(entity);
+    }
 }
