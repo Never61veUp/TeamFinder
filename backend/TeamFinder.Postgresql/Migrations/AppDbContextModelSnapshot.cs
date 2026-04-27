@@ -177,6 +177,9 @@ namespace TeamFinder.Postgresql.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("teams", (string)null);

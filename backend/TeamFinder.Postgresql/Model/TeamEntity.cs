@@ -1,3 +1,5 @@
+using TeamFinder.Core.Model.Teams;
+
 namespace TeamFinder.Postgresql.Model;
 
 public class TeamEntity
@@ -6,6 +8,7 @@ public class TeamEntity
     public string Name { get; set; } = string.Empty;
     public Guid OwnerId { get; set; }
     public int MaxMembers { get; set; }
+    public TeamStatus Status { get; set; }
     public string? Description { get; set; } = string.Empty;
     
     public string? EventTitle { get; set; }

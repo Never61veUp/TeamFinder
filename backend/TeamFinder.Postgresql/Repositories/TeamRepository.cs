@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 
@@ -55,7 +56,7 @@ public class TeamRepository : ITeamRepository
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .FirstOrDefaultAsync(t => t.Id == id && t.Status == TeamStatus.Active);
 
         if (entity == null)
             return Result.Failure<TeamEntity>("Team not found");
@@ -151,7 +152,8 @@ public class TeamRepository : ITeamRepository
         var teams = await _context.Teams
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
-            .Include(t => t.Invitations).ToListAsync();
+            .Include(t => t.Invitations)
+            .Where(t => t.Status == TeamStatus.Active).ToListAsync();
 
         if(teams.Count == 0)
             return Result.Failure<IEnumerable<TeamEntity>>("No teams found");
@@ -164,11 +166,37 @@ public class TeamRepository : ITeamRepository
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
-            .FirstOrDefaultAsync(t => t.OwnerId == id || t.Members.Any(m => m.ProfileId == id));
+            .FirstOrDefaultAsync(t => t.OwnerId == id || t.Members.Any(m => m.ProfileId == id 
+                                                                            && t.Status == TeamStatus.Active));
 
         if (entity == null)
             return Result.Failure<TeamEntity>("Team not found");
 
         return Result.Success(entity);
+    }
+    
+    public async Task<Result> RemoveMember(Guid profileId)
+    {
+        var member = await _context.TeamMembers.FirstOrDefaultAsync(m => m.ProfileId == profileId);
+        if (member == null)
+            return Result.Failure("Team member not found");
+
+        _context.TeamMembers.Remove(member);
+        return await _context.SaveChangesAsync() > 0 
+            ? Result.Success() 
+            : Result.Failure("Failed to remove team member");
+    }
+    
+    public async Task<Result> MakeInactive(Guid teamId)
+    {
+        var team = await _context.Teams.FindAsync(teamId);
+        if (team == null) 
+            return Result.Failure("Team not found");
+
+        team.Status = TeamStatus.Inactive;
+
+        return await _context.SaveChangesAsync() > 0 
+            ? Result.Success() 
+            : Result.Failure("Failed to inactive team");
     }
 }

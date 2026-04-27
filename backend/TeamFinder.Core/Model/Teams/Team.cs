@@ -25,6 +25,7 @@ public class Team : Entity<Guid>
     public int MaxMembers { get; }
     public string Description { get; private set; }
     public EventDetails? EventDetails { get; private set; }
+    public TeamStatus Status { get; private set; }
     public IReadOnlyList<WantedProfile> WantedProfiles => _wantedProfiles.AsReadOnly();
     public IReadOnlyList<JoinRequest> JoinRequests => _joinRequests.AsReadOnly();
     public IReadOnlyList<Invitation> Invitations => _invitations.AsReadOnly();
@@ -46,13 +47,13 @@ public class Team : Entity<Guid>
 
         var team = new Team(Guid.NewGuid(), ownerId, name, maxMembers, members, validDescription, eventDetails)
         {
-            EventDetails = eventDetails
+            Status = TeamStatus.Active
         };
 
         return Result.Success(team);
     }
     
-    public static Result<Team> Restore(Guid id, Guid ownerId, List<Guid> members, string name, int maxMembers, string? description,
+    public static Result<Team> Restore(Guid id, Guid ownerId, List<Guid> members, string name, int maxMembers, TeamStatus teamStatus, string? description,
         EventDetails? eventDetails,
         List<WantedProfile>? wantedProfiles = null, List<Invitation>? invitations = null,
         List<JoinRequest>? joinRequests = null)
@@ -73,8 +74,11 @@ public class Team : Entity<Guid>
             normalizedMembers.Add(ownerId);
         
         var validDescription = description?.Trim() ?? string.Empty;
-        
-        var team = new Team(id, ownerId, name, maxMembers, normalizedMembers, validDescription, eventDetails);
+
+        var team = new Team(id, ownerId, name, maxMembers, normalizedMembers, validDescription, eventDetails)
+        {
+            Status = teamStatus
+        };
 
         if (wantedProfiles != null)
             team._wantedProfiles.AddRange(wantedProfiles);
@@ -90,6 +94,8 @@ public class Team : Entity<Guid>
     {
         if (profileId == Guid.Empty)
             return Result.Failure<JoinRequest>("Invalid profile id");
+        if(Status == TeamStatus.Inactive)
+            return Result.Failure<JoinRequest>("Team is inactive");
         if (_members.Contains(profileId))
             return Result.Failure<JoinRequest>("Already a member");
         if (_joinRequests.Any(r => r.ProfileId == profileId))
@@ -121,6 +127,8 @@ public class Team : Entity<Guid>
     {
         if (inviterId == Guid.Empty || inviteeId == Guid.Empty)
             return Result.Failure<Invitation>("Invalid ids");
+        if(Status == TeamStatus.Inactive)
+            return Result.Failure<Invitation>("Team is inactive");
         if (!_members.Contains(inviterId))
             return Result.Failure<Invitation>("Only team members can send invitations");
         if (_members.Contains(inviteeId))
@@ -145,7 +153,8 @@ public class Team : Entity<Guid>
     {
         if (IsFull())
             return Result.Failure("Team is full");
-        
+        if(Status == TeamStatus.Inactive)
+            return Result.Failure("Team is inactive");
         if(acceptInitiatorId != OwnerId)
             return Result.Failure("Only team owner can accept join requests");
         
@@ -164,4 +173,35 @@ public class Team : Entity<Guid>
         
         return Result.Success();
     }
+    
+    public Result LeaveTeam(Guid profileId)
+    {
+        if (!_members.Contains(profileId))
+            return Result.Failure("Not a team member");
+        if (profileId == OwnerId)
+            return Result.Failure("Only team member can leave team");
+        if(Status == TeamStatus.Inactive)
+            return Result.Failure("Team is inactive");
+        
+        _members.Remove(profileId);
+        return Result.Success();
+    }
+
+    public Result<Guid> MakeInactive(Guid initiatorId)
+    {
+        if (initiatorId != OwnerId)
+            return Result.Failure<Guid>("Only team owner can disband the team");
+        if(Status == TeamStatus.Inactive)
+            return Result.Failure<Guid>("Team is already inactive");
+        
+        Status = TeamStatus.Inactive;
+        return Result.Success(Id);
+    }
+    
+}
+
+public enum TeamStatus
+{
+    Active = 1,
+    Inactive = 0
 }
