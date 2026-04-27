@@ -25,6 +25,7 @@ public static class TeamMapping
             members, 
             e.Name, 
             e.MaxMembers, 
+            e.Description,
             wantedProfiles, 
             invitations, 
             joinRequests);
@@ -38,6 +39,7 @@ public static class TeamMapping
             Name = t.Name,
             OwnerId = t.OwnerId,
             MaxMembers = t.MaxMembers,
+            Description = t.Description,
             
             Members = t.Members.Select(m => new TeamMemberEntity { TeamId = t.Id, ProfileId = m }).ToList(),
             JoinRequests = t.JoinRequests.Select(jr => new JoinRequestEntity { TeamId = t.Id, ProfileId = jr.ProfileId }).ToList(),
