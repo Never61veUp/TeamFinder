@@ -45,8 +45,13 @@ export interface GithubLoginResponse {
   url: string
 }
 
+export interface Tag {
+  id: number;
+  title: string;
+}
+
 export interface TeamMember {
-  id: string;
+  id: number;
   initials: string;
 }
 
@@ -54,9 +59,24 @@ export interface Team {
   id: string;
   name: string;
   event?: string;
+  startDate?: string;
+  endDate?: string;
   description: string;
   currentMembers: number;
   maxMembers: number;
-  skills: string[];
+  tags: Tag[];
   members: TeamMember[];
+}
+
+/**
+ * Данные для создания команды (POST /api/teams)
+ */
+export interface CreateTeamRequest {
+  teamName: string;
+  description: string | null;
+  eventName: string | null;
+  eventStart: string | null;
+  eventEnd: string | null;
+  maxMembers: number;
+  tags: number[];
 }

@@ -22,7 +22,7 @@ export const Navigation = () => {
 
             <NavLink to="/create" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
                 <CirclePlus size={24} strokeWidth={1.5} />
-                <span className="nav-label">Создать</span>
+                <span className="nav-label">Команда</span>
             </NavLink>
         </nav>
     );

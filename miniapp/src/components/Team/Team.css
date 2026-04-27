@@ -171,3 +171,25 @@
 .create-team-submit-btn:hover {
     background-color: #8b2ecf !important;
 }
+
+.flex {
+    display: flex;
+}
+.gap-4 {
+    gap: 1rem;
+}
+.flex-1 {
+    flex: 1;
+}
+
+.form-input[type="date"] {
+    position: relative;
+    color: #64748b;
+}
+
+.team-view-dates {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
+    text-align: center;
+}
