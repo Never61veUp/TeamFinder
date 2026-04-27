@@ -9,13 +9,14 @@ public class Team : Entity<Guid>
     private readonly List<Guid> _members = [];
     private readonly List<WantedProfile> _wantedProfiles = [];
 
-    private Team(Guid id, Guid ownerId, string name, int maxMembers, List<Guid> members, string description) : base(id)
+    private Team(Guid id, Guid ownerId, string name, int maxMembers, List<Guid> members, string description, EventDetails? eventDetails) : base(id)
     {
         Name = name;
         OwnerId = ownerId;
         MaxMembers = maxMembers;
         _members = members;
         Description = description;
+        EventDetails = eventDetails;
     }
 
     public string Name { get; private set; }
@@ -23,13 +24,14 @@ public class Team : Entity<Guid>
     public IReadOnlyList<Guid> Members => _members.AsReadOnly();
     public int MaxMembers { get; }
     public string Description { get; private set; }
+    public EventDetails? EventDetails { get; private set; }
     public IReadOnlyList<WantedProfile> WantedProfiles => _wantedProfiles.AsReadOnly();
     public IReadOnlyList<JoinRequest> JoinRequests => _joinRequests.AsReadOnly();
     public IReadOnlyList<Invitation> Invitations => _invitations.AsReadOnly();
 
     public bool IsFull() => _members.Count >= MaxMembers;
     
-    public static Result<Team> Create(Guid ownerId, string name, int maxMembers, string? description)
+    public static Result<Team> Create(Guid ownerId, string name, int maxMembers, string? description, EventDetails? eventDetails)
     {
         if (ownerId == Guid.Empty)
             return Result.Failure<Team>("OwnerId is required");
@@ -41,13 +43,17 @@ public class Team : Entity<Guid>
         var members = new List<Guid> { ownerId };
 
         var validDescription = description?.Trim() ?? string.Empty;
-        
-        var team = new Team(Guid.NewGuid(), ownerId, name, maxMembers, members, validDescription);
+
+        var team = new Team(Guid.NewGuid(), ownerId, name, maxMembers, members, validDescription, eventDetails)
+        {
+            EventDetails = eventDetails
+        };
 
         return Result.Success(team);
     }
     
     public static Result<Team> Restore(Guid id, Guid ownerId, List<Guid> members, string name, int maxMembers, string? description,
+        EventDetails? eventDetails,
         List<WantedProfile>? wantedProfiles = null, List<Invitation>? invitations = null,
         List<JoinRequest>? joinRequests = null)
     {
@@ -68,7 +74,7 @@ public class Team : Entity<Guid>
         
         var validDescription = description?.Trim() ?? string.Empty;
         
-        var team = new Team(id, ownerId, name, maxMembers, normalizedMembers, validDescription);
+        var team = new Team(id, ownerId, name, maxMembers, normalizedMembers, validDescription, eventDetails);
 
         if (wantedProfiles != null)
             team._wantedProfiles.AddRange(wantedProfiles);

@@ -5,7 +5,8 @@ namespace TeamFinder.Application.Abstractions;
 
 public interface ITeamService
 {
-    Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description);
+    Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description, string? eventTitle,
+        DateOnly? eventStart, DateOnly? eventEnd);
     Task<Result> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId);
     Task<Result> CreateJoinRequest(Guid teamId, Guid profileId);
     Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId, Guid acceptInitiatorId);

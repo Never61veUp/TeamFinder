@@ -18,6 +18,9 @@ public static class TeamMapping
         
         var joinRequests = e.JoinRequests.Select(jr => new JoinRequest(jr.TeamId, jr.ProfileId)).ToList();
         var members = e.Members.Select(m => m.ProfileId).ToList();
+        var eventDetails = string.IsNullOrWhiteSpace(e.EventTitle)
+            ? null
+            : EventDetails.Create(e.EventTitle, e.EventStart, e.EventEnd).Value;
         
         return Team.Restore(
             e.Id, 
@@ -26,6 +29,7 @@ public static class TeamMapping
             e.Name, 
             e.MaxMembers, 
             e.Description,
+            eventDetails,
             wantedProfiles, 
             invitations, 
             joinRequests);
@@ -40,6 +44,9 @@ public static class TeamMapping
             OwnerId = t.OwnerId,
             MaxMembers = t.MaxMembers,
             Description = t.Description,
+            EventTitle = t.EventDetails?.Title,
+            EventStart = t.EventDetails?.Period?.Start,
+            EventEnd = t.EventDetails?.Period?.End,
             
             Members = t.Members.Select(m => new TeamMemberEntity { TeamId = t.Id, ProfileId = m }).ToList(),
             JoinRequests = t.JoinRequests.Select(jr => new JoinRequestEntity { TeamId = t.Id, ProfileId = jr.ProfileId }).ToList(),

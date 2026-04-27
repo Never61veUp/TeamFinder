@@ -21,7 +21,9 @@ public class TeamController : BaseController
     [HttpPost]
     public async Task<IActionResult> CreateTeam([FromBody] CreateTeamRequest request)
     {
-        var result = await _teamService.CreateTeam(CurrentProfileId, request.TeamName, request.MaxMembers, request.Description);
+        var result = await _teamService.CreateTeam(CurrentProfileId, request.TeamName, 
+            request.MaxMembers, request.Description, 
+            request.EventName, request.EventStart, request.EventEnd);
         if(result.IsFailure)
             return BadRequest(result.Error);
         
