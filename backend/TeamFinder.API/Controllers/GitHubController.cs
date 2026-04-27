@@ -90,6 +90,9 @@ public class GitHubController : BaseController
         if (connectResult.IsFailure)
             return BadRequest(connectResult.Error);
 
-        return Ok();
+        //TODO move to env
+        var botUsername = "fasddfsgfdbot/bot";
+        var tmeUrl = $"https://t.me/{botUsername}/app_name?startapp=auth_success";
+        return Redirect(tmeUrl);
     }
 }
