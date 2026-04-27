@@ -5,12 +5,17 @@ import { Badge } from '../ui/Badge';
 import { Section } from '../ui/Section';
 import { httpClient } from '../../lib/http-client';
 import type { Team, Tag, CreateTeamRequest } from '../../types/api';
-import './Team.css';
+import './team.css';
 
 export const TeamPage = () => {
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
+
+    // Даты для валидации
+    const today = new Date().toISOString().split('T')[0];
+    const maxDate = "2100-12-31";
+
     const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
     const [formData, setFormData] = useState({
@@ -23,12 +28,10 @@ export const TeamPage = () => {
         selectedTags: [] as Tag[]
     });
 
-    // Загружаем список тегов при монтировании компонента
     useEffect(() => {
         const fetchTags = async () => {
             try {
                 const response = await httpClient.get<Tag[]>('/teams/event-tags');
-
                 const tagsData = Array.isArray(response) ? response : (response as any).data || [];
                 setAvailableTags(tagsData);
             } catch (err) {
@@ -36,13 +39,22 @@ export const TeamPage = () => {
                 setError('Не удалось загрузить список направлений');
             }
         };
-
         fetchTags();
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+
+        setFormData(prev => {
+            const nextData = { ...prev, [name]: value };
+
+            // Логика: дата конца не может быть раньше даты начала
+            if (name === 'startDate' && nextData.endDate && value > nextData.endDate) {
+                nextData.endDate = value;
+            }
+
+            return nextData;
+        });
     };
 
     const handleTagsChange = (newTags: Tag[]) => {
@@ -55,7 +67,6 @@ export const TeamPage = () => {
         setError('');
 
         try {
-            // Формируем плоский объект запроса, как того ожидает бэкенд
             const payload: CreateTeamRequest = {
                 teamName: formData.name,
                 maxMembers: parseInt(formData.maxMembers, 10),
@@ -63,7 +74,6 @@ export const TeamPage = () => {
                 eventName: formData.event || null,
                 eventStart: formData.startDate || null,
                 eventEnd: formData.endDate || null,
-                // Отправляем реальные числовые ID
                 tags: formData.selectedTags.map(t => Number(t.id))
             };
 
@@ -105,33 +115,37 @@ export const TeamPage = () => {
                         <h1 className="team-title">Моя команда</h1>
                     </div>
                 </header>
+
                 <div className="team-view-container">
-                    <div className="team-card bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-col gap-5">
-                        <div className="text-center">
-                            <h2 className="text-2xl font-bold text-slate-900">{currentTeam.name}</h2>
+                    <div className="view-card">
+                        <div className="view-card-header">
+                            <h2 className="view-team-name">{currentTeam.name}</h2>
                             {currentTeam.event && (
-                                <p className="text-[#a03af0] font-semibold text-sm mt-1 uppercase tracking-wide">
+                                <p className="view-team-event">
                                     {currentTeam.event}
                                 </p>
                             )}
                         </div>
+
                         <Section title="О проекте">
                             <p className="text-slate-600 leading-relaxed text-center">
                                 {currentTeam.description}
                             </p>
                         </Section>
+
                         <Section title="Направления">
-                            <div className="flex flex-wrap justify-center gap-2">
+                            <div className="view-tags-list">
                                 {currentTeam.tags.map(tag => (
-                                    <Badge key={tag.id} variant="primary">
+                                    <Badge key={tag.id} className="badge">
                                         {tag.name}
                                     </Badge>
                                 ))}
                             </div>
                         </Section>
-                        <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
-                            <span className="text-slate-400 text-sm font-medium">Состав:</span>
-                            <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-bold">
+
+                        <div className="view-card-footer">
+                            <span className="view-capacity-label">Состав:</span>
+                            <span className="view-capacity-value">
                                 {currentTeam.currentMembers} / {currentTeam.maxMembers}
                             </span>
                         </div>
@@ -148,46 +162,73 @@ export const TeamPage = () => {
                     <h1 className="team-title">Создать команду</h1>
                 </div>
             </header>
+
             <form onSubmit={handleSubmit} className="team-form">
                 <div className="form-group">
                     <label className="form-label">Название команды</label>
-                    <input name="name" type="text" value={formData.name} onChange={handleChange} className="form-input" required />
+                    <input name="name" type="text" placeholder="Прим: InnovatorsHub" value={formData.name} onChange={handleChange} className="form-input" required />
                 </div>
+
                 <div className="form-group">
                     <label className="form-label">Описание</label>
-                    <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className="form-textarea" required />
+                    <textarea name="description" placeholder="Расскажите о проекте и кого ищете..." value={formData.description} onChange={handleChange} className="form-textarea" required />
                 </div>
+
                 <div className="form-group">
-                    <label className="form-label">Хакатон</label>
-                    <input name="event" type="text" value={formData.event} onChange={handleChange} className="form-input" />
+                    <label className="form-label">Хакатон (необязательно)</label>
+                    <input name="event" type="text" placeholder="Прим: AI Hackathon 2026" value={formData.event} onChange={handleChange} className="form-input" />
                 </div>
-                <div className="flex gap-4">
+
+                <div className="flex-row-gap">
                     <div className="form-group flex-1">
                         <label className="form-label">Начало</label>
-                        <input name="startDate" type="date" value={formData.startDate} onChange={handleChange} className="form-input" />
+                        <div className="date-input-container">
+                            <input
+                                name="startDate"
+                                type="date"
+                                min={today}
+                                max={maxDate}
+                                value={formData.startDate}
+                                onChange={handleChange}
+                                className="form-input custom-date-input"
+                            />
+                        </div>
                     </div>
                     <div className="form-group flex-1">
                         <label className="form-label">Конец</label>
-                        <input name="endDate" type="date" value={formData.endDate} onChange={handleChange} className="form-input" />
+                        <div className="date-input-container">
+                            <input
+                                name="endDate"
+                                type="date"
+                                min={formData.startDate || today}
+                                max={maxDate}
+                                value={formData.endDate}
+                                onChange={handleChange}
+                                className="form-input custom-date-input"
+                            />
+                        </div>
                     </div>
                 </div>
+
                 <div className="form-group">
-                    <label className="form-label">Количество участников</label>
-                    <input name="maxMembers" type="number" value={formData.maxMembers} onChange={handleChange} className="form-input" />
+                    <label className="form-label">Максимум участников</label>
+                    <input name="maxMembers" type="number" placeholder="4" value={formData.maxMembers} onChange={handleChange} className="form-input" />
                 </div>
+
                 <div className="form-group">
-                    <label className="form-label">Направления проекта</label>
-                    {/* Передаем скачанные теги в компонент */}
+                    <label className="form-label">Технологии и направления</label>
                     <TagsInput
                         tags={formData.selectedTags}
                         availableTags={availableTags}
                         onChange={handleTagsChange}
                     />
                 </div>
-                {error && <p className="text-red-500 text-sm text-center font-medium mt-2">{error}</p>}
+
+                {error && <p className="error-text">{error}</p>}
+
                 <div className="submit-btn-wrapper">
                     <Button type="submit" isLoading={isSubmitting} className="team-submit-btn" size="lg">
-                        Подтвердить создание
+                        Создать команду
                     </Button>
                 </div>
             </form>
