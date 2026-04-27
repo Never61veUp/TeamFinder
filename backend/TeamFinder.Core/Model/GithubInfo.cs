@@ -2,7 +2,7 @@
 
 namespace TeamFinder.Core.Model;
 
-public class GithubInfo : ValueObject
+public class GithubInfo : ValueObject<GithubInfo>
 {
     private GithubInfo(string username, string profileUrl, string topLanguage, int totalStars, int repositoriesCount,
         string githubId)
@@ -32,9 +32,25 @@ public class GithubInfo : ValueObject
         return new GithubInfo(username, profileUrl, topLanguage, totalStars, repositoriesCount, githubId);
     }
 
-    protected override IEnumerable<object> GetEqualityComponents()
+    protected override bool EqualsCore(GithubInfo other)
     {
-        yield return Username;
-        yield return GithubId;
+        return Username == other.Username &&
+               ProfileUrl == other.ProfileUrl &&
+               TopLanguage == other.TopLanguage &&
+               TotalStars == other.TotalStars &&
+               RepositoriesCount == other.RepositoriesCount &&
+               GithubId == other.GithubId;
+    }
+
+    protected override int GetHashCodeCore()
+    {
+        return HashCode.Combine(
+            Username, 
+            ProfileUrl, 
+            TopLanguage, 
+            TotalStars, 
+            RepositoriesCount, 
+            GithubId
+        );
     }
 }

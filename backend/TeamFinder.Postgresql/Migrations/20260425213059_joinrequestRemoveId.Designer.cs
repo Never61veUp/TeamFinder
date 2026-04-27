@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TeamFinder.Postgresql;
@@ -11,9 +12,11 @@ using TeamFinder.Postgresql;
 namespace TeamFinder.Postgresql.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260425213059_joinrequestRemoveId")]
+    partial class joinrequestRemoveId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,18 +157,6 @@ namespace TeamFinder.Postgresql.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<DateOnly?>("EventEnd")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly?>("EventStart")
-                        .HasColumnType("date");
-
-                    b.Property<string>("EventTitle")
-                        .HasColumnType("text");
 
                     b.Property<int>("MaxMembers")
                         .HasColumnType("integer");
