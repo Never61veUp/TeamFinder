@@ -9,25 +9,27 @@ public class Team : Entity<Guid>
     private readonly List<Guid> _members = [];
     private readonly List<WantedProfile> _wantedProfiles = [];
 
-    private Team(Guid id, Guid ownerId, string name, int maxMembers, List<Guid> members) : base(id)
+    private Team(Guid id, Guid ownerId, string name, int maxMembers, List<Guid> members, string description) : base(id)
     {
         Name = name;
         OwnerId = ownerId;
         MaxMembers = maxMembers;
         _members = members;
+        Description = description;
     }
 
     public string Name { get; private set; }
     public Guid OwnerId { get; private set; }
     public IReadOnlyList<Guid> Members => _members.AsReadOnly();
     public int MaxMembers { get; }
+    public string Description { get; private set; }
     public IReadOnlyList<WantedProfile> WantedProfiles => _wantedProfiles.AsReadOnly();
     public IReadOnlyList<JoinRequest> JoinRequests => _joinRequests.AsReadOnly();
     public IReadOnlyList<Invitation> Invitations => _invitations.AsReadOnly();
 
     public bool IsFull() => _members.Count >= MaxMembers;
     
-    public static Result<Team> Create(Guid ownerId, string name, int maxMembers)
+    public static Result<Team> Create(Guid ownerId, string name, int maxMembers, string? description)
     {
         if (ownerId == Guid.Empty)
             return Result.Failure<Team>("OwnerId is required");
@@ -38,15 +40,18 @@ public class Team : Entity<Guid>
 
         var members = new List<Guid> { ownerId };
 
-        var team = new Team(Guid.NewGuid(), ownerId, name, maxMembers, members);
+        var validDescription = description?.Trim() ?? string.Empty;
+        
+        var team = new Team(Guid.NewGuid(), ownerId, name, maxMembers, members, validDescription);
 
         return Result.Success(team);
     }
     
-    public static Result<Team> Restore(Guid id, Guid ownerId, List<Guid> members, string name, int maxMembers,
+    public static Result<Team> Restore(Guid id, Guid ownerId, List<Guid> members, string name, int maxMembers, string? description,
         List<WantedProfile>? wantedProfiles = null, List<Invitation>? invitations = null,
         List<JoinRequest>? joinRequests = null)
     {
+        //TODO: Доверяем бд?
         if (ownerId == Guid.Empty)
             return Result.Failure<Team>("OwnerId is required");
         if (string.IsNullOrWhiteSpace(name))
@@ -60,8 +65,10 @@ public class Team : Entity<Guid>
 
         if (!normalizedMembers.Contains(ownerId))
             normalizedMembers.Add(ownerId);
-
-        var team = new Team(id, ownerId, name, maxMembers, normalizedMembers);
+        
+        var validDescription = description?.Trim() ?? string.Empty;
+        
+        var team = new Team(id, ownerId, name, maxMembers, normalizedMembers, validDescription);
 
         if (wantedProfiles != null)
             team._wantedProfiles.AddRange(wantedProfiles);
