@@ -69,4 +69,18 @@ public class TeamController : BaseController
         
         return Ok(result.Value);
     }
+    
+    [AllowAnonymous]
+    [HttpGet("event-tags")]
+    public async Task<IActionResult> GetEventTags()
+    {
+        //TODO rewrite
+        var tags = Enum.GetValues<Tag>()
+            .Select(t => new 
+            { 
+                Id = (int)t, 
+                Name = t.ToString() 
+            });
+        return Ok(tags);
+    }
 }
