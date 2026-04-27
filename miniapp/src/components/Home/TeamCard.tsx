@@ -23,9 +23,9 @@ export function TeamCard({ team }: TeamCardProps) {
             <p className="team-desc">{team.description}</p>
 
             <div className="skills-list">
-                {team.skills.map((skill) => (
-                    <Badge key={skill} variant="primary">
-                        {skill}
+                {team.tags.map((tag) => (
+                    <Badge key={tag.id} variant="primary">
+                        {tag.title}
                     </Badge>
                 ))}
             </div>

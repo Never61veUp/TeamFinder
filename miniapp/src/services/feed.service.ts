@@ -13,10 +13,14 @@ export const feedService = {
                 description: 'Ищем фронтенд-разработчика для создания AI-powered приложения',
                 currentMembers: 2,
                 maxMembers: 4,
-                skills: ['AI', 'React', 'Python'],
+                tags: [
+                    { id: 1, title: 'AI' },
+                    { id: 2, title: 'React' },
+                    { id: 3, title: 'Python' }
+                ],
                 members: [
-                    { id: 'u1', initials: 'M' },
-                    { id: 'u2', initials: 'Д' },
+                    { id: 1, initials: 'M' },
+                    { id: 2, initials: 'Д' },
                 ]
             },
             {
@@ -25,9 +29,13 @@ export const feedService = {
                 description: 'Создаём мобильное приложение для управления проектами',
                 currentMembers: 1,
                 maxMembers: 5,
-                skills: ['Mobile', 'React Native', 'Node.js'],
+                tags: [
+                    { id: 1, title: 'Mobile' },
+                    { id: 2, title: 'React Native' },
+                    { id: 3, title: 'Node.js' }
+                ],
                 members: [
-                    { id: 'u3', initials: 'A' }
+                    { id: 3, initials: 'A' }
                 ]
             },
             {
@@ -36,10 +44,14 @@ export const feedService = {
                 description: 'Разрабатываем DeFi платформу на Ethereum',
                 currentMembers: 2,
                 maxMembers: 3,
-                skills: ['Blockchain', 'Solidity', 'Web3'],
+                tags: [
+                    { id: 1, title: 'Blockchain' },
+                    { id: 2, title: 'Solidity' },
+                    { id: 3, title: 'Web3' }
+                ],
                 members: [
-                    { id: 'u4', initials: 'И' },
-                    { id: 'u5', initials: 'E' }
+                    { id: 4, initials: 'И' },
+                    { id: 5, initials: 'E' }
                 ]
             }
         ]
