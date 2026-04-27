@@ -65,6 +65,6 @@ public class TeamController : BaseController
         if(result.IsFailure)
             return BadRequest(result.Error);
         
-        return Ok();
+        return Ok(result.Value);
     }
 }
