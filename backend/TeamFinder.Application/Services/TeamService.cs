@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Mapping;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Repositories;
@@ -16,11 +17,12 @@ public class TeamService : ITeamService
         _repository = repository;
     }
 
-    public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description, string? eventTitle, DateOnly? eventStart, DateOnly? eventEnd)
+    public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description, string? eventTitle, DateOnly? eventStart, DateOnly? eventEnd,
+        List<Tag> eventTags)
     {
         var eventDetailsResult = string.IsNullOrWhiteSpace(eventTitle)
             ? Result.Success<EventDetails?>(null)
-            : EventDetails.Create(eventTitle, eventStart, eventEnd);
+            : EventDetails.Create(eventTitle, eventStart, eventEnd, eventTags);
         
         if (eventDetailsResult.IsFailure)
             return Result.Failure(eventDetailsResult.Error);

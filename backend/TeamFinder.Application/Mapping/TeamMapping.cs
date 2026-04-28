@@ -1,5 +1,6 @@
 using System.Reflection;
 using CSharpFunctionalExtensions;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Model;
 
@@ -20,7 +21,7 @@ public static class TeamMapping
         var members = e.Members.Select(m => m.ProfileId).ToList();
         var eventDetails = string.IsNullOrWhiteSpace(e.EventTitle)
             ? null
-            : EventDetails.Create(e.EventTitle, e.EventStart, e.EventEnd).Value;
+            : EventDetails.Create(e.EventTitle, e.EventStart, e.EventEnd, e.EventTags).Value;
         
         return Team.Restore(
             e.Id, 
@@ -49,6 +50,7 @@ public static class TeamMapping
             EventTitle = t.EventDetails?.Title,
             EventStart = t.EventDetails?.Period?.Start,
             EventEnd = t.EventDetails?.Period?.End,
+            EventTags = t.EventDetails?.Tags.ToList(),
             
             Members = t.Members.Select(m => new TeamMemberEntity { TeamId = t.Id, ProfileId = m }).ToList(),
             JoinRequests = t.JoinRequests.Select(jr => new JoinRequestEntity { TeamId = t.Id, ProfileId = jr.ProfileId }).ToList(),

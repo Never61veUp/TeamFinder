@@ -1,3 +1,4 @@
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Teams;
 
 namespace TeamFinder.Postgresql.Model;
@@ -14,6 +15,7 @@ public class TeamEntity
     public string? EventTitle { get; set; }
     public DateOnly? EventStart { get; set; }
     public DateOnly? EventEnd { get; set; }
+    public List<Tag> EventTags { get; set; } = [];
 
     public List<TeamMemberEntity> Members { get; set; } = [];
     public List<WantedProfileEntity> WantedProfiles { get; set; } = [];

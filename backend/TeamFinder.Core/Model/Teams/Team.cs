@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Diagnostics.Tracing;
+using CSharpFunctionalExtensions;
 
 namespace TeamFinder.Core.Model.Teams;
 

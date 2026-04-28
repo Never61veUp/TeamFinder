@@ -23,7 +23,7 @@ public class TeamController : BaseController
     {
         var result = await _teamService.CreateTeam(CurrentProfileId, request.TeamName, 
             request.MaxMembers, request.Description, 
-            request.EventName, request.EventStart, request.EventEnd);
+            request.EventName, request.EventStart, request.EventEnd, request.Tags);
         if(result.IsFailure)
             return BadRequest(result.Error);
         
