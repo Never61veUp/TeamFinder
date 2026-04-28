@@ -201,4 +201,29 @@ public class TeamRepository : ITeamRepository
             ? Result.Success() 
             : Result.Failure("Failed to inactive team");
     }
+    
+    public async Task<Result> AddMember(Guid teamId, Guid profileId)
+    {
+        await _context.TeamMembers.AddAsync(new TeamMemberEntity
+        {
+            TeamId = teamId,
+            ProfileId = profileId
+        });
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Result.Success();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
+        {
+            return pg.SqlState switch
+            {
+                PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Team or Profile not found"),
+                PostgresErrorCodes.UniqueViolation => Result.Failure("User is already a team member"),
+                PostgresErrorCodes.NotNullViolation => Result.Failure("Required data is missing"),
+                _ => Result.Failure("Database error")
+            };
+        }
+    }
 }

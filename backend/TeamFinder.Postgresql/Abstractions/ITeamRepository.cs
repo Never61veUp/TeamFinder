@@ -14,4 +14,5 @@ public interface ITeamRepository
     Task<Result<TeamEntity>> GetByProfileId(Guid id);
     Task<Result> RemoveMember(Guid profileId);
     Task<Result> MakeInactive(Guid teamId);
+    Task<Result> AddMember(Guid teamId, Guid profileId);
 }
