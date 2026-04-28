@@ -66,7 +66,19 @@ export interface Team {
   description: string;
   currentMembers: number;
   maxMembers: number;
+  eventDetails?: {
+    title: string;
+    period: {
+      start: string;
+      end: string;
+    };
+  };
+  wantedProfiles?: {
+    id: number;
+    name: string;
+  }[];
   tags: Tag[];
+  status: number;
   members: TeamMember[];
 }
 

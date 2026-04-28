@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Team } from '../../types/api'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
@@ -7,78 +7,125 @@ import './home.css'
 
 interface TeamCardProps {
     team: Team
+    myProfileId?: string;
 }
 
-export function TeamCard({ team }: TeamCardProps) {
+export function TeamCard({ team, myProfileId }: TeamCardProps) {
     const [showDetails, setShowDetails] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
+    const [alreadyJoined, setAlreadyJoined] = useState(false);
 
-    // Безопасная обрезка текста: проверяем наличие описания перед slice/substring
-    const description = team.description || 'Описание отсутствует';
-    const shortDescription = description.length > 80
-        ? description.slice(0, 80) + '...'
-        : description;
+    const storageKey = `req_sent_${team.id}`;
+
+    useEffect(() => {
+        const isMember = team.members?.some(m => String(m) === String(myProfileId));
+        const hasLocalRecord = localStorage.getItem(storageKey) === 'true';
+
+        if (isMember || hasLocalRecord) {
+            setAlreadyJoined(true);
+        }
+    }, [team.members, myProfileId, storageKey]);
 
     const handleJoin = async () => {
         setIsJoining(true);
         try {
-            // В документации API метод post /api/teams/{teamId}/request-join
             await feedService.requestJoin(team.id);
+            localStorage.setItem(storageKey, 'true');
+            setAlreadyJoined(true);
             alert('Заявка успешно отправлена!');
             setShowDetails(false);
-        } catch (e) {
-            console.error(e);
-            alert('Ошибка при отправке заявки');
+        } catch (e: any) {
+            alert('Ошибка при отправке заявки.');
         } finally {
             setIsJoining(false);
         }
     };
+
+    const currentCount = team.currentMembers || team.members?.length || 1;
+    const description = team.description || 'Описание отсутствует';
+
+    const eventTitle = team.eventDetails?.title || (team as any).eventName;
+    const period = team.eventDetails?.period;
+
+    const profiles = (team as any).wantedProfiles || [];
 
     return (
         <div className="team-card">
             <div className="team-card-header">
                 <div className="team-info-group">
                     <h2 className="team-name">{team.name}</h2>
-                    {/* Исправлено: используем только team.event, так как в типе Team именно оно */}
-                    {team.event && (
-                        <p className="team-event">{team.event}</p>
-                    )}
+                    {eventTitle && <p className="team-event">{eventTitle}</p>}
                 </div>
                 <div className="team-capacity">
-                    {team.currentMembers}/{team.maxMembers}
+                    {currentCount} / {team.maxMembers}
                 </div>
             </div>
 
-            <p className="team-desc-short">{shortDescription}</p>
+            <p className="team-desc-short">
+                {description.length > 80 ? description.slice(0, 80) + '...' : description}
+            </p>
 
             <div className="skills-list">
-                {team.tags?.map((tag) => (
-                    <Badge key={tag.id} variant="primary">
-                        {tag.name}
-                    </Badge>
+                {profiles.map((p: any) => (
+                    <Badge key={p.id} variant="primary">{p.name}</Badge>
                 ))}
             </div>
 
-            <Button size="lg" variant="primary" className="team-card-btn" onClick={() => setShowDetails(true)}>
-                Подробнее
+            <Button
+                size="lg"
+                variant="primary"
+                className="team-card-btn"
+                onClick={() => setShowDetails(true)}
+                disabled={alreadyJoined}
+            >
+                {alreadyJoined ? 'Заявка подана' : 'Подробнее'}
             </Button>
 
-            {/* Модальное окно (Полное описание) */}
             {showDetails && (
                 <div className="modal-overlay" onClick={() => setShowDetails(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2 className="modal-title">{team.name}</h2>
+                        <div className="modal-header">
+                            <h2 className="modal-title">{team.name}</h2>
+                            <span className="modal-capacity">{currentCount} / {team.maxMembers} чел.</span>
+                        </div>
+
                         <div className="modal-body">
-                            <p className="full-desc">{description}</p>
+                            {(eventTitle || period) && (
+                                <div className="modal-info-panel">
+                                    {eventTitle && (
+                                        <div className="info-item">
+                                            <span className="info-label">Хакатон:</span>
+                                            <span className="info-value">{eventTitle}</span>
+                                        </div>
+                                    )}
+                                    {period?.start && (
+                                        <div className="info-item">
+                                            <span className="info-label">Даты:</span>
+                                            <span className="info-value">
+                                                {new Date(period.start).toLocaleDateString('ru-RU')}
+                                                {' — '}
+                                                {new Date(period.end).toLocaleDateString('ru-RU')}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="modal-section">
-                                <h3>Направления:</h3>
-                                <div className="skills-list">
-                                    {team.tags?.map(tag => (
-                                        <Badge key={tag.id} variant="primary">{tag.name}</Badge>
-                                    ))}
-                                </div>
+                                <h3>О проекте:</h3>
+                                <p className="full-desc">{team.description}</p>
                             </div>
+
+                            {profiles.length > 0 && (
+                                <div className="modal-section">
+                                    <h3>Направления:</h3>
+                                    <div className="skills-list">
+                                        {profiles.map((p: any) => (
+                                            <Badge key={p.id} variant="primary">{p.name}</Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="modal-actions">
@@ -87,8 +134,9 @@ export function TeamCard({ team }: TeamCardProps) {
                                 onClick={handleJoin}
                                 isLoading={isJoining}
                                 className="w-full"
+                                disabled={alreadyJoined}
                             >
-                                Подать заявку
+                                {alreadyJoined ? 'Заявка уже отправлена' : 'Подать заявку'}
                             </Button>
                             <Button variant="ghost" onClick={() => setShowDetails(false)}>
                                 Закрыть

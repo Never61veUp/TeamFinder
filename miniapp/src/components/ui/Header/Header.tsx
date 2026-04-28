@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-// Импортируем шторку из соседней папки в ui
+import React, { useState } from 'react'
 import { NotificationsSheet } from '../Notifications/NotificationsSheet';
 import './header.css';
 
@@ -9,7 +8,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ title }) => {
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-    {/*const [hasUnread] = useState(true); // Убираем неиспользуемый setHasUnread*/}
 
     return (
         <>
@@ -20,7 +18,6 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
                         className="notification-btn"
                         onClick={() => setIsNotificationsOpen(true)}
                     >
-                        {/* SVG иконка колокольчика */}
                         <svg
                             width="24"
                             height="24"
@@ -35,13 +32,10 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
                             <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
 
-                        {/* Красная точка, если есть непрочитанные */}
-                        {/*hasUnread && <span className="notification-badge" />*/}
                     </button>
                 </div>
             </header>
 
-            {/* Компонент шторки */}
             <NotificationsSheet
                 isOpen={isNotificationsOpen}
                 onClose={() => setIsNotificationsOpen(false)}

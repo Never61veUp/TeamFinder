@@ -7,7 +7,6 @@ import { useProfile } from "../hooks/useProfile";
 import { useGithub } from "../hooks/useGithub";
 import { GithubStatsSection } from "./Stats/GithubStats";
 import { SkillsList } from "./Skills/SkillTags";
-// Header импорт можно оставить, если он нужен для других страниц, но здесь мы его не рендерим
 import './profile.css';
 import { profileService } from '../../services';
 import { Pencil } from 'lucide-react';
@@ -117,10 +116,6 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
 
     return (
         <div className="profile-container pb-24 bg-white">
-            {/*
-               МЫ УБРАЛИ <Header title="Мой профиль" />,
-               чтобы осталась только нижняя шапка (ProfileHeader) с колокольчиком внутри.
-            */}
 
             <ProfileHeader
                 name={user.username ?? 'User'}

@@ -51,7 +51,7 @@
 
 .sheet-content {
     overflow-y: auto;
-    padding-bottom: 40px; /* Чтобы не перекрывалось таб-баром */
+    padding-bottom: 40px;
 }
 
 /* Стили иконки в Header */
@@ -71,7 +71,7 @@
     width: 10px;
     height: 10px;
     background: #ff4d4f;
-    border: 2px solid #823cf4; /* Чтобы сливалось с градиентом */
+    border: 2px solid #823cf4;
     border-radius: 50%;
 }
 

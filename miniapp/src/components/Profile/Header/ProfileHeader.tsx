@@ -15,13 +15,11 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ name, username, avatarUrl
 
     return (
         <div className="profile-header">
-            {/* Кнопка колокольчика внутри фиолетовой зоны */}
             <button
                 className="profile-bell-btn"
                 onClick={() => setIsNotificationsOpen(true)}
             >
                 <Bell size={24} color="white" />
-                {/*<span className="bell-dot"></span>*/}
             </button>
 
             <div className="avatar-container">
@@ -34,7 +32,6 @@ export const ProfileHeader: React.FC<HeaderProps> = ({ name, username, avatarUrl
             <h1 className="profile-name">{name}</h1>
             <p className="profile-username">{username}</p>
 
-            {/* Шторка уведомлений */}
             <NotificationsSheet
                 isOpen={isNotificationsOpen}
                 onClose={() => setIsNotificationsOpen(false)}
