@@ -17,7 +17,6 @@ export function HomePage({ user }: HomePageProps) {
     useEffect(() => {
         feedService.getRecommendedTeams()
             .then((data) => {
-                // Если API возвращает объект с полем data, обрабатываем это
                 const teamsData = Array.isArray(data) ? data : (data as any).data || [];
                 setTeams(teamsData);
             })
@@ -39,7 +38,11 @@ export function HomePage({ user }: HomePageProps) {
                 ) : teams.length > 0 ? (
                     <div className="teams-grid">
                         {teams.map((team) => (
-                            <TeamCard key={team.id} team={team} />
+                            <TeamCard
+                                key={team.id}
+                                team={team}
+                                myProfileId={user.profileId}
+                            />
                         ))}
                     </div>
                 ) : (

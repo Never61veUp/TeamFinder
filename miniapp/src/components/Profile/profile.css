@@ -60,8 +60,7 @@
 }
 
 .profile-header {
-	position: relative; /* Чтобы колокольчик позиционировался относительно шапки */
-	/* Ваш существующий фон и отступы */
+	position: relative;
 }
 
 .profile-bell-btn {
@@ -89,9 +88,9 @@
 	right: 8px;
 	width: 8px;
 	height: 8px;
-	background-color: #EF4444; /* Красный цвет */
+	background-color: #EF4444;
 	border-radius: 50%;
-	border: 2px solid #8B5CF6; /* Цвет фона шапки, чтобы отделить точку */
+	border: 2px solid #8B5CF6;
 }
 
 /* === CONTENT === */

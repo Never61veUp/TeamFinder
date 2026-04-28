@@ -6,17 +6,12 @@ import { Section } from '../ui/Section';
 import { Header } from '../ui/Header/Header';
 import { httpClient } from '../../lib/http-client';
 import { teamService } from '../../types/api';
-import type { Team, Tag, CreateTeamRequest, TelegramUser } from '../../types/api';
+import type { Team, Tag, CreateTeamRequest } from '../../types/api';
 import { LogOut, Trash2, Loader2 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import './team.css';
 
-interface TeamPageProps {
-    user?: TelegramUser;
-}
-
-export const TeamPage = ({ user }: TeamPageProps) => {
-    // 1. Все хуки состояния и данных в самом верху
+export const TeamPage = () => {
     const { profile: myProfile } = useProfile(undefined);
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +29,6 @@ export const TeamPage = ({ user }: TeamPageProps) => {
         selectedTags: [] as Tag[]
     });
 
-    // 2. Хуки вычислений (useMemo) тоже должны быть здесь, ДО любых return
     const isCreator = useMemo(() => {
         if (!currentTeam) return false;
         if (currentTeam.currentMembers === 1) return true;
@@ -46,7 +40,6 @@ export const TeamPage = ({ user }: TeamPageProps) => {
         return myBackendId === ownerId || myBackendId === firstMemberId;
     }, [currentTeam, myProfile]);
 
-    // 3. Эффекты
     useEffect(() => {
         const initPage = async () => {
             try {
@@ -77,11 +70,9 @@ export const TeamPage = ({ user }: TeamPageProps) => {
         initPage();
     }, []);
 
-    // Константы для дат
     const today = new Date().toISOString().split('T')[0];
     const maxDate = "2100-12-31";
 
-    // 4. Обработчики событий
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => {
@@ -102,6 +93,8 @@ export const TeamPage = ({ user }: TeamPageProps) => {
         setIsSubmitting(true);
         setError('');
 
+        console.log("ОТПРАВЛЯЕМЫЕ ТЕГИ:", formData.selectedTags);
+
         try {
             const payload: CreateTeamRequest = {
                 teamName: formData.name,
@@ -113,21 +106,13 @@ export const TeamPage = ({ user }: TeamPageProps) => {
                 tags: formData.selectedTags.map(t => Number(t.id))
             };
 
+            console.log("PAYLOAD ДЛЯ СЕРВЕРА:", payload);
+
             await httpClient.post('/teams', payload);
             const freshTeamRes = await teamService.getMyTeam();
 
             if (freshTeamRes) {
                 setCurrentTeam(freshTeamRes);
-            } else {
-                setCurrentTeam({
-                    id: Date.now().toString(),
-                    name: formData.name,
-                    description: formData.description || '',
-                    maxMembers: parseInt(formData.maxMembers, 10),
-                    currentMembers: 1,
-                    status: 1,
-                    members: [user?.id?.toString() || '']
-                } as any);
             }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Ошибка при создании');
@@ -153,17 +138,12 @@ export const TeamPage = ({ user }: TeamPageProps) => {
             await teamService.makeInactive();
             setCurrentTeam(null);
         } catch (err: any) {
-            if (err.response?.status === 400) {
-                setCurrentTeam(null);
-            } else {
-                alert("Ошибка при удалении");
-            }
+            setCurrentTeam(null);
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // 5. И ТОЛЬКО ТЕПЕРЬ условный рендер лоадера
     if (isLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
@@ -172,10 +152,14 @@ export const TeamPage = ({ user }: TeamPageProps) => {
         );
     }
 
-    // Для отладки
-    console.log('--- ПРОВЕРКА ID ---');
-    console.log('Мой UUID (myProfile.id):', myProfile?.id);
-    console.log('ID создателя (ownerId):', (currentTeam as any)?.ownerId);
+    const formatDate = (dateValue: any) => {
+        if (!dateValue) return '—';
+        try {
+            return new Date(dateValue).toLocaleDateString('ru-RU');
+        } catch (e) {
+            return '—';
+        }
+    };
 
     return (
         <div className="team-page">
@@ -186,8 +170,29 @@ export const TeamPage = ({ user }: TeamPageProps) => {
                     <div className="view-card">
                         <div className="view-card-header">
                             <h2 className="view-team-name">{currentTeam.name}</h2>
-                            {currentTeam.event && <p className="view-team-event">{currentTeam.event}</p>}
+                            {currentTeam.eventDetails?.title && (
+                                <p className="view-team-event">
+                                    {currentTeam.eventDetails.title}
+                                </p>
+                            )}
                         </div>
+
+                        {currentTeam.eventDetails?.period && (
+                            <div className="view-dates-panel">
+                                <div className="view-date-item">
+                                    <span className="date-label">Начало</span>
+                                    <span className="date-value">
+                            {formatDate(currentTeam.eventDetails.period.start)}
+                        </span>
+                                </div>
+                                <div className="view-date-item">
+                                    <span className="date-label">Конец</span>
+                                    <span className="date-value">
+                            {formatDate(currentTeam.eventDetails.period.end)}
+                        </span>
+                                </div>
+                            </div>
+                        )}
 
                         <Section title="О проекте">
                             <p className="text-slate-600 leading-relaxed text-center">
@@ -197,17 +202,23 @@ export const TeamPage = ({ user }: TeamPageProps) => {
 
                         <Section title="Направления">
                             <div className="view-tags-list">
-                                {currentTeam.tags?.map(tag => (
-                                    <Badge key={tag.id} className="badge">{tag.name}</Badge>
-                                ))}
+                                {currentTeam.wantedProfiles && currentTeam.wantedProfiles.length > 0 ? (
+                                    currentTeam.wantedProfiles.map((profile: any) => (
+                                        <Badge key={profile.id} className="badge">
+                                            {profile.name}
+                                        </Badge>
+                                    ))
+                                ) : (
+                                    <p className="text-slate-400 text-sm italic">Направления не указаны</p>
+                                )}
                             </div>
                         </Section>
 
                         <div className="view-card-footer">
                             <span className="view-capacity-label">Состав:</span>
                             <span className="view-capacity-value">
-                                {currentTeam.currentMembers || (currentTeam.members?.length) || 1} / {currentTeam.maxMembers}
-                            </span>
+                    {currentTeam.currentMembers || (currentTeam.members?.length) || 1} / {currentTeam.maxMembers}
+                </span>
                         </div>
 
                         <div className="team-actions">
