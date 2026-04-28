@@ -12,9 +12,9 @@ public static class TeamMapping
         var wantedProfiles = e.WantedProfiles
             .Select(wp => WantedProfile.Create(wp.Id, wp.RequiredSkills.Select(s => s.SkillId).ToList()).Value)
             .ToList();
-        
-        var invitations = e.Invitations.Select(inv => 
-            inv.MapToDomain()).ToList();
+
+        var invitations = e.Invitations.MapToDomainList(inv =>
+            inv.MapToDomain());
         
         var joinRequests = e.JoinRequests.Select(jr => new JoinRequest(jr.TeamId, jr.ProfileId)).ToList();
         var members = e.Members.Select(m => m.ProfileId).ToList();
@@ -32,7 +32,7 @@ public static class TeamMapping
             e.Description,
             eventDetails,
             wantedProfiles, 
-            invitations, 
+            invitations.Value, 
             joinRequests);
     }
 
