@@ -135,6 +135,11 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    transition: all 0.2s ease;
+}
+
+.tag-remove-btn:active {
+    transform: scale(1.4);
 }
 
 .tag-remove-btn:hover {
@@ -167,6 +172,11 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-add-btn:active {
+    transform: scale(0.9);
 }
 
 /* КНОПКА ОТПРАВКИ */
@@ -191,6 +201,11 @@
 .custom-date-input {
     padding-right: 40px !important;
     cursor: text;
+    transition: all 0.2s ease;
+}
+
+.custom-date-input:active {
+    transform:scale(1.015);
 }
 
 /* Настройка иконки: она становится кнопкой открытия календаря */

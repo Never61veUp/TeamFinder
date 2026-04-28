@@ -1,7 +1,7 @@
 :root {
   --text: #6b6375;
   --text-h: #192d53;
-  --bg: #eaeaea;
+  --bg: transparent;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
   --accent: #7b408f;

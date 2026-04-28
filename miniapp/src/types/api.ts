@@ -1,3 +1,5 @@
+import { httpClient } from '../lib/http-client';
+
 export interface AuthResponse {
   token: string
 }
@@ -80,3 +82,19 @@ export interface CreateTeamRequest {
   maxMembers: number;
   tags: number[];
 }
+
+export const teamService = {
+  getMyTeam: async (): Promise<Team> => {
+    // Заменили api на httpClient и убрали лишний .data,
+    // так как твой клиент обычно возвращает тело сразу
+    return await httpClient.get<Team>('/teams/my-team');
+  },
+
+  leaveTeam: async (): Promise<void> => {
+    await httpClient.post('/teams/leave', {});
+  },
+
+  makeInactive: async (): Promise<void> => {
+    await httpClient.post('/teams/make-inactive', {});
+  }
+};

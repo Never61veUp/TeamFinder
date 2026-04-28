@@ -1,21 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import { TagsInput } from './TagsInput';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Section } from '../ui/Section';
+import { Header } from '../ui/Header/Header';
 import { httpClient } from '../../lib/http-client';
-import type { Team, Tag, CreateTeamRequest } from '../../types/api';
+import { teamService } from '../../types/api';
+import type { Team, Tag, CreateTeamRequest, TelegramUser } from '../../types/api';
+import { LogOut, Trash2, Loader2 } from 'lucide-react';
+import { useProfile } from '../hooks/useProfile';
 import './team.css';
 
-export const TeamPage = () => {
+interface TeamPageProps {
+    user?: TelegramUser;
+}
+
+export const TeamPage = ({ user }: TeamPageProps) => {
+    // 1. Все хуки состояния и данных в самом верху
+    const { profile: myProfile } = useProfile(undefined);
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-
-    // Даты для валидации
-    const today = new Date().toISOString().split('T')[0];
-    const maxDate = "2100-12-31";
-
     const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
     const [formData, setFormData] = useState({
@@ -28,31 +34,61 @@ export const TeamPage = () => {
         selectedTags: [] as Tag[]
     });
 
+    // 2. Хуки вычислений (useMemo) тоже должны быть здесь, ДО любых return
+    const isCreator = useMemo(() => {
+        if (!currentTeam) return false;
+        if (currentTeam.currentMembers === 1) return true;
+
+        const myBackendId = myProfile?.id?.toString();
+        const ownerId = (currentTeam as any)?.ownerId?.toString();
+        const firstMemberId = currentTeam?.members?.[0]?.toString();
+
+        return myBackendId === ownerId || myBackendId === firstMemberId;
+    }, [currentTeam, myProfile]);
+
+    // 3. Эффекты
     useEffect(() => {
-        const fetchTags = async () => {
+        const initPage = async () => {
             try {
-                const response = await httpClient.get<Tag[]>('/teams/event-tags');
-                const tagsData = Array.isArray(response) ? response : (response as any).data || [];
-                setAvailableTags(tagsData);
+                const [tagsRes, myTeam] = await Promise.allSettled([
+                    httpClient.get<Tag[]>('/teams/event-tags'),
+                    teamService.getMyTeam()
+                ]);
+
+                if (tagsRes.status === 'fulfilled') {
+                    const tagsData = Array.isArray(tagsRes.value) ? tagsRes.value : (tagsRes.value as any).data || [];
+                    setAvailableTags(tagsData);
+                }
+
+                if (myTeam.status === 'fulfilled' && myTeam.value) {
+                    const teamData = myTeam.value as any;
+                    if (teamData.status === 0) {
+                        setCurrentTeam(null);
+                    } else {
+                        setCurrentTeam(myTeam.value);
+                    }
+                }
             } catch (err) {
-                console.error('Ошибка при загрузке тегов:', err);
-                setError('Не удалось загрузить список направлений');
+                console.error('Ошибка инициализации:', err);
+            } finally {
+                setIsLoading(false);
             }
         };
-        fetchTags();
+        initPage();
     }, []);
 
+    // Константы для дат
+    const today = new Date().toISOString().split('T')[0];
+    const maxDate = "2100-12-31";
+
+    // 4. Обработчики событий
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-
         setFormData(prev => {
             const nextData = { ...prev, [name]: value };
-
-            // Логика: дата конца не может быть раньше даты начала
             if (name === 'startDate' && nextData.endDate && value > nextData.endDate) {
                 nextData.endDate = value;
             }
-
             return nextData;
         });
     };
@@ -77,54 +113,80 @@ export const TeamPage = () => {
                 tags: formData.selectedTags.map(t => Number(t.id))
             };
 
-            const response = await httpClient.post<{ id: string | number }>('/teams', payload);
+            await httpClient.post('/teams', payload);
+            const freshTeamRes = await teamService.getMyTeam();
 
-            const createdTeam: Team = {
-                id: String(response?.id || Date.now()),
-                name: formData.name,
-                description: formData.description || '',
-                event: formData.event || '',
-                startDate: formData.startDate || '',
-                endDate: formData.endDate || '',
-                maxMembers: parseInt(formData.maxMembers, 10),
-                currentMembers: 1,
-                tags: formData.selectedTags,
-                members: [{ id: 1, initials: 'Я' }]
-            };
-
-            setCurrentTeam(createdTeam);
-        } catch (err: any) {
-            const serverErrors = err.response?.data?.errors;
-            if (serverErrors) {
-                const messages = Object.values(serverErrors).flat().join('. ');
-                setError(messages);
+            if (freshTeamRes) {
+                setCurrentTeam(freshTeamRes);
             } else {
-                setError(err.message || 'Ошибка при создании команды');
+                setCurrentTeam({
+                    id: Date.now().toString(),
+                    name: formData.name,
+                    description: formData.description || '',
+                    maxMembers: parseInt(formData.maxMembers, 10),
+                    currentMembers: 1,
+                    status: 1,
+                    members: [user?.id?.toString() || '']
+                } as any);
             }
-            console.error('Submit error:', err);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Ошибка при создании');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    if (currentTeam) {
-        return (
-            <div className="team-page">
-                <header className="team-header">
-                    <div className="team-header-content">
-                        <h1 className="team-title">Моя команда</h1>
-                    </div>
-                </header>
+    const handleLeave = async () => {
+        if (!confirm("Выйти из команды?")) return;
+        setIsSubmitting(true);
+        try {
+            await teamService.leaveTeam();
+            setCurrentTeam(null);
+        } catch (err) { alert("Не удалось выйти"); }
+        finally { setIsSubmitting(false); }
+    };
 
+    const handleInactivate = async () => {
+        if (!confirm("Удалить команду?")) return;
+        setIsSubmitting(true);
+        try {
+            await teamService.makeInactive();
+            setCurrentTeam(null);
+        } catch (err: any) {
+            if (err.response?.status === 400) {
+                setCurrentTeam(null);
+            } else {
+                alert("Ошибка при удалении");
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // 5. И ТОЛЬКО ТЕПЕРЬ условный рендер лоадера
+    if (isLoading) {
+        return (
+            <div className="flex h-screen items-center justify-center">
+                <Loader2 className="animate-spin text-violet-600" />
+            </div>
+        );
+    }
+
+    // Для отладки
+    console.log('--- ПРОВЕРКА ID ---');
+    console.log('Мой UUID (myProfile.id):', myProfile?.id);
+    console.log('ID создателя (ownerId):', (currentTeam as any)?.ownerId);
+
+    return (
+        <div className="team-page">
+            <Header title={currentTeam ? "Моя команда" : "Создать команду"} />
+
+            {currentTeam ? (
                 <div className="team-view-container">
                     <div className="view-card">
                         <div className="view-card-header">
                             <h2 className="view-team-name">{currentTeam.name}</h2>
-                            {currentTeam.event && (
-                                <p className="view-team-event">
-                                    {currentTeam.event}
-                                </p>
-                            )}
+                            {currentTeam.event && <p className="view-team-event">{currentTeam.event}</p>}
                         </div>
 
                         <Section title="О проекте">
@@ -135,10 +197,8 @@ export const TeamPage = () => {
 
                         <Section title="Направления">
                             <div className="view-tags-list">
-                                {currentTeam.tags.map(tag => (
-                                    <Badge key={tag.id} className="badge">
-                                        {tag.name}
-                                    </Badge>
+                                {currentTeam.tags?.map(tag => (
+                                    <Badge key={tag.id} className="badge">{tag.name}</Badge>
                                 ))}
                             </div>
                         </Section>
@@ -146,92 +206,84 @@ export const TeamPage = () => {
                         <div className="view-card-footer">
                             <span className="view-capacity-label">Состав:</span>
                             <span className="view-capacity-value">
-                                {currentTeam.currentMembers} / {currentTeam.maxMembers}
+                                {currentTeam.currentMembers || (currentTeam.members?.length) || 1} / {currentTeam.maxMembers}
                             </span>
                         </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
-    return (
-        <div className="team-page">
-            <header className="team-header">
-                <div className="team-header-content">
-                    <h1 className="team-title">Создать команду</h1>
-                </div>
-            </header>
-
-            <form onSubmit={handleSubmit} className="team-form">
-                <div className="form-group">
-                    <label className="form-label">Название команды</label>
-                    <input name="name" type="text" placeholder="Прим: InnovatorsHub" value={formData.name} onChange={handleChange} className="form-input" required />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">Описание</label>
-                    <textarea name="description" placeholder="Расскажите о проекте и кого ищете..." value={formData.description} onChange={handleChange} className="form-textarea" required />
-                </div>
-
-                <div className="form-group">
-                    <label className="form-label">Хакатон (необязательно)</label>
-                    <input name="event" type="text" placeholder="Прим: AI Hackathon 2026" value={formData.event} onChange={handleChange} className="form-input" />
-                </div>
-
-                <div className="flex-row-gap">
-                    <div className="form-group flex-1">
-                        <label className="form-label">Начало</label>
-                        <div className="date-input-container">
-                            <input
-                                name="startDate"
-                                type="date"
-                                min={today}
-                                max={maxDate}
-                                value={formData.startDate}
-                                onChange={handleChange}
-                                className="form-input custom-date-input"
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group flex-1">
-                        <label className="form-label">Конец</label>
-                        <div className="date-input-container">
-                            <input
-                                name="endDate"
-                                type="date"
-                                min={formData.startDate || today}
-                                max={maxDate}
-                                value={formData.endDate}
-                                onChange={handleChange}
-                                className="form-input custom-date-input"
-                            />
+                        <div className="team-actions">
+                            {isCreator ? (
+                                <Button
+                                    onClick={handleInactivate}
+                                    variant="secondary"
+                                    className="w-full mt-4 text-red-500! bg-red-50! border-red-200"
+                                    isLoading={isSubmitting}
+                                >
+                                    <Trash2 size={18} className="mr-2" /> Удалить команду
+                                </Button>
+                            ) : (
+                                <Button
+                                    onClick={handleLeave}
+                                    variant="ghost"
+                                    className="w-full mt-4 border border-slate-200"
+                                    isLoading={isSubmitting}
+                                >
+                                    <LogOut size={18} className="mr-2" /> Покинуть команду
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
+            ) : (
+                <form onSubmit={handleSubmit} className="team-form">
+                    <div className="form-group">
+                        <label className="form-label">Название команды</label>
+                        <input name="name" type="text" placeholder="Прим: InnovatorsHub" value={formData.name} onChange={handleChange} className="form-input" required />
+                    </div>
 
-                <div className="form-group">
-                    <label className="form-label">Максимум участников</label>
-                    <input name="maxMembers" type="number" placeholder="4" value={formData.maxMembers} onChange={handleChange} className="form-input" />
-                </div>
+                    <div className="form-group">
+                        <label className="form-label">Описание</label>
+                        <textarea name="description" placeholder="Расскажите о проекте и кого ищете..." value={formData.description} onChange={handleChange} className="form-textarea" required />
+                    </div>
 
-                <div className="form-group">
-                    <label className="form-label">Технологии и направления</label>
-                    <TagsInput
-                        tags={formData.selectedTags}
-                        availableTags={availableTags}
-                        onChange={handleTagsChange}
-                    />
-                </div>
+                    <div className="form-group">
+                        <label className="form-label">Хакатон (необязательно)</label>
+                        <input name="event" type="text" placeholder="Прим: AI Hackathon 2026" value={formData.event} onChange={handleChange} className="form-input" />
+                    </div>
 
-                {error && <p className="error-text">{error}</p>}
+                    <div className="flex-row-gap">
+                        <div className="form-group flex-1">
+                            <label className="form-label">Начало</label>
+                            <div className="date-input-container">
+                                <input name="startDate" type="date" min={today} max={maxDate} value={formData.startDate} onChange={handleChange} className="form-input custom-date-input" />
+                            </div>
+                        </div>
+                        <div className="form-group flex-1">
+                            <label className="form-label">Конец</label>
+                            <div className="date-input-container">
+                                <input name="endDate" type="date" min={formData.startDate || today} max={maxDate} value={formData.endDate} onChange={handleChange} className="form-input custom-date-input" />
+                            </div>
+                        </div>
+                    </div>
 
-                <div className="submit-btn-wrapper">
-                    <Button type="submit" isLoading={isSubmitting} className="team-submit-btn" size="lg">
-                        Создать команду
-                    </Button>
-                </div>
-            </form>
+                    <div className="form-group">
+                        <label className="form-label">Максимум участников</label>
+                        <input name="maxMembers" type="number" placeholder="4" value={formData.maxMembers} onChange={handleChange} className="form-input" />
+                    </div>
+
+                    <div className="form-group">
+                        <label className="form-label">Технологии и направления</label>
+                        <TagsInput tags={formData.selectedTags} availableTags={availableTags} onChange={handleTagsChange} />
+                    </div>
+
+                    {error && <p className="error-text">{error}</p>}
+
+                    <div className="submit-btn-wrapper">
+                        <Button type="submit" isLoading={isSubmitting} className="team-submit-btn" size="lg">
+                            Создать команду
+                        </Button>
+                    </div>
+                </form>
+            )}
         </div>
     );
 };

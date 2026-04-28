@@ -7,6 +7,7 @@
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+
 /* === HEADER === */
 .profile-header {
 	width: 100%;
@@ -56,6 +57,41 @@
 .profile-username {
 	font-size: 14px;
 	opacity: 0.9;
+}
+
+.profile-header {
+	position: relative; /* Чтобы колокольчик позиционировался относительно шапки */
+	/* Ваш существующий фон и отступы */
+}
+
+.profile-bell-btn {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	background: rgba(255, 255, 255, 0.2);
+	border: none;
+	border-radius: 12px;
+	padding: 8px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.2s;
+}
+
+.profile-bell-btn:active {
+	background: rgba(255, 255, 255, 0.3);
+}
+
+.bell-dot {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 8px;
+	height: 8px;
+	background-color: #EF4444; /* Красный цвет */
+	border-radius: 50%;
+	border: 2px solid #8B5CF6; /* Цвет фона шапки, чтобы отделить точку */
 }
 
 /* === CONTENT === */
@@ -136,7 +172,7 @@
 }
 
 .skills-btn-cancel:active {
-	transform: scale(0.9);
+	transform: scale(1.4);
 }
 
 /* === ДОСТИЖЕНИЯ === */
