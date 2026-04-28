@@ -1,4 +1,6 @@
-﻿namespace TeamFinder.Postgresql.Model;
+﻿using TeamFinder.Core.Model.Teams;
+
+namespace TeamFinder.Postgresql.Model;
 
 public class InvitationEntity
 {
@@ -7,6 +9,6 @@ public class InvitationEntity
     public TeamEntity Team { get; set; } = null!;
     public Guid InviteeId { get; set; }
     public Guid InvitedBy { get; set; }
-    public string Status { get; set; } = "Pending";
+    public InvitationStatus Status { get; set; } = InvitationStatus.Pending;
     public DateTime? ExpiresAt { get; set; }
 }

@@ -132,7 +132,7 @@ public class Team : Entity<Guid>
         if (_joinRequests.Any(request => request.ProfileId == inviteeId))
             return Result.Failure<Invitation>("User already requested to join");
 
-        var invitation = Invitation.Create(inviteeId, inviterId, expiresAt);
+        var invitation = Invitation.Create(inviteeId, inviterId, Id, expiresAt);
         if (invitation.IsFailure)
             return Result.Failure<Invitation>(invitation.Error);
         
