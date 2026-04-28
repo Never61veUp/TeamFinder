@@ -109,15 +109,16 @@ public class Team : Entity<Guid>
         return Result.Success(joinRequest);
     }
 
-    public Result AddMember(Guid profileId)
+    public Result AcceptInvitation(Guid profileId)
     {
-        throw new NotImplementedException();
-        
         if (Members.Count >= MaxMembers)
             return Result.Failure("Team is full");
         if (_members.Contains(profileId))
             return Result.Failure("Already a member");
-
+        if(_invitations.Any(i => i.InviteeId == profileId && i.Status != InvitationStatus.Pending))
+            return Result.Failure("User has no pending invitation");
+        
+        _invitations.FirstOrDefault(i => i.InviteeId == profileId)?.Accept();
         _members.Add(profileId);
         
         return Result.Success();
@@ -197,7 +198,6 @@ public class Team : Entity<Guid>
         Status = TeamStatus.Inactive;
         return Result.Success(Id);
     }
-    
 }
 
 public enum TeamStatus
