@@ -17,12 +17,12 @@ public class Invitation : Entity<Guid>
     public InvitationStatus Status { get; private set; }
     public DateTime? ExpiresAt { get; }
 
-    public static Result<Invitation> Create(Guid id, Guid inviteeId, Guid invitedBy, DateTime? expiresAt = null)
+    public static Result<Invitation> Create(Guid inviteeId, Guid invitedBy, DateTime? expiresAt = null)
     {
         if (expiresAt.HasValue && expiresAt <= DateTime.UtcNow)
             return Result.Failure<Invitation>("Invitation is expired");
 
-        return new Invitation(id, inviteeId, invitedBy, expiresAt);
+        return new Invitation(Guid.NewGuid(), inviteeId, invitedBy, expiresAt);
     }
     
     public static Invitation Restore(Guid id, Guid inviteeId, Guid invitedBy, InvitationStatus status, DateTime? expiresAt)
