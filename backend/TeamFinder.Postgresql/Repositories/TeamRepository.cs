@@ -166,8 +166,10 @@ public class TeamRepository : ITeamRepository
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
-            .FirstOrDefaultAsync(t => t.OwnerId == id || t.Members.Any(m => m.ProfileId == id 
-                                                                            && t.Status == TeamStatus.Active));
+            .FirstOrDefaultAsync(t => 
+                (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
+                && t.Status == TeamStatus.Active
+            );
 
         if (entity == null)
             return Result.Failure<TeamEntity>("Team not found");
