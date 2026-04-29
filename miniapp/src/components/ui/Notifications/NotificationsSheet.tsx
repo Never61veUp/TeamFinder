@@ -57,7 +57,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
             <div className={`notifications-sheet ${isOpen ? 'open' : ''}`}>
                 <div className="sheet-header">
                     <div className="sheet-drag-handle" />
-                    <h3>Управление командой</h3>
+                    <h3>Уведомления</h3>
                 </div>
 
                 <div className="sheet-content">
@@ -98,7 +98,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                             </div>
                         </div>
                     ) : (
-                        <div className="empty-state">У вас пока нет команды</div>
+                        <div className="empty-state">У вас пока нет уведомлений</div>
                     )}
                 </div>
             </div>

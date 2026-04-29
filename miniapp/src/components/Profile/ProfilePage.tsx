@@ -17,9 +17,10 @@ const HARD_SKILLS: string[] = ["Backend", "Programming", "Frontend", "React", "P
 interface Props {
     user: TelegramUser;
     onLogout: () => void;
+    onOpenNotif?: () => void;
 }
 
-export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
+export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) => {
     const { profile, skills: allProfileSkills, isLoading, refetch } = useProfile(user?.profileId);
     const { isConnecting, connect } = useGithub();
 
@@ -121,6 +122,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout }) => {
                 name={user.username ?? 'User'}
                 username={user.username ? `@${user.username}` : ''}
                 avatarUrl={user.photoUrl}
+                onNotificationClick={onOpenNotif}
             />
 
             <div className="profile-content px-4 space-y-4">

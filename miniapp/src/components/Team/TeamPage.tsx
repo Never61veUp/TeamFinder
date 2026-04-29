@@ -11,7 +11,11 @@ import { LogOut, Trash2, Loader2 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import './team.css';
 
-export const TeamPage = () => {
+interface TeamPageProps {
+    onOpenNotif?: () => void;
+}
+
+export const TeamPage = ({ onOpenNotif }: TeamPageProps) => { // Добавили проп сюда
     const { profile: myProfile } = useProfile(undefined);
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -163,7 +167,10 @@ export const TeamPage = () => {
 
     return (
         <div className="team-page">
-            <Header title={currentTeam ? "Моя команда" : "Создать команду"} />
+            <Header
+                title={currentTeam ? "Моя команда" : "Создать команду"}
+                onNotificationClick={onOpenNotif} // Передали проп сюда
+            />
 
             {currentTeam ? (
                 <div className="team-view-container">
