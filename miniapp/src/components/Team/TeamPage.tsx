@@ -202,8 +202,8 @@ export const TeamPage = () => {
 
                         <Section title="Направления">
                             <div className="view-tags-list">
-                                {currentTeam.wantedProfiles && currentTeam.wantedProfiles.length > 0 ? (
-                                    currentTeam.wantedProfiles.map((profile: any) => (
+                                {currentTeam.eventDetails?.tags && currentTeam.eventDetails.tags.length > 0 ? (
+                                    currentTeam.eventDetails?.tags.map((profile: any) => (
                                         <Badge key={profile.id} className="badge">
                                             {profile.name}
                                         </Badge>
