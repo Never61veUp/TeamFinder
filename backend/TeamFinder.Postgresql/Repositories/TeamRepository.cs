@@ -56,6 +56,7 @@ public class TeamRepository : ITeamRepository
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
+            .Include(t => t.JoinRequests)
             .FirstOrDefaultAsync(t => t.Id == id && t.Status == status);
 
         if (entity == null)
@@ -166,6 +167,7 @@ public class TeamRepository : ITeamRepository
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
+            .Include(t => t.JoinRequests)
             .FirstOrDefaultAsync(t => 
                 (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
                 && t.Status == status
