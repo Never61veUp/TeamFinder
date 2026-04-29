@@ -41,7 +41,7 @@ public class InvitationController : BaseController
     [HttpPost("accept/{invitationId:guid}")]
     public async Task<IActionResult> AcceptInvitation(Guid invitationId)
     {
-        var result = await _invitationService.AcceptInvitation(invitationId);
+        var result = await _invitationService.AcceptInvitation(invitationId, CurrentProfileId);
         if(result.IsFailure)
             return BadRequest(result.Error);
         

@@ -10,7 +10,7 @@ namespace TeamFinder.Application.Services;
 public interface IInvitationService
 {
     Task<Result<List<Invitation>>> GetInvitationsByInviteeProfileId(Guid inviteeId, InvitationStatus status = InvitationStatus.Pending);
-    Task<Result> AcceptInvitation(Guid invitationId);
+    Task<Result> AcceptInvitation(Guid invitationId, Guid currentProfileId);
 }
 
 public class InvitationService : IInvitationService
@@ -31,13 +31,15 @@ public class InvitationService : IInvitationService
                 .MapToDomainList(d => d.MapToDomain()));
     }
     
-    public async Task<Result> AcceptInvitation(Guid invitationId)
+    public async Task<Result> AcceptInvitation(Guid invitationId, Guid currentProfileId)
     {
         var invitationResult = await _invitationRepository.GetInvitationById(invitationId);
         if (invitationResult.IsFailure) 
             return invitationResult;
 
         var invitation = invitationResult.Value;
+        if (invitation.InviteeId != currentProfileId)
+            return Result.Failure("You are not the invitee of this invitation");
         
         var teamResult = await _teamRepository.GetById(invitation.TeamId);
         if (teamResult.IsFailure) 
