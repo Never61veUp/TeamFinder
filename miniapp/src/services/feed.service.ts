@@ -11,14 +11,22 @@ export const feedService = {
     },
 
     async requestJoin(teamId: string | number): Promise<void> {
-        return await httpClient.post(`/teams/${teamId}/request-join`, {});
+        return await httpClient.post(`/teams/${teamId}/request-join`, {
+            teamId: teamId
+        });
     }
 }
 
 export const acceptJoinRequest = async (teamId: string, requestedProfileId: string) => {
-    return httpClient.post(`/teams/${teamId}/accept-join/${requestedProfileId}`, {});
+    return httpClient.post(`/teams/${teamId}/accept-join/${requestedProfileId}`, {
+        teamId,
+        profileId: requestedProfileId
+    });
 };
 
 export const rejectJoinRequest = async (teamId: string, requestedProfileId: string) => {
-    return httpClient.post(`/teams/${teamId}/reject-join/${requestedProfileId}`, {});
+    return httpClient.post(`/teams/${teamId}/reject-join/${requestedProfileId}`, {
+        teamId,
+        profileId: requestedProfileId
+    });
 };
