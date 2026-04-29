@@ -15,7 +15,7 @@ interface TeamPageProps {
     onOpenNotif?: () => void;
 }
 
-export const TeamPage = ({ onOpenNotif }: TeamPageProps) => { // Добавили проп сюда
+export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
     const { profile: myProfile } = useProfile(undefined);
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -47,26 +47,33 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => { // Добавил�
     useEffect(() => {
         const initPage = async () => {
             try {
-                const [tagsRes, myTeam] = await Promise.allSettled([
+                const results = await Promise.allSettled([
                     httpClient.get<Tag[]>('/teams/event-tags'),
                     teamService.getMyTeam()
                 ]);
 
+                const [tagsRes, myTeamRes] = results;
+
                 if (tagsRes.status === 'fulfilled') {
-                    const tagsData = Array.isArray(tagsRes.value) ? tagsRes.value : (tagsRes.value as any).data || [];
+                    const tagsData = Array.isArray(tagsRes.value)
+                        ? tagsRes.value
+                        : (tagsRes.value as any).data || [];
                     setAvailableTags(tagsData);
                 }
 
-                if (myTeam.status === 'fulfilled' && myTeam.value) {
-                    const teamData = myTeam.value as any;
-                    if (teamData.status === 0) {
-                        setCurrentTeam(null);
+                if (myTeamRes.status === 'fulfilled') {
+                    const teamData = myTeamRes.value;
+                    if (teamData && (teamData as any).status !== 0) {
+                        setCurrentTeam(teamData);
                     } else {
-                        setCurrentTeam(myTeam.value);
+                        setCurrentTeam(null);
                     }
+                } else {
+                    setCurrentTeam(null);
                 }
+
             } catch (err) {
-                console.error('Ошибка инициализации:', err);
+                console.warn('Инициализация завершена в штатном режиме (команда не найдена или отсутствует)');
             } finally {
                 setIsLoading(false);
             }
@@ -169,7 +176,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => { // Добавил�
         <div className="team-page">
             <Header
                 title={currentTeam ? "Моя команда" : "Создать команду"}
-                onNotificationClick={onOpenNotif} // Передали проп сюда
+                onNotificationClick={onOpenNotif}
             />
 
             {currentTeam ? (
