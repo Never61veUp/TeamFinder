@@ -1,6 +1,6 @@
-// src/services/feed.service.ts
 import type { Tag, Team } from '../types/api'
-import { httpClient } from "../lib/http-client.ts";
+import { httpClient } from "../lib/http-client";
+
 export const feedService = {
     async getEventTags(): Promise<Tag[]> {
         return await httpClient.get<Tag[]>('/teams/event-tags');
@@ -10,12 +10,23 @@ export const feedService = {
         return await httpClient.get<Team[]>('/teams');
     },
 
-    // Добавляем этот метод:
     async requestJoin(teamId: string | number): Promise<void> {
-        return await httpClient.post(`/teams/${teamId}/request-join`, {});
+        return await httpClient.post(`/teams/${teamId}/request-join`, {
+            teamId: teamId
+        });
     }
 }
 
 export const acceptJoinRequest = async (teamId: string, requestedProfileId: string) => {
-    return httpClient.post(`/teams/${teamId}/accept-join/${requestedProfileId}`);
+    return httpClient.post(`/teams/${teamId}/accept-join/${requestedProfileId}`, {
+        teamId,
+        profileId: requestedProfileId
+    });
+};
+
+export const rejectJoinRequest = async (teamId: string, requestedProfileId: string) => {
+    return httpClient.post(`/teams/${teamId}/reject-join/${requestedProfileId}`, {
+        teamId,
+        profileId: requestedProfileId
+    });
 };

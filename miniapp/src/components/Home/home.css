@@ -1,3 +1,9 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
 .home-container {
     width: 100%;
     min-height: 100vh;
@@ -30,7 +36,8 @@
 }
 
 .home-content {
-    padding: 0 16px;
+    padding: 0 16px 80px 16px;
+    background: white;
     margin-top: -20px;
 }
 
@@ -127,6 +134,7 @@
 /* TIP BOX */
 .tip-box {
     margin-top: 24px;
+    margin-bottom: 20px;
     background: #f8fafc;
     border-radius: 20px;
     padding: 20px;
@@ -154,7 +162,7 @@
 }
 
 .modal-overlay {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;;
@@ -230,6 +238,11 @@
     color: #475569;
     line-height: 1.6;
     margin: 0;
+}
+
+.bottom-spacer {
+    height: 100px;
+    flex-shrink: 0;
 }
 
 .modal-info-grid p {

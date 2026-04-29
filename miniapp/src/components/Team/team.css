@@ -1,10 +1,10 @@
-/* src/components/Team/team.css */
-
 /* Общие настройки страницы */
 .team-page {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    /* Убрано min-height: 100vh, добавлено flex-растяжение */
+    flex: 1 0 auto;
+    min-height: 100%;
     background-color: #f8fafc;
     padding-bottom: 80px;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -44,6 +44,8 @@
     padding: 0 16px;
     display: flex;
     flex-direction: column;
+    /* Форма тоже должна иметь право растягиваться, чтобы активировать скролл */
+    flex: 1 0 auto;
     gap: 20px;
 }
 
@@ -180,6 +182,11 @@
 }
 
 /* КНОПКА ОТПРАВКИ */
+.submit-btn-wrapper {
+    margin-top: auto;
+    padding-bottom: 24px; /* Добавляем отступ внизу формы */
+}
+
 .team-submit-btn {
     width: 100%;
     background-color: #a03af0 !important;

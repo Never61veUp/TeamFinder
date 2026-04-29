@@ -11,7 +11,11 @@ import { LogOut, Trash2, Loader2 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import './team.css';
 
-export const TeamPage = () => {
+interface TeamPageProps {
+    onOpenNotif?: () => void;
+}
+
+export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
     const { profile: myProfile } = useProfile(undefined);
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -30,39 +34,50 @@ export const TeamPage = () => {
     });
 
     const isCreator = useMemo(() => {
-        if (!currentTeam) return false;
+        if (!currentTeam || !myProfile) return false;
+
         if (currentTeam.currentMembers === 1) return true;
 
-        const myBackendId = myProfile?.id?.toString();
-        const ownerId = (currentTeam as any)?.ownerId?.toString();
-        const firstMemberId = currentTeam?.members?.[0]?.toString();
+        const myId = myProfile.id.toString();
 
-        return myBackendId === ownerId || myBackendId === firstMemberId;
+        const ownerId = (currentTeam as any).ownerId?.toString();
+        if (ownerId && myId === ownerId) return true;
+
+        const firstMemberId = currentTeam.members?.[0]?.id?.toString();
+
+        return myId === firstMemberId;
     }, [currentTeam, myProfile]);
 
     useEffect(() => {
         const initPage = async () => {
             try {
-                const [tagsRes, myTeam] = await Promise.allSettled([
+                const results = await Promise.allSettled([
                     httpClient.get<Tag[]>('/teams/event-tags'),
                     teamService.getMyTeam()
                 ]);
 
+                const [tagsRes, myTeamRes] = results;
+
                 if (tagsRes.status === 'fulfilled') {
-                    const tagsData = Array.isArray(tagsRes.value) ? tagsRes.value : (tagsRes.value as any).data || [];
+                    const tagsData = Array.isArray(tagsRes.value)
+                        ? tagsRes.value
+                        : (tagsRes.value as any).data || [];
                     setAvailableTags(tagsData);
                 }
 
-                if (myTeam.status === 'fulfilled' && myTeam.value) {
-                    const teamData = myTeam.value as any;
-                    if (teamData.status === 0) {
-                        setCurrentTeam(null);
+                if (myTeamRes.status === 'fulfilled') {
+                    const teamData = myTeamRes.value;
+                    if (teamData && (teamData as any).status !== 0) {
+                        setCurrentTeam(teamData);
                     } else {
-                        setCurrentTeam(myTeam.value);
+                        setCurrentTeam(null);
                     }
+                } else {
+                    setCurrentTeam(null);
                 }
+
             } catch (err) {
-                console.error('Ошибка инициализации:', err);
+                console.warn('Инициализация завершена в штатном режиме (команда не найдена или отсутствует)');
             } finally {
                 setIsLoading(false);
             }
@@ -163,7 +178,10 @@ export const TeamPage = () => {
 
     return (
         <div className="team-page">
-            <Header title={currentTeam ? "Моя команда" : "Создать команду"} />
+            <Header
+                title={currentTeam ? "Моя команда" : "Создать команду"}
+                onNotificationClick={onOpenNotif}
+            />
 
             {currentTeam ? (
                 <div className="team-view-container">

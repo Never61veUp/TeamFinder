@@ -53,8 +53,9 @@ export interface Tag {
 }
 
 export interface TeamMember {
-  id: number;
+  id: string | number;
   initials: string;
+  name?: string;
 }
 
 export interface Team {
@@ -80,11 +81,9 @@ export interface Team {
   }[];
   status: number;
   members: TeamMember[];
+  joinRequests?: TeamMember[];
 }
 
-/**
- * Данные для создания команды (POST /api/teams)
- */
 export interface CreateTeamRequest {
   teamName: string;
   description: string | null;
@@ -97,8 +96,6 @@ export interface CreateTeamRequest {
 
 export const teamService = {
   getMyTeam: async (): Promise<Team> => {
-    // Заменили api на httpClient и убрали лишний .data,
-    // так как твой клиент обычно возвращает тело сразу
     return await httpClient.get<Team>('/teams/my-team');
   },
 
