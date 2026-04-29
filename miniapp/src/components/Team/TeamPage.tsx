@@ -34,14 +34,18 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
     });
 
     const isCreator = useMemo(() => {
-        if (!currentTeam) return false;
+        if (!currentTeam || !myProfile) return false;
+
         if (currentTeam.currentMembers === 1) return true;
 
-        const myBackendId = myProfile?.id?.toString();
-        const ownerId = (currentTeam as any)?.ownerId?.toString();
-        const firstMemberId = currentTeam?.members?.[0]?.toString();
+        const myId = myProfile.id.toString();
 
-        return myBackendId === ownerId || myBackendId === firstMemberId;
+        const ownerId = (currentTeam as any).ownerId?.toString();
+        if (ownerId && myId === ownerId) return true;
+
+        const firstMemberId = currentTeam.members?.[0]?.id?.toString();
+
+        return myId === firstMemberId;
     }, [currentTeam, myProfile]);
 
     useEffect(() => {
