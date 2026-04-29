@@ -1,6 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using Microsoft.VisualBasic;
-using TeamFinder.Contracts;
 
 namespace TeamFinder.Core.Model.Teams;
 

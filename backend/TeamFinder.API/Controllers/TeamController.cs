@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 using TeamFinder.Contracts;
+using TeamFinder.Core.Model.Teams;
 
 namespace TeamFinder.API.Controllers;
 
