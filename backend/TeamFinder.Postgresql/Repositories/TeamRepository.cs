@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
 
@@ -49,13 +50,14 @@ public class TeamRepository : ITeamRepository
         return changes > 0 ? Result.Success() : Result.Failure("Team not saved");
     }
 
-    public async Task<Result<TeamEntity>> GetById(Guid id)
+    public async Task<Result<TeamEntity>> GetById(Guid id, TeamStatus status = TeamStatus.Active)
     {
         var entity = await _context.Teams
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
-            .FirstOrDefaultAsync(t => t.Id == id);
+            .Include(t => t.JoinRequests)
+            .FirstOrDefaultAsync(t => t.Id == id && t.Status == status);
 
         if (entity == null)
             return Result.Failure<TeamEntity>("Team not found");
@@ -151,10 +153,91 @@ public class TeamRepository : ITeamRepository
         var teams = await _context.Teams
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
-            .Include(t => t.Invitations).ToListAsync();
+            .Include(t => t.Invitations)
+            .Where(t => t.Status == TeamStatus.Active).ToListAsync();
 
         if(teams.Count == 0)
             return Result.Failure<IEnumerable<TeamEntity>>("No teams found");
         return Result.Success<IEnumerable<TeamEntity>>(teams);
+    }
+    
+    public async Task<Result<TeamEntity>> GetByProfileId(Guid id, TeamStatus status = TeamStatus.Active)
+    {
+        var entity = await _context.Teams
+            .Include(t => t.Members)
+            .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
+            .Include(t => t.Invitations)
+            .Include(t => t.JoinRequests)
+            .FirstOrDefaultAsync(t => 
+                (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
+                && t.Status == status
+            );
+
+        if (entity == null)
+            return Result.Failure<TeamEntity>("Team not found");
+
+        return Result.Success(entity);
+    }
+    
+    public async Task<Result<List<TeamEntity>>> GetTeamsByProfileId(Guid id, TeamStatus status = TeamStatus.Active)
+    {
+        var entity = await _context.Teams
+            .Include(t => t.Members)
+            .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
+            .Include(t => t.Invitations)
+            .Where(t => 
+                (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
+                && t.Status == status
+            ).ToListAsync();
+
+        if (entity.Count == 0)
+            return Result.Failure<List<TeamEntity>>("Teams not found");
+
+        return Result.Success(entity);
+    }
+    
+    public async Task<Result> DeleteMemberByProfileId(Guid profileId)
+    {
+        return await _context.TeamMembers.Where(x => x.ProfileId == profileId).ExecuteDeleteAsync() > 0
+            ? Result.Success() 
+            : Result.Failure("Failed to remove team member");
+    }
+    
+    public async Task<Result> MakeInactive(Guid teamId)
+    {
+        var team = await _context.Teams.FindAsync(teamId);
+        if (team == null) 
+            return Result.Failure("Team not found");
+
+        team.Status = TeamStatus.Inactive;
+
+        return await _context.SaveChangesAsync() > 0 
+            ? Result.Success() 
+            : Result.Failure("Failed to inactive team");
+    }
+    
+    public async Task<Result> AddMember(Guid teamId, Guid profileId)
+    {
+        await _context.TeamMembers.AddAsync(new TeamMemberEntity
+        {
+            TeamId = teamId,
+            ProfileId = profileId
+        });
+        
+        try
+        {
+            await _context.SaveChangesAsync();
+            return Result.Success();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
+        {
+            return pg.SqlState switch
+            {
+                PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Team or Profile not found"),
+                PostgresErrorCodes.UniqueViolation => Result.Failure("User is already a team member"),
+                PostgresErrorCodes.NotNullViolation => Result.Failure("Required data is missing"),
+                _ => Result.Failure("Database error")
+            };
+        }
     }
 }

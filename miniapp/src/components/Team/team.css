@@ -1,0 +1,370 @@
+/* Общие настройки страницы */
+.team-page {
+    display: flex;
+    flex-direction: column;
+    /* Убрано min-height: 100vh, добавлено flex-растяжение */
+    flex: 1 0 auto;
+    min-height: 100%;
+    background-color: #f8fafc;
+    padding-bottom: 80px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ШАПКА: Фиолетовый градиент */
+.team-header {
+    width: 100%;
+    background: linear-gradient(90deg, #6b48ff 0%, #823cf4 50%, #a03af0 100%);
+    padding: 32px 24px;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    margin-bottom: 24px;
+}
+
+.team-header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.team-title {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+
+/* КОНТЕНТНАЯ ОБЛАСТЬ */
+.team-view-container,
+.team-form {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    /* Форма тоже должна иметь право растягиваться, чтобы активировать скролл */
+    flex: 1 0 auto;
+    gap: 20px;
+}
+
+/* ЭЛЕМЕНТЫ ФОРМЫ */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    padding-left: 2px;
+}
+
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    outline: none;
+    font-size: 15px;
+    color: #1e293b;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.form-textarea {
+    resize: none;
+    min-height: 120px;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+    border-color: #a03af0;
+    box-shadow: 0 0 0 1px rgba(160, 58, 240, 0.2);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+    color: #cbd5e1;
+}
+
+/* СЕТКА */
+.flex-row-gap {
+    display: flex;
+    gap: 16px;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+/* ТЕГИ В ФОРМЕ */
+.tags-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+}
+
+.tag-remove-btn {
+    color: #94a3b8;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.tag-remove-btn:active {
+    transform: scale(1.4);
+}
+
+.tag-remove-btn:hover {
+    color: #ef4444;
+}
+
+.tags-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.tags-input-row select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.tag-add-btn {
+    flex: none;
+    background-color: #a03af0;
+    color: white;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-add-btn:active {
+    transform: scale(0.9);
+}
+
+/* КНОПКА ОТПРАВКИ */
+.submit-btn-wrapper {
+    margin-top: auto;
+    padding-bottom: 24px; /* Добавляем отступ внизу формы */
+}
+
+.team-submit-btn {
+    width: 100%;
+    background-color: #a03af0 !important;
+    color: white !important;
+    border-radius: 14px !important;
+    padding: 16px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    margin-top: 10px;
+}
+
+/* --- МАГИЯ КАЛЕНДАРЯ --- */
+.date-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.custom-date-input {
+    padding-right: 40px !important;
+    cursor: text;
+    transition: all 0.2s ease;
+}
+
+.custom-date-input:active {
+    transform:scale(1.015);
+}
+
+/* Настройка иконки: она становится кнопкой открытия календаря */
+.custom-date-input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    padding: 8px;
+    z-index: 2;
+    /* Покраска в фиолетовый */
+    filter: invert(38%) sepia(87%) saturate(2453%) hue-rotate(253deg) brightness(92%) contrast(100%);
+    opacity: 1;
+}
+
+input[type="date"].custom-date-input::-webkit-datetime-edit {
+    position: relative;
+    z-index: 1;
+}
+
+.custom-date-input::-webkit-inner-spin-button,
+.custom-date-input::-webkit-clear-button {
+    display: none;
+}
+
+/* --- КАРТОЧКА ПРОСМОТРА --- */
+.view-card {
+    background: white;
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.view-card-header {
+    text-align: center;
+}
+
+.view-team-name {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.view-team-event {
+    font-size: 14px;
+    color: #a03af0;
+    font-weight: 600;
+    margin-top: 4px;
+    text-transform: uppercase;
+}
+
+.view-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.view-tags-list .badge {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 999px !important;
+    font-weight: 500 !important;
+    padding: 6px 14px !important;
+}
+
+.view-card-footer {
+    margin-top: 4px;
+    padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view-capacity-value {
+    background-color: #f1f5f9;
+    color: #334155;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Стили для дат на странице "Моя команда" */
+.view-dates-panel {
+    display: flex;
+    justify-content: space-around;
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 14px;
+    margin: 0 4px 10px 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.view-date-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.date-label {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.date-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.modal-info-panel {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.info-label {
+    color: #64748b;
+}
+
+.info-value {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.error-text {
+    color: #ef4444;
+    font-size: 14px;
+    text-align: center;
+    font-weight: 500;
+    background-color: #fef2f2;
+    padding: 10px;
+    border-radius: 8px;
+}

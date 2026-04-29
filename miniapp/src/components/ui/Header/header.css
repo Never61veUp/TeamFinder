@@ -1,0 +1,74 @@
+.team-header {
+    width: 100%;
+    background: linear-gradient(90deg, #6b48ff 0%, #823cf4 50%, #a03af0 100%);
+    padding: 24px 20px;
+    margin-bottom: 50px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    top: 0;
+    z-index: 100;
+}
+
+.team-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.team-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notification-btn {
+    position: relative;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.notification-btn:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.notification-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    background-color: #ff4d4f;
+    border: 2px solid #823cf4;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(255, 77, 79, 0.2);
+}
+
+.notification-badge {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(255, 77, 79, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 77, 79, 0); }
+}

@@ -1,7 +1,7 @@
 :root {
   --text: #6b6375;
   --text-h: #192d53;
-  --bg: #eaeaea;
+  --bg: transparent;
   --border: #e5e4e7;
   --code-bg: #f4f3ec;
   --accent: #7b408f;
@@ -24,32 +24,65 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --tg-viewport-height: 100vh;
+  --tg-viewport-height: 100dvh;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Для Firefox */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
 }
 
 #root {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
-  text-align: left;
-  border-inline: none;
+  position: relative;
 
+  height: var(--tg-viewport-height, 100vh);
   min-height: var(--tg-viewport-height, 100vh);
+
+  overflow: hidden;
+
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  text-align: left;
+}
+
+.main-scroll-area {
+  flex: 1;
+  overflow-y: auto;
   overflow-x: hidden;
+  /* Плавный скролл на iOS */
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  overflow: hidden;
 }
 
 @media (min-width: 481px) {
   #root {
     border-inline: 1px solid var(--border);
   }
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
 }
 
 h1, h2 {
@@ -76,8 +109,6 @@ p {
   margin: 0;
   padding: 0 16px;
 }
-
-
 
 code {
   font-family: var(--mono), serif;

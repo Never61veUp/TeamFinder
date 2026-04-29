@@ -1,15 +1,7 @@
-﻿namespace TeamFinder.Contracts;
+﻿using System.Text.Json.Serialization;
+using TeamFinder.Core.Model.Teams;
 
-public record CreateTeamRequest(string TeamName, int MaxMembers, string? Description, string? EventName, List<Tag> Tags);
+namespace TeamFinder.Contracts;
 
-public enum Tag
-{
-    Mobile,
-    Web,
-    Desktop,
-    GameDev,
-    DataScience,
-    AI,
-    VR,
-    AR,
-}
+public record CreateTeamRequest(string TeamName, int MaxMembers, string? Description, string? EventName, DateOnly? EventStart, DateOnly? EventEnd, List<Tag> Tags);
+

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 using TeamFinder.Contracts;
+using TeamFinder.Core.Model.Teams;
 
 namespace TeamFinder.API.Controllers;
 
@@ -21,7 +22,9 @@ public class TeamController : BaseController
     [HttpPost]
     public async Task<IActionResult> CreateTeam([FromBody] CreateTeamRequest request)
     {
-        var result = await _teamService.CreateTeam(CurrentProfileId, request.TeamName, request.MaxMembers);
+        var result = await _teamService.CreateTeam(CurrentProfileId, request.TeamName, 
+            request.MaxMembers, request.Description, 
+            request.EventName, request.EventStart, request.EventEnd, request.Tags);
         if(result.IsFailure)
             return BadRequest(result.Error);
         
@@ -66,5 +69,49 @@ public class TeamController : BaseController
             return BadRequest(result.Error);
         
         return Ok(result.Value);
+    }
+    
+    [AllowAnonymous]
+    [HttpGet("event-tags")]
+    public async Task<IActionResult> GetEventTags()
+    {
+        //TODO rewrite
+        var tags = Enum.GetValues<Tag>()
+            .Select(t => new 
+            { 
+                Id = (int)t, 
+                Name = t.ToString() 
+            });
+        return Ok(tags);
+    }
+
+    [HttpGet("my-team")]
+    public async Task<IActionResult> GetMyTeam()
+    {
+        var result = await _teamService.GetMyTeam(CurrentProfileId);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+    
+    [HttpPost("leave")]
+    public async Task<IActionResult> LeaveTeam()
+    {
+        var result = await _teamService.LeaveTeam(CurrentProfileId);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok();
+    }
+    
+    [HttpPost("make-inactive")]
+    public async Task<IActionResult> DisbandTeam()
+    {
+        var result = await _teamService.MakeInactive(CurrentProfileId);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok();
     }
 }

@@ -1,5 +1,6 @@
 using System.Reflection;
 using CSharpFunctionalExtensions;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Model;
 
@@ -12,12 +13,13 @@ public static class TeamMapping
         var wantedProfiles = e.WantedProfiles
             .Select(wp => WantedProfile.Create(wp.Id, wp.RequiredSkills.Select(s => s.SkillId).ToList()).Value)
             .ToList();
-        
-        var invitations = e.Invitations.Select(inv => 
-            inv.MapToDomain()).ToList();
+
+        var invitations = e.Invitations.MapToDomainList(inv =>
+            inv.MapToDomain());
         
         var joinRequests = e.JoinRequests.Select(jr => new JoinRequest(jr.TeamId, jr.ProfileId)).ToList();
         var members = e.Members.Select(m => m.ProfileId).ToList();
+        var eventDetails = EventDetails.Create(e.EventTitle, e.EventStart, e.EventEnd, e.EventTags).Value;
         
         return Team.Restore(
             e.Id, 
@@ -25,8 +27,11 @@ public static class TeamMapping
             members, 
             e.Name, 
             e.MaxMembers, 
+            e.Status,
+            e.Description,
+            eventDetails,
             wantedProfiles, 
-            invitations, 
+            invitations.Value, 
             joinRequests);
     }
 
@@ -38,6 +43,12 @@ public static class TeamMapping
             Name = t.Name,
             OwnerId = t.OwnerId,
             MaxMembers = t.MaxMembers,
+            Status = t.Status,
+            Description = t.Description,
+            EventTitle = t.EventDetails?.Title,
+            EventStart = t.EventDetails?.Period?.Start,
+            EventEnd = t.EventDetails?.Period?.End,
+            EventTags = t.EventDetails?.Tags.ToList(),
             
             Members = t.Members.Select(m => new TeamMemberEntity { TeamId = t.Id, ProfileId = m }).ToList(),
             JoinRequests = t.JoinRequests.Select(jr => new JoinRequestEntity { TeamId = t.Id, ProfileId = jr.ProfileId }).ToList(),

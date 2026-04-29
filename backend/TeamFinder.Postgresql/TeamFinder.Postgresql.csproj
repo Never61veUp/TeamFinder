@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\TeamFinder.Contracts\TeamFinder.Contracts.csproj" />
         <ProjectReference Include="..\TeamFinder.Core\TeamFinder.Core.csproj"/>
     </ItemGroup>
 

@@ -1,3 +1,5 @@
+import { httpClient } from '../lib/http-client';
+
 export interface AuthResponse {
   token: string
 }
@@ -45,18 +47,63 @@ export interface GithubLoginResponse {
   url: string
 }
 
+export interface Tag {
+  id: number;
+  name: string;
+}
+
 export interface TeamMember {
-  id: string;
+  id: string | number;
   initials: string;
+  name?: string;
 }
 
 export interface Team {
   id: string;
   name: string;
   event?: string;
+  startDate?: string;
+  endDate?: string;
   description: string;
   currentMembers: number;
   maxMembers: number;
-  skills: string[];
+  eventDetails?: {
+    title: string;
+    tags: Tag[];
+    period: {
+      start: string;
+      end: string;
+    };
+  };
+  wantedProfiles?: {
+    id: number;
+    name: string;
+  }[];
+  status: number;
   members: TeamMember[];
+  joinRequests?: TeamMember[];
 }
+
+export interface CreateTeamRequest {
+  teamName: string;
+  description: string | null;
+  eventName: string | null;
+  eventStart: string | null;
+  eventEnd: string | null;
+  maxMembers: number;
+  tags: number[];
+}
+
+export const teamService = {
+  getMyTeam: async (): Promise<Team> => {
+    return await httpClient.get<Team>('/teams/my-team');
+  },
+
+  leaveTeam: async (): Promise<void> => {
+    await httpClient.post('/teams/leave', {});
+  },
+
+  makeInactive: async (): Promise<void> => {
+    await httpClient.post('/teams/make-inactive', {});
+  }
+};

@@ -20,6 +20,8 @@ public static class DiExtension
             services.AddScoped<IProfileRepository, ProfileRepository>();
             services.AddScoped<ITeamRepository, TeamRepository>();
             services.AddScoped<ISkillRepository, SkillRepository>();
+            services.AddScoped<IInvitationRepository, InvitationRepository>();
+            services.AddScoped<IReviewRepository, ReviewRepository>();
         
             return services;
         }
@@ -32,6 +34,8 @@ public static class DiExtension
             services.AddScoped<ISkillService, SkillService>();
             services.AddScoped<IGithubService, GithubService>();
             services.AddScoped<ITeamService, TeamService>();
+            services.AddScoped<IInvitationService, InvitationService>();
+            services.AddScoped<IReviewService, ReviewService>();
         
             return services;
         }

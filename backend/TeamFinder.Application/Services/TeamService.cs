@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Mapping;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Repositories;
@@ -16,11 +17,17 @@ public class TeamService : ITeamService
         _repository = repository;
     }
 
-    public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers)
+    public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description, string? eventTitle, DateOnly? eventStart, DateOnly? eventEnd,
+        List<Tag> eventTags)
     {
-        return await Team.Create(ownerId, name, maxMembers)
+        var eventDetailsResult = EventDetails.Create(eventTitle, eventStart, eventEnd, eventTags);
+        
+        if (eventDetailsResult.IsFailure)
+            return Result.Failure(eventDetailsResult.Error);
+        
+        return await Team.Create(ownerId, name, maxMembers, description, eventDetailsResult.Value)
             .Map(team => team.MapToEntity())
-            .Bind(entity => _repository.SaveTeam(entity));
+            .Bind(teamEntity => _repository.SaveTeam(teamEntity));
     }
 
     public async Task<Result> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
@@ -53,5 +60,27 @@ public class TeamService : ITeamService
         return await _repository.GetAllTeams()
             .Bind(entities => entities
                 .MapToDomainList(e => e.MapToDomain()));
+    }
+
+    public async Task<Result<Team>> GetMyTeam(Guid profileId)
+    {
+        return await _repository.GetByProfileId(profileId)
+            .Bind(entity => entity.MapToDomain());
+    }
+    
+    public async Task<Result> LeaveTeam(Guid profileId)
+    {
+        return await _repository.GetByProfileId(profileId)
+            .Bind(entity => entity.MapToDomain())
+            .Check(team => team.LeaveTeam(profileId))
+            .Bind(_ => _repository.DeleteMemberByProfileId(profileId));
+    }
+    
+    public async Task<Result> MakeInactive(Guid profileId)
+    {
+        return await _repository.GetByProfileId(profileId)
+            .Bind(entity => entity.MapToDomain())
+            .Bind(team => team.MakeInactive(profileId))
+            .Bind(teamId => _repository.MakeInactive(teamId));
     }
 }

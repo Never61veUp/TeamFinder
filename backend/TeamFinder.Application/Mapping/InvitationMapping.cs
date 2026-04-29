@@ -1,4 +1,5 @@
-﻿using TeamFinder.Core.Model.Teams;
+﻿using CSharpFunctionalExtensions;
+using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Model;
 
 namespace TeamFinder.Application.Mapping;
@@ -12,18 +13,20 @@ public static class InvitationMapping
             Id = invitation.Id,
             InviteeId = invitation.InviteeId,
             InvitedBy = invitation.InvitedBy,
-            Status = invitation.Status.ToString(),
-            ExpiresAt = invitation.ExpiresAt
+            Status = invitation.Status,
+            ExpiresAt = invitation.ExpiresAt,
+            TeamId = invitation.TeamId
         };
     }
     
-    public static Invitation MapToDomain(this InvitationEntity e)
+    public static Result<Invitation> MapToDomain(this InvitationEntity e)
     {
         return Invitation.Restore(
             e.Id, 
             e.InviteeId, 
             e.InvitedBy, 
-            Enum.Parse<InvitationStatus>(e.Status), 
+            e.Status, 
+            e.TeamId,
             e.ExpiresAt);
     }
 }

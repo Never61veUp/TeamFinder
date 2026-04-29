@@ -21,6 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<WantedProfileSkillEntity> WantedProfileSkills => Set<WantedProfileSkillEntity>();
     public DbSet<InvitationEntity> Invitations => Set<InvitationEntity>();
     public DbSet<JoinRequestEntity> JoinRequests => Set<JoinRequestEntity>();
+    public DbSet<ReviewEntity> Reviews => Set<ReviewEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

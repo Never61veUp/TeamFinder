@@ -37,9 +37,8 @@ namespace TeamFinder.Postgresql.Migrations
                     b.Property<Guid>("InviteeId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("TeamId")
                         .HasColumnType("uuid");
@@ -110,6 +109,33 @@ namespace TeamFinder.Postgresql.Migrations
                     b.ToTable("user_skills", (string)null);
                 });
 
+            modelBuilder.Entity("TeamFinder.Postgresql.Model.ReviewEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ReviewerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TargetId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Reviews");
+                });
+
             modelBuilder.Entity("TeamFinder.Postgresql.Model.SkillClosure", b =>
                 {
                     b.Property<Guid>("AncestorId")
@@ -155,6 +181,22 @@ namespace TeamFinder.Postgresql.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly?>("EventEnd")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("EventStart")
+                        .HasColumnType("date");
+
+                    b.PrimitiveCollection<int[]>("EventTags")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("EventTitle")
+                        .HasColumnType("text");
+
                     b.Property<int>("MaxMembers")
                         .HasColumnType("integer");
 
@@ -164,6 +206,9 @@ namespace TeamFinder.Postgresql.Migrations
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
