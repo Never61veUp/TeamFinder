@@ -18,6 +18,7 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
     const storageKey = `req_sent_${team.id}`;
 
     useEffect(() => {
+        // Проверяем участие (ID участников могут приходить строками или числами, приводим к String)
         const isMember = team.members?.some(m => String(m) === String(myProfileId));
         const hasLocalRecord = localStorage.getItem(storageKey) === 'true';
 
@@ -41,13 +42,16 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
         }
     };
 
+    // Основная информация
     const currentCount = team.currentMembers || team.members?.length || 1;
     const description = team.description || 'Описание отсутствует';
 
-    const eventTitle = team.eventDetails?.title || (team as any).eventName;
+    // Данные события и теги (берем из новой структуры)
+    const eventTitle = team.eventDetails?.title;
     const period = team.eventDetails?.period;
 
-    const profiles = (team as any).wantedProfiles || [];
+    // ТЕПЕРЬ ТЕГИ ТУТ:
+    const teamTags = team.eventDetails?.tags || [];
 
     return (
         <div className="team-card">
@@ -65,10 +69,17 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
                 {description.length > 80 ? description.slice(0, 80) + '...' : description}
             </p>
 
+            {/* Отображение тегов в списке */}
             <div className="skills-list">
-                {profiles.map((p: any) => (
-                    <Badge key={p.id} variant="primary">{p.name}</Badge>
-                ))}
+                {teamTags.length > 0 ? (
+                    teamTags.map((tag: any) => (
+                        <Badge key={tag.id} variant="primary">
+                            {tag.name}
+                        </Badge>
+                    ))
+                ) : (
+                    <span className="text-slate-500 text-xs italic">Направления не указаны</span>
+                )}
             </div>
 
             <Button
@@ -116,12 +127,15 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
                                 <p className="full-desc">{team.description}</p>
                             </div>
 
-                            {profiles.length > 0 && (
+                            {/* Теги в модальном окне */}
+                            {teamTags.length > 0 && (
                                 <div className="modal-section">
                                     <h3>Направления:</h3>
-                                    <div className="skills-list">
-                                        {profiles.map((p: any) => (
-                                            <Badge key={p.id} variant="primary">{p.name}</Badge>
+                                    <div className="view-tags-list flex flex-wrap gap-2">
+                                        {teamTags.map((tag: any) => (
+                                            <Badge key={tag.id} className="badge">
+                                                {tag.name}
+                                            </Badge>
                                         ))}
                                     </div>
                                 </div>
