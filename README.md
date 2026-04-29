@@ -42,9 +42,10 @@ docker compose -f compose.yaml up --build
 Проект разделён на слои:
 
 ```
-TeamFinder.Host         → Web API (Controllers, DI)
+TeamFinder.API          → Web API (Controllers, DI)
 TeamFinder.Application  → Логика, сервисы, use-cases
 TeamFinder.Core         → Доменные модели (Profile, Team, Review)
 TeamFinder.Postgresql   → EF Core, DbContext, Entity-конфигурация
+TeamFinder.Contracts   → Record resonse/request
 
 ```
