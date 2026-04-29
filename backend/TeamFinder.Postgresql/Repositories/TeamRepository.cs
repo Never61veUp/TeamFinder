@@ -50,13 +50,14 @@ public class TeamRepository : ITeamRepository
         return changes > 0 ? Result.Success() : Result.Failure("Team not saved");
     }
 
-    public async Task<Result<TeamEntity>> GetById(Guid id)
+    public async Task<Result<TeamEntity>> GetById(Guid id, TeamStatus status = TeamStatus.Active)
     {
         var entity = await _context.Teams
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
-            .FirstOrDefaultAsync(t => t.Id == id && t.Status == TeamStatus.Active);
+            .Include(t => t.JoinRequests)
+            .FirstOrDefaultAsync(t => t.Id == id && t.Status == status);
 
         if (entity == null)
             return Result.Failure<TeamEntity>("Team not found");
@@ -160,19 +161,37 @@ public class TeamRepository : ITeamRepository
         return Result.Success<IEnumerable<TeamEntity>>(teams);
     }
     
-    public async Task<Result<TeamEntity>> GetByProfileId(Guid id)
+    public async Task<Result<TeamEntity>> GetByProfileId(Guid id, TeamStatus status = TeamStatus.Active)
     {
         var entity = await _context.Teams
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
+            .Include(t => t.JoinRequests)
             .FirstOrDefaultAsync(t => 
                 (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
-                && t.Status == TeamStatus.Active
+                && t.Status == status
             );
 
         if (entity == null)
             return Result.Failure<TeamEntity>("Team not found");
+
+        return Result.Success(entity);
+    }
+    
+    public async Task<Result<List<TeamEntity>>> GetTeamsByProfileId(Guid id, TeamStatus status = TeamStatus.Active)
+    {
+        var entity = await _context.Teams
+            .Include(t => t.Members)
+            .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
+            .Include(t => t.Invitations)
+            .Where(t => 
+                (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
+                && t.Status == status
+            ).ToListAsync();
+
+        if (entity.Count == 0)
+            return Result.Failure<List<TeamEntity>>("Teams not found");
 
         return Result.Success(entity);
     }
