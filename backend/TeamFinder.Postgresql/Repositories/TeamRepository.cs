@@ -196,14 +196,9 @@ public class TeamRepository : ITeamRepository
         return Result.Success(entity);
     }
     
-    public async Task<Result> RemoveMember(Guid profileId)
+    public async Task<Result> DeleteMemberByProfileId(Guid profileId)
     {
-        var member = await _context.TeamMembers.FirstOrDefaultAsync(m => m.ProfileId == profileId);
-        if (member == null)
-            return Result.Failure("Team member not found");
-
-        _context.TeamMembers.Remove(member);
-        return await _context.SaveChangesAsync() > 0 
+        return await _context.TeamMembers.Where(x => x.ProfileId == profileId).ExecuteDeleteAsync() > 0
             ? Result.Success() 
             : Result.Failure("Failed to remove team member");
     }
