@@ -68,7 +68,7 @@ export interface Team {
   maxMembers: number;
   eventDetails?: {
     title: string;
-      tags: Tag[];
+    tags: Tag[];
     period: {
       start: string;
       end: string;

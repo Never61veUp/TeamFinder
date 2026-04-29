@@ -16,7 +16,7 @@ public class TagObjectConverter : JsonConverter<Tag>
 
     public override Tag Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        using var doc = JsonDocument.ParseValue(ref reader);
-        return (Tag)doc.RootElement.GetProperty("id").GetInt32();
+        var result =  (Tag)reader.GetInt32();
+        return result;
     }
 }

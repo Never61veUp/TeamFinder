@@ -20,9 +20,7 @@ public class TeamService : ITeamService
     public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description, string? eventTitle, DateOnly? eventStart, DateOnly? eventEnd,
         List<Tag> eventTags)
     {
-        var eventDetailsResult = string.IsNullOrWhiteSpace(eventTitle)
-            ? Result.Success<EventDetails?>(null)
-            : EventDetails.Create(eventTitle, eventStart, eventEnd, eventTags);
+        var eventDetailsResult = EventDetails.Create(eventTitle, eventStart, eventEnd, eventTags);
         
         if (eventDetailsResult.IsFailure)
             return Result.Failure(eventDetailsResult.Error);
