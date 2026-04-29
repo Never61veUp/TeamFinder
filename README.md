@@ -4,8 +4,13 @@
 
 [Документация](https://api.teamfinder.mixdev.me/scalar/)
 
+## Структура
+**[/backend]()** - бэкэнд для веб приложения
+
+**[/frontend]()** - веб приложение
+
 # Start up
-Для запуска всех 3 сервисов **запустите docker-compse в /backend**:
+Для запуска всех 2 сервисов **запустите docker-compse в /backend**:
 ```$env:TELEGRAM_BOT_TOKEN="token"
 $env:JWT_KEY="at_least_32_chars"
 $env:ASPNETCORE_ENVIRONMENT = ""
