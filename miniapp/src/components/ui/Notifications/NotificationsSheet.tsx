@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../Button';
 import { teamService } from '../../../types/api';
 import { acceptJoinRequest } from '../../../services/feed.service';
-import type { Team, TeamMember } from '../../../types/api';
+import type { Team } from '../../../types/api';
 import './notifications.css';
 
 interface NotificationsSheetProps {
@@ -23,7 +23,8 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
     const loadMyTeam = async () => {
         setIsLoading(true);
         try {
-            const data = await teamService.getMyTeam(); //
+            const data = await teamService.getMyTeam();
+            console.log('Данные моей команды:', data);
             setMyTeam(data);
         } catch (error) {
             console.error('Ошибка загрузки команды:', error);
@@ -32,11 +33,15 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
         }
     };
 
-    const handleAccept = async (id: string) => {
-        if (!myTeam) return;
-        setActionLoadingId(id);
+    const handleAccept = async (targetId: string) => {
+        if (!myTeam || !targetId || targetId === "undefined") {
+            console.error("Попытка принять заявку с невалидным ID:", targetId);
+            return;
+        }
+
+        setActionLoadingId(targetId);
         try {
-            await acceptJoinRequest(myTeam.id, id); //
+            await acceptJoinRequest(myTeam.id, targetId);
             await loadMyTeam();
         } catch (error) {
             alert('Ошибка при принятии заявки');
@@ -60,32 +65,38 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                     ) : myTeam?.joinRequests?.length ? (
                         <div className="requests-list">
                             <h5 className="section-subtitle">Новые заявки</h5>
-                            {myTeam.joinRequests.map((req: TeamMember) => (
-                                <div key={req.id} className="request-notification-card">
-                                    <div className="request-message">
-                                        <span className="user-name">{req.name || `Пользователь #${req.id}`}</span>
-                                        {' '}хочет вступить к вам в команду
-                                    </div>
+                            {myTeam.joinRequests.map((req: any) => {
+                                const effectiveId = String(req.profileId || req.id || "");
 
-                                    <div className="request-actions">
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={() => onViewProfile?.(String(req.id))}
-                                        >
-                                            Подробнее
-                                        </Button>
-                                        <Button
-                                            variant="primary"
-                                            size="sm"
-                                            isLoading={actionLoadingId === String(req.id)}
-                                            onClick={() => handleAccept(String(req.id))}
-                                        >
-                                            Принять
-                                        </Button>
+                                return (
+                                    <div key={effectiveId} className="request-notification-card">
+                                        <div className="request-message">
+                                            <span className="user-name">
+                                                {req.name || `Пользователь #${effectiveId.slice(0, 8)}`}
+                                            </span>
+                                            {' '}хочет вступить к вам в команду
+                                        </div>
+
+                                        <div className="request-actions">
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                onClick={() => effectiveId && onViewProfile?.(effectiveId)}
+                                            >
+                                                Подробнее
+                                            </Button>
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                isLoading={actionLoadingId === effectiveId}
+                                                onClick={() => handleAccept(effectiveId)}
+                                            >
+                                                Принять
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="empty-state">Новых заявок пока нет</div>

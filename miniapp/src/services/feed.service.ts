@@ -18,6 +18,10 @@ export const feedService = {
 }
 
 export const acceptJoinRequest = async (teamId: string, requestedProfileId: string) => {
+    if (!requestedProfileId || requestedProfileId === "undefined") {
+        console.error("Ошибка: profileId не определен");
+        throw new Error("Invalid profileId");
+    }
     return httpClient.post(`/teams/${teamId}/accept-join/${requestedProfileId}`, {
         teamId,
         profileId: requestedProfileId
