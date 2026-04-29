@@ -2,6 +2,8 @@
 
 [MiniApp](https://t.me/fasddfsgfdbot)
 
+[Сайт ](https://teamfinder.mixdev.me) (1 dev user на всех, из за отстуствия TgId)
+
 [Документация](https://api.teamfinder.mixdev.me/scalar/)
 
 ## Структура
