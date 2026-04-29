@@ -1,3 +1,9 @@
+# TeamFinder Telegram Mini App
+
+[MiniApp](https://t.me/fasddfsgfdbot)
+
+[Документация](https://api.teamfinder.mixdev.me/scalar/)
+
 # Start up
 Для запуска всех 3 сервисов **запустите docker-compse в /backend**:
 ```$env:TELEGRAM_BOT_TOKEN="token"
