@@ -19,9 +19,7 @@ public static class TeamMapping
         
         var joinRequests = e.JoinRequests.Select(jr => new JoinRequest(jr.TeamId, jr.ProfileId)).ToList();
         var members = e.Members.Select(m => m.ProfileId).ToList();
-        var eventDetails = string.IsNullOrWhiteSpace(e.EventTitle)
-            ? null
-            : EventDetails.Create(e.EventTitle, e.EventStart, e.EventEnd, e.EventTags).Value;
+        var eventDetails = EventDetails.Create(e.EventTitle, e.EventStart, e.EventEnd, e.EventTags).Value;
         
         return Team.Restore(
             e.Id, 

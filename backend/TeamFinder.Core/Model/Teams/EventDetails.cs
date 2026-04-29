@@ -20,12 +20,11 @@ public class EventDetails : ValueObject
     
     public static Result<EventDetails> Create(string title, DateOnly? start, DateOnly? end, List<Tag> tags)
     {
-        if (string.IsNullOrWhiteSpace(title))
-            return Result.Failure<EventDetails>("Title is required");
         if (!start.HasValue || !end.HasValue)
             return Result.Success(new EventDetails(title, null, tags));
         
-        return EventPeriod.Create(start.Value, end.Value).Map(period => new EventDetails(title, period, tags));
+        return EventPeriod.Create(start.Value, end.Value)
+            .Map(period => new EventDetails(title, period, tags));
     }
 
     protected override IEnumerable<object> GetEqualityComponents()
