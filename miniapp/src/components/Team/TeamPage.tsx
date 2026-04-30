@@ -305,7 +305,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
 
                         {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
 
-                        <Button type="submit" isLoading={isSubmitting} className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-2xl py-4 font-bold shadow-lg shadow-violet-200">
+                        <Button type="submit" isLoading={isSubmitting} className="create-btn w-full bg-violet-600 hover:bg-violet-700 text-white rounded-2xl py-4 font-bold shadow-lg shadow-violet-200">
                             Создать команду
                         </Button>
                     </div>

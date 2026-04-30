@@ -414,6 +414,10 @@ input[type="date"].custom-date-input::-webkit-datetime-edit {
     color: #94a3b8;
 }
 
+.create-btn {
+    margin-bottom: 70px;
+}
+
 /* --- СТИЛИ ШТОРКИ ПРОФИЛЯ --- */
 .modal-overlay {
     position: fixed;
