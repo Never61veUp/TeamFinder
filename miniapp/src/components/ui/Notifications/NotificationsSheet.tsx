@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '../Button';
-import { teamService } from '../../../types/api';
-import { invitationsService } from '../../../services/invitations.service';
-import { acceptJoinRequest } from '../../../services/feed.service';
-import type { Team } from '../../../types/api';
+import React, {useEffect, useState} from 'react';
+import {Button} from '../Button';
+import type {Team} from '../../../types/api';
+import {teamService} from '../../../types/api';
+import {invitationsService} from '../../../services/invitations.service';
+import {acceptJoinRequest} from '../../../services/feed.service';
 import './notifications.css';
 
 interface NotificationsSheetProps {
@@ -14,6 +14,7 @@ interface NotificationsSheetProps {
 
 export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, onClose}) => {
     const [myTeam, setMyTeam] = useState<Team | null>(null);
+    const [personalInvitesTeams, setPersonalInvitesTeams] = useState<Record<string, Team>>({});
     const [personalInvites, setPersonalInvites] = useState<any[]>([]);
 
     const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +37,20 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
             }
 
             const invitesData = await invitationsService.getInvitations(0);
-            setPersonalInvites(Array.isArray(invitesData) ? invitesData : []);
+            const invitesArray = Array.isArray(invitesData) ? invitesData : [];
+            setPersonalInvites(invitesArray);
+
+            const teamsInfo: Record<string, Team> = {};
+            for (const invite of invitesArray) {
+                if (invite.teamId && !teamsInfo[invite.teamId]) {
+                    try {
+                        teamsInfo[invite.teamId] = await teamService.getTeam(invite.teamId);
+                    } catch (err) {
+                        console.error(`Не удалось загрузить команду ${invite.teamId}`, err);
+                    }
+                }
+            }
+            setPersonalInvitesTeams(teamsInfo);
 
         } catch (error) {
             console.error('Ошибка загрузки уведомлений:', error);
@@ -64,7 +78,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
             await invitationsService.acceptInvitation(invitationId);
             alert('Вы успешно вступили в команду!');
             await loadData();
-            onClose(); // Закрываем шторку, т.к. статус изменился
+            onClose();
         } catch (error) {
             alert('Ошибка при принятии приглашения');
         } finally {
@@ -93,24 +107,34 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                             {personalInvites.length > 0 && (
                                 <>
                                     <h5 className="section-subtitle">Вас пригласили</h5>
-                                    {personalInvites.map((invite) => (
-                                        <div key={invite.id} className="request-notification-card">
-                                            <div className="request-message">
-                                                Команда <span className="user-name">{invite.teamName || 'Неизвестная'}</span>{' '}
-                                                приглашает вас присоединиться
+                                    {personalInvites.map((invite) => {
+                                        const teamInfo = personalInvitesTeams[invite.teamId];
+                                        return (
+                                            <div key={invite.id} className="request-notification-card">
+                                                <div className="request-message">
+                                                    Команда <span className="user-name">
+                                                        {teamInfo?.name || 'Загрузка...'}
+                                                    </span>{' '}
+                                                    приглашает вас присоединиться
+                                                </div>
+                                                {teamInfo?.description && (
+                                                    <div className="team-small-desc">
+                                                        {teamInfo.description.slice(0, 60)}...
+                                                    </div>
+                                                )}
+                                                <div className="request-actions">
+                                                    <Button
+                                                        variant="primary"
+                                                        size="sm"
+                                                        isLoading={actionLoadingId === `invite_${invite.id}`}
+                                                        onClick={() => handleAcceptInvite(invite.id)}
+                                                    >
+                                                        Принять инвайт
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <div className="request-actions">
-                                                <Button
-                                                    variant="primary"
-                                                    size="sm"
-                                                    isLoading={actionLoadingId === `invite_${invite.id}`}
-                                                    onClick={() => handleAcceptInvite(invite.id)}
-                                                >
-                                                    Принять инвайт
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </>
                             )}
 

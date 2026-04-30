@@ -2,9 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Header } from '../ui/Header/Header';
+import { TagsInput } from './TagsInput';
 import { httpClient } from '../../lib/http-client';
 import { teamService } from '../../types/api';
-import type { Team, ProfileWithGithub } from '../../types/api';
+import type { Team, Tag, CreateTeamRequest, ProfileWithGithub } from '../../types/api';
 import {
     LogOut, Trash2, Loader2, Target, Trophy,
     Layout, CodeXml, Folder, Star
@@ -21,40 +22,62 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
     const [currentTeam, setCurrentTeam] = useState<Team | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
-    // Хранилище для данных участников: { "uuid": {данные профиля} }
+    const [formData, setFormData] = useState({
+        name: '',
+        description: '',
+        event: '',
+        startDate: '',
+        endDate: '',
+        maxMembers: '4',
+        selectedTags: [] as Tag[]
+    });
+
     const [membersData, setMembersData] = useState<Record<string, ProfileWithGithub>>({});
     const [selectedProfile, setSelectedProfile] = useState<ProfileWithGithub | null>(null);
+
+    const today = new Date().toISOString().split('T')[0];
+    const maxDate = "2100-12-31";
 
     useEffect(() => {
         const initPage = async () => {
             try {
-                const myTeamRes = await teamService.getMyTeam();
-                if (myTeamRes && (myTeamRes as any).status !== 0) {
-                    setCurrentTeam(myTeamRes);
+                // Загружаем теги и команду одновременно
+                const [tagsRes, myTeamRes] = await Promise.allSettled([
+                    httpClient.get<Tag[]>('/teams/event-tags'),
+                    teamService.getMyTeam()
+                ]);
 
-                    if (myTeamRes.members) {
-                        for (const member of myTeamRes.members) {
-                            const id = typeof member === 'string' ? member : (member.profileId || member.id);
-                            try {
-                                const res = await httpClient.get<ProfileWithGithub>(`/profiles/${id}`);
-                                const profileData = (res as any).data || res;
+                if (tagsRes.status === 'fulfilled') {
+                    const tagsData = Array.isArray(tagsRes.value)
+                        ? tagsRes.value
+                        : (tagsRes.value as any).data || [];
+                    setAvailableTags(tagsData);
+                }
 
-                                setMembersData(prev => ({
-                                    ...prev,
-                                    [id]: profileData
-                                }));
-                            } catch (e) {
-                                console.error("Ошибка предзагрузки профиля", id);
+                if (myTeamRes.status === 'fulfilled') {
+                    const teamData = myTeamRes.value;
+                    if (teamData && (teamData as any).status !== 0) {
+                        setCurrentTeam(teamData);
+
+                        if (teamData.members) {
+                            for (const member of teamData.members) {
+                                const id = typeof member === 'string' ? member : (member.profileId || (member as any).id);
+                                try {
+                                    const res = await httpClient.get<ProfileWithGithub>(`/profiles/${id}`);
+                                    const profileData = (res as any).data || res;
+                                    setMembersData(prev => ({ ...prev, [id]: profileData }));
+                                } catch (e) {
+                                    console.error("Ошибка предзагрузки профиля", id);
+                                }
                             }
                         }
                     }
-                } else {
-                    setCurrentTeam(null);
                 }
             } catch (err) {
-                console.warn('Команда не найдена');
-                setCurrentTeam(null);
+                console.warn('Ошибка инициализации');
             } finally {
                 setIsLoading(false);
             }
@@ -67,8 +90,50 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         const teamData = currentTeam as any;
         const myId = myProfile.id.toString();
         const ownerId = teamData.ownerId?.toString();
-        return myId === ownerId;
+        // Если поле ownerId пустое, считаем создателем первого участника
+        const firstMemberId = currentTeam.members?.[0]?.profileId?.toString() || (currentTeam.members?.[0] as any)?.id?.toString();
+        return myId === ownerId || myId === firstMemberId;
     }, [currentTeam, myProfile]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => {
+            const nextData = { ...prev, [name]: value };
+            if (name === 'startDate' && nextData.endDate && value > nextData.endDate) {
+                nextData.endDate = value;
+            }
+            return nextData;
+        });
+    };
+
+    const handleTagsChange = (newTags: Tag[]) => {
+        setFormData(prev => ({ ...prev, selectedTags: newTags }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setError('');
+        try {
+            const payload: CreateTeamRequest = {
+                teamName: formData.name,
+                maxMembers: parseInt(formData.maxMembers, 10),
+                description: formData.description || null,
+                eventName: formData.event || null,
+                eventStart: formData.startDate || null,
+                eventEnd: formData.endDate || null,
+                tags: formData.selectedTags.map(t => Number(t.id))
+            };
+
+            await httpClient.post('/teams', payload);
+            const freshTeamRes = await teamService.getMyTeam();
+            if (freshTeamRes) setCurrentTeam(freshTeamRes);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Ошибка при создании');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     const handleOpenProfile = async (profileId: string) => {
         if (!profileId) return;
@@ -121,7 +186,6 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
             {currentTeam ? (
                 <div className="px-4 pt-6 overflow-y-auto h-full pb-20">
                     <div className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100">
-                        {/* Инфо о команде */}
                         <div className="text-center mb-6">
                             <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">{currentTeam.name}</h2>
                             {currentTeam.eventDetails?.title && (
@@ -129,7 +193,6 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                             )}
                         </div>
 
-                        {/* Период */}
                         {currentTeam.eventDetails?.period && (
                             <div className="flex justify-between items-center bg-slate-50 rounded-2xl p-4 mb-8 border border-slate-100">
                                 <div className="flex flex-col items-center w-1/2 border-r border-slate-200">
@@ -143,35 +206,28 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                             </div>
                         )}
 
-                        {currentTeam.description && (
-                            <div className="mb-8">
-                                <h3 className="text-lg font-bold text-slate-900 mb-3">О проекте</h3>
-                                <p className="text-slate-600 text-center text-sm leading-relaxed">{currentTeam.description}</p>
-                            </div>
-                        )}
+                        <div className="mb-8">
+                            <h3 className="text-lg font-bold text-slate-900 mb-3">О проекте</h3>
+                            <p className="text-slate-600 text-center text-sm leading-relaxed">{currentTeam.description}</p>
+                        </div>
 
-                        {/* Направления (Теги) */}
-                        {currentTeam.eventDetails?.tags && currentTeam.eventDetails.tags.length > 0 && (
-                            <div className="mb-8">
-                                <h3 className="text-lg font-bold text-slate-900 mb-3">Направления</h3>
-                                <div className="flex justify-center flex-wrap gap-2">
-                                    {currentTeam.eventDetails.tags.map((tag: any) => (
-                                        <Badge key={tag.id} className="bg-slate-50 text-slate-700 border border-slate-200 px-4 py-1.5 rounded-full font-medium">
-                                            {tag.name}
-                                        </Badge>
-                                    ))}
-                                </div>
+                        <div className="mb-8">
+                            <h3 className="text-lg font-bold text-slate-900 mb-3">Направления</h3>
+                            <div className="flex justify-center flex-wrap gap-2">
+                                {currentTeam.eventDetails?.tags?.map((tag: any) => (
+                                    <Badge key={tag.id} className="bg-slate-50 text-slate-700 border border-slate-200 px-4 py-1.5 rounded-full font-medium">
+                                        {tag.name}
+                                    </Badge>
+                                ))}
                             </div>
-                        )}
+                        </div>
 
-                        {/* СПИСОК УЧАСТНИКОВ */}
                         <div className="mb-8">
                             <h3 className="text-lg font-bold text-slate-900 mb-3">Участники</h3>
                             <div className="flex flex-col gap-3">
                                 {currentTeam.members?.map((member: any) => {
                                     const profileId = typeof member === 'string' ? member : (member.profileId || member.id);
                                     const data = membersData[profileId];
-
                                     const name = data?.name || "Загрузка...";
                                     const username = data?.username || "user";
 
@@ -186,12 +242,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                                     <span className="text-xs text-slate-400">@{username}</span>
                                                 </div>
                                             </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-violet-600 font-semibold"
-                                                onClick={() => handleOpenProfile(profileId)}
-                                            >
+                                            <Button variant="ghost" size="sm" className="text-violet-600 font-semibold" onClick={() => handleOpenProfile(profileId)}>
                                                 Подробнее
                                             </Button>
                                         </div>
@@ -200,16 +251,9 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                             </div>
                         </div>
 
-                        <div className="flex justify-between items-center py-4 border-t border-slate-100 mt-2 mb-4">
-                            <span className="text-slate-500 font-medium">Состав:</span>
-                            <span className="bg-slate-50 text-slate-800 px-4 py-1 rounded-full text-sm font-bold border border-slate-100">
-                                {currentTeam.currentMembers || (currentTeam.members?.length) || 1} / {currentTeam.maxMembers}
-                            </span>
-                        </div>
-
                         <div className="exit-btn">
                             {isCreator ? (
-                                <Button onClick={handleInactivate} variant="secondary" className="w-full text-red-500! bg-red-50! hover:bg-red-100! border-none rounded-xl py-3" isLoading={isSubmitting}>
+                                <Button onClick={handleInactivate} variant="secondary" className="w-full text-red-500! bg-red-50! border-none rounded-xl py-3" isLoading={isSubmitting}>
                                     <Trash2 size={18} className="mr-2" /> Удалить команду
                                 </Button>
                             ) : (
@@ -221,86 +265,108 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                     </div>
                 </div>
             ) : (
-                <div className="px-4 pt-6 text-center text-slate-400">У вас пока нет команды</div>
+                <form onSubmit={handleSubmit} className="px-4 pt-6 space-y-4">
+                    <div className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100 space-y-4">
+                        <div className="form-group">
+                            <label className="text-sm font-bold text-slate-700 ml-1">Название команды</label>
+                            <input name="name" type="text" placeholder="Прим: InnovatorsHub" value={formData.name} onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" required />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="text-sm font-bold text-slate-700 ml-1">Описание</label>
+                            <textarea name="description" placeholder="Расскажите о проекте..." value={formData.description} onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-violet-500 outline-none min-h-30 transition-all" required />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="text-sm font-bold text-slate-700 ml-1">Хакатон</label>
+                            <input name="event" type="text" placeholder="Название мероприятия" value={formData.event} onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-violet-500 outline-none transition-all" />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="form-group">
+                                <label className="text-xs font-bold text-slate-400 uppercase ml-1">Начало</label>
+                                <input name="startDate" type="date" min={today} max={maxDate} value={formData.startDate} onChange={handleChange} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm" />
+                            </div>
+                            <div className="form-group">
+                                <label className="text-xs font-bold text-slate-400 uppercase ml-1">Конец</label>
+                                <input name="endDate" type="date" min={formData.startDate || today} max={maxDate} value={formData.endDate} onChange={handleChange} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm" />
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="text-sm font-bold text-slate-700 ml-1">Макс. участников</label>
+                            <input name="maxMembers" type="number" value={formData.maxMembers} onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none" />
+                        </div>
+
+                        <div className="form-group">
+                            <label className="text-sm font-bold text-slate-700 ml-1">Теги</label>
+                            <TagsInput tags={formData.selectedTags} availableTags={availableTags} onChange={handleTagsChange} />
+                        </div>
+
+                        {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
+
+                        <Button type="submit" isLoading={isSubmitting} className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-2xl py-4 font-bold shadow-lg shadow-violet-200">
+                            Создать команду
+                        </Button>
+                    </div>
+                </form>
             )}
 
-            {/* ШТОРКА ПРОФИЛЯ С GITHUB */}
+            {/* ШТОРКА ПРОФИЛЯ */}
             {selectedProfile && (
                 <div className="modal-overlay bottom" onClick={() => setSelectedProfile(null)}>
                     <div className="modal-content-bottom profile-detail-modal animate-slide-up" onClick={e => e.stopPropagation()}>
                         <div className="modal-drag-handle" onClick={() => setSelectedProfile(null)} />
-
                         <div className="profile-detail-header">
-                            <div className="detail-avatar">{(selectedProfile.name?.[0] || selectedProfile.username?.[0] || '?').toUpperCase()}</div>
+                            <div className="detail-avatar">{(selectedProfile.name?.[0] || '?').toUpperCase()}</div>
                             <div>
-                                <h2 className="detail-name">{selectedProfile.name || selectedProfile.username}</h2>
+                                <h2 className="detail-name">{selectedProfile.name}</h2>
                                 <p className="detail-username">@{selectedProfile.username || 'user'}</p>
                             </div>
                         </div>
-
                         <div className="detail-scroll-area">
                             <section className="detail-section">
                                 <h4 className="detail-section-title">О себе</h4>
-                                <p className="detail-description">{selectedProfile.description || "Пользователь пока не добавил описание."}</p>
+                                <p className="detail-description">{selectedProfile.description || "Нет описания."}</p>
                             </section>
-
-                            {/* GITHUB БЛОК */}
                             {selectedProfile.githubInfo && (
-                                <section className="detail-section">
-                                    <div className="bg-slate-900 rounded-3xl p-4 text-white">
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <CodeXml size={18} className="text-emerald-400" />
-                                            <span className="font-bold text-sm">GitHub: {selectedProfile.githubInfo.username}</span>
+                                <section className="detail-section bg-slate-900 rounded-3xl p-4 text-white">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <CodeXml size={18} className="text-emerald-400" />
+                                        <span className="font-bold text-sm">GitHub: {selectedProfile.githubInfo.username}</span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div className="bg-white/10 rounded-2xl p-3 text-center">
+                                            <Folder size={14} className="mx-auto mb-1 opacity-50" />
+                                            <div className="text-lg font-bold">{selectedProfile.githubInfo.repositoriesCount}</div>
+                                            <div className="text-[10px] uppercase opacity-50 font-bold">Репо</div>
                                         </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div className="bg-white/10 rounded-2xl p-3 text-center">
-                                                <Folder size={14} className="mx-auto mb-1 opacity-50" />
-                                                <div className="text-lg font-bold">{selectedProfile.githubInfo.repositoriesCount}</div>
-                                                <div className="text-[10px] uppercase opacity-50 font-bold tracking-tighter">Репозитории</div>
-                                            </div>
-                                            <div className="bg-white/10 rounded-2xl p-3 text-center">
-                                                <Star size={14} className="mx-auto mb-1 text-amber-400" />
-                                                <div className="text-lg font-bold">{selectedProfile.githubInfo.totalStars}</div>
-                                                <div className="text-[10px] uppercase opacity-50 font-bold">Звезды</div>
-                                            </div>
-                                            <div className="bg-white/10 rounded-2xl p-3 text-center">
-                                                <div className="text-emerald-400 text-[10px] font-bold mb-1 truncate">{selectedProfile.githubInfo.topLanguage}</div>
-                                                <div className="text-[10px] uppercase opacity-50 font-bold mt-4">Язык</div>
-                                            </div>
+                                        <div className="bg-white/10 rounded-2xl p-3 text-center">
+                                            <Star size={14} className="mx-auto mb-1 text-amber-400" />
+                                            <div className="text-lg font-bold">{selectedProfile.githubInfo.totalStars}</div>
+                                            <div className="text-[10px] uppercase opacity-50 font-bold">Звезды</div>
+                                        </div>
+                                        <div className="bg-white/10 rounded-2xl p-3 text-center">
+                                            <div className="text-emerald-400 text-[10px] font-bold mb-1 truncate">{selectedProfile.githubInfo.topLanguage}</div>
+                                            <div className="text-[10px] uppercase opacity-50 font-bold mt-4">Язык</div>
                                         </div>
                                     </div>
                                 </section>
                             )}
-
-                            {/* Навыки */}
-                            {selectedProfile.skills && selectedProfile.skills.length > 0 && (
-                                <section className="detail-section">
-                                    <h4 className="detail-section-title">Навыки</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedProfile.skills.map((s: any, idx: number) => (
-                                            <Badge key={s.id || idx} className="bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1 rounded-full text-xs font-medium">
-                                                {typeof s === 'string' ? s : s.name}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
-
-                            {/* Статистика */}
-                            <div className="stats-grid mb-4">
+                            <div className="stats-grid mt-4">
                                 <div className="stat-box">
                                     <Target className="stat-icon text-blue-500" />
-                                    <div className="stat-value">{selectedProfile.hackathons || selectedProfile.hackathons || 0}</div>
+                                    <div className="stat-value">{selectedProfile.hackathons || 0}</div>
                                     <div className="stat-label">Хакатоны</div>
                                 </div>
                                 <div className="stat-box">
                                     <Trophy className="stat-icon text-amber-500" />
-                                    <div className="stat-value">{selectedProfile.wins || selectedProfile.wins || 0}</div>
+                                    <div className="stat-value">{selectedProfile.wins || 0}</div>
                                     <div className="stat-label">Победы</div>
                                 </div>
                                 <div className="stat-box">
                                     <Layout className="stat-icon text-emerald-500" />
-                                    <div className="stat-value">{selectedProfile.projects || selectedProfile.projects || 0}</div>
+                                    <div className="stat-value">{selectedProfile.projects || 0}</div>
                                     <div className="stat-label">Проекты</div>
                                 </div>
                             </div>

@@ -100,6 +100,10 @@ export const teamService = {
     return await httpClient.get<Team>('/teams/my-team');
   },
 
+  getTeam: async (teamId: string): Promise<Team> => {
+    return await httpClient.get<Team>(`/teams/${teamId}`);
+  },
+
   leaveTeam: async (): Promise<void> => {
     await httpClient.post('/teams/leave', {});
   },
