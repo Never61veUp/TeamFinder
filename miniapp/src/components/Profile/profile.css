@@ -51,12 +51,13 @@
 	font-size: 22px;
 	font-weight: 700;
 	margin-bottom: 4px;
-	color: white;
+	color: white !important;
 }
 
 .profile-username {
 	font-size: 14px;
 	opacity: 0.9;
+	color: #efefef;
 }
 
 .profile-bell-btn {
