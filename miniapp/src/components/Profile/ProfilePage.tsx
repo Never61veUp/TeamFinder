@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ProfileHeader } from './Header/ProfileHeader';
 import { AboutMe } from './About/AboutMe';
 import { AchievementsGrid } from './Achievements/AchievementsGrid';
-import type { TelegramUser } from "../../types/api";
+import type {Skill, TelegramUser} from "../../types/api";
 import { useProfile } from "../hooks/useProfile";
 import { useGithub } from "../hooks/useGithub";
 import { GithubStatsSection } from "./Stats/GithubStats";
@@ -35,6 +35,19 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
     const [isSkillsEditorOpen, setIsSkillsEditorOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [skillsModalSelected, setSkillsModalSelected] = useState<Record<string, boolean>>({});
+    const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
+    const loadAvailableSkills = async () => {
+        try {
+            const response = await profileService.getAllSkills();
+            setAvailableSkills(response);
+        } catch (err) {
+            console.error("Не удалось загрузить список навыков", err);
+        }
+    };
+
+    useEffect(() => {
+        loadAvailableSkills();
+    }, []);
 
     useEffect(() => {
         if (!profile) return;
@@ -64,13 +77,13 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
     const saveChanges = async () => {
         setIsSaving(true);
         try {
-            const allSkills = await profileService.getAllSkills();
             const skillIds = localSkills
                 .map(localName => {
-                    const found = allSkills.find((s: any) => s.name?.toLowerCase() === localName.toLowerCase());
+                    const found = availableSkills.find(s => s.name === localName);
                     return found ? found.id : null;
                 })
                 .filter((id): id is string => id !== null);
+
             const descriptionToSave = localAbout.trim() === "" ? "Пользователь пока ничего не рассказал о себе" : localAbout;
 
             await Promise.all([
@@ -79,8 +92,8 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
             ]);
             setIsEditing(false);
         } catch (err: any) {
-            console.error('Ошибка при сохранении:', err);
-            alert(`Ошибка сохранения: ${err.response?.data?.message || 'Сервер отклонил запрос'}`);
+            console.error("Ошибка при сохранении профиля", err);
+            alert(err.message || "Не удалось сохранить изменения. Попробуйте позже.");
         } finally {
             setIsSaving(false);
             if (typeof refetch === 'function') await refetch();
@@ -93,7 +106,9 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
 
     const openSkillsEditor = () => {
         const map: Record<string, boolean> = {};
-        HARD_SKILLS.forEach(name => { map[name] = localSkills.includes(name); });
+        availableSkills.forEach(skill => {
+            map[skill.name] = localSkills.includes(skill.name);
+        });
         setSkillsModalSelected(map);
         setIsSkillsEditorOpen(true);
     };
@@ -172,15 +187,15 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
                     <div className="relative bg-white rounded-2xl p-6 w-[90%] max-w-120 shadow-lg">
                         <h3 className="font-bold text-lg mb-3 text-slate-800">Выберите навыки</h3>
                         <div className="max-h-64 overflow-auto grid grid-cols-2 gap-2 pr-2">
-                            {HARD_SKILLS.map(name => (
-                                <label key={name} className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-colors ${skillsModalSelected[name] ? 'border-violet-500 bg-violet-50' : 'border-gray-100'}`}>
+                            {availableSkills.map(skill => (
+                                <label key={skill.id} className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-colors ${skillsModalSelected[skill.name] ? 'border-violet-500 bg-violet-50' : 'border-gray-100'}`}>
                                     <input
                                         type="checkbox"
                                         className="w-4 h-4 accent-violet-600"
-                                        checked={!!skillsModalSelected[name]}
-                                        onChange={() => handleSkillsModalToggle(name)}
+                                        checked={!!skillsModalSelected[skill.name]}
+                                        onChange={() => handleSkillsModalToggle(skill.name)}
                                     />
-                                    <span className="text-sm font-medium text-slate-700">{name}</span>
+                                    <span className="text-sm font-medium text-slate-700">{skill.name}</span>
                                 </label>
                             ))}
                         </div>
