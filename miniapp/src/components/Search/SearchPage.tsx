@@ -247,7 +247,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                                         <div className="github-icon-wrapper">
                                             <CodeXml size={18} />
                                         </div>
-                                        <span className="github-title">Разработка</span>
+                                        <span className="github-title">GitHub</span>
                                     </div>
                                     <div className="github-stats-row">
                                         <div className="github-stat-item">
