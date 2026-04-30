@@ -4,7 +4,7 @@ import {httpClient} from "../lib/http-client.ts";
 
 export const skillsService = {
   getAll() {
-    return httpClient.get<Skill[]>('/skills')
+    return httpClient.get<Skill[]>('/skills/all')
   },
 
   getChildren(skillId: string) {
