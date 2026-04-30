@@ -83,4 +83,10 @@ public class TeamService : ITeamService
             .Bind(team => team.MakeInactive(profileId))
             .Bind(teamId => _repository.MakeInactive(teamId));
     }
+    
+    public async Task<Result<Team>> GetTeamById(Guid teamId)
+    {
+        return await _repository.GetById(teamId)
+            .Bind(entity => entity.MapToDomain());
+    }
 }

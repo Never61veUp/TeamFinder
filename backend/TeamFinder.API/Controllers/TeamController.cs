@@ -31,6 +31,16 @@ public class TeamController : BaseController
         return Ok();
     }
     
+    [HttpGet("{teamId:guid}")]
+    public async Task<IActionResult> GetTeamById(Guid teamId)
+    {
+        var result = await _teamService.GetTeamById(teamId);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+        
+        return Ok(result.Value);
+    }
+    
     [HttpPost("{teamId:guid}/invitations/{inviteeId:guid}")]
     public async Task<IActionResult> InviteProfile(Guid teamId, Guid inviteeId)
     {
