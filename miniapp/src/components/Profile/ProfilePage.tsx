@@ -83,7 +83,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
             alert(`Ошибка сохранения: ${err.response?.data?.message || 'Сервер отклонил запрос'}`);
         } finally {
             setIsSaving(false);
-            if (typeof refetch === 'function') refetch();
+            if (typeof refetch === 'function') await refetch();
         }
     };
 

@@ -8,10 +8,10 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { searchService } from '../../services/search.service';
 import { invitationsService } from '../../services/invitations.service';
-import { teamService } from '../../types/api';
+import {type Skill, teamService} from '../../types/api';
 import type { Profile, Team, ProfileWithGithub } from '../../types/api';
-import { HARD_SKILLS } from '../../constants/hard-skills';
 import './search.css';
+import {profileService} from "../../services";
 
 interface SearchPageProps {
     onOpenNotif: () => void;
@@ -27,12 +27,16 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
     const [invitingId, setInvitingId] = useState<string | null>(null);
     const [sentInvitations, setSentInvitations] = useState<string[]>([]);
     const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+    const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
 
     useEffect(() => {
         const loadInitialData = async () => {
             try {
                 const team = await teamService.getMyTeam().catch(() => null);
                 setMyTeam(team);
+
+                const skills = await profileService.getAllSkills();
+                setAvailableSkills(skills);
 
                 if (team) {
                     const allInvites = await invitationsService.getInvitations(0);
@@ -127,10 +131,10 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                 <h3 className="section-title">Выберите навыки для поиска</h3>
                 <div className="selected-badges-row">
                     {selectedSkills.map((id) => {
-                        const skill = HARD_SKILLS.find(s => s.id === id);
+                        const skill = availableSkills.find(s => s.id === id);
                         return (
                             <Badge key={`sel-${id}`} className="skill-badge-active">
-                                {skill?.name || 'Unknown'}
+                                {skill?.name || 'Загрузка...'}
                                 <X size={14} onClick={() => toggleSkill(id)} className="badge-close-icon" />
                             </Badge>
                         );
@@ -184,7 +188,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                     <div className="modal-content skills-modal" onClick={e => e.stopPropagation()}>
                         <h3 className="modal-title">Навыки</h3>
                         <div className="skills-selection-grid">
-                            {HARD_SKILLS.map((skill) => (
+                            {availableSkills.map((skill) => (
                                 <div
                                     key={skill.id}
                                     className={`skill-label ${selectedSkills.includes(skill.id) ? 'active' : ''}`}
