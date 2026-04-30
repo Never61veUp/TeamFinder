@@ -53,6 +53,7 @@ export interface Tag {
 }
 
 export interface TeamMember {
+  profileId: string | number;
   id: string | number;
   initials: string;
   name?: string;

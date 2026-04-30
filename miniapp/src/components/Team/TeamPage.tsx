@@ -4,10 +4,10 @@ import { Badge } from '../ui/Badge';
 import { Header } from '../ui/Header/Header';
 import { httpClient } from '../../lib/http-client';
 import { teamService } from '../../types/api';
-import type { Team } from '../../types/api';
+import type { Team, ProfileWithGithub } from '../../types/api';
 import {
     LogOut, Trash2, Loader2, Target, Trophy,
-    Layout
+    Layout, CodeXml, Folder, Star
 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import './team.css';
@@ -22,7 +22,9 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [selectedProfile, setSelectedProfile] = useState<any>(null);
+    // Хранилище для данных участников: { "uuid": {данные профиля} }
+    const [membersData, setMembersData] = useState<Record<string, ProfileWithGithub>>({});
+    const [selectedProfile, setSelectedProfile] = useState<ProfileWithGithub | null>(null);
 
     useEffect(() => {
         const initPage = async () => {
@@ -30,6 +32,23 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                 const myTeamRes = await teamService.getMyTeam();
                 if (myTeamRes && (myTeamRes as any).status !== 0) {
                     setCurrentTeam(myTeamRes);
+
+                    if (myTeamRes.members) {
+                        for (const member of myTeamRes.members) {
+                            const id = typeof member === 'string' ? member : (member.profileId || member.id);
+                            try {
+                                const res = await httpClient.get<ProfileWithGithub>(`/profiles/${id}`);
+                                const profileData = (res as any).data || res;
+
+                                setMembersData(prev => ({
+                                    ...prev,
+                                    [id]: profileData
+                                }));
+                            } catch (e) {
+                                console.error("Ошибка предзагрузки профиля", id);
+                            }
+                        }
+                    }
                 } else {
                     setCurrentTeam(null);
                 }
@@ -45,29 +64,18 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
 
     const isCreator = useMemo(() => {
         if (!currentTeam || !myProfile) return false;
-
         const teamData = currentTeam as any;
         const myId = myProfile.id.toString();
-
         const ownerId = teamData.ownerId?.toString();
-        const firstMember = teamData.members?.[0];
-        // Бэк отдает UUID профиля в поле .profileId внутри member
-        const firstMemberProfileId = firstMember?.profileId?.toString();
-
-        return myId === ownerId || myId === firstMemberProfileId;
+        return myId === ownerId;
     }, [currentTeam, myProfile]);
 
     const handleOpenProfile = async (profileId: string) => {
-        if (!profileId) {
-            console.error("Profile UUID не определен");
-            return;
-        }
+        if (!profileId) return;
         try {
-            // Запрос в /api/profiles/{id}
-            const response = await httpClient.get<any>(`/profiles/${profileId}`);
-            setSelectedProfile(response.data || response);
+            const response = await httpClient.get<ProfileWithGithub>(`/profiles/${profileId}`);
+            setSelectedProfile((response as any).data || response);
         } catch (err) {
-            console.error("Ошибка загрузки профиля:", err);
             alert("Не удалось загрузить данные пользователя");
         }
     };
@@ -88,7 +96,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         try {
             await teamService.makeInactive();
             setCurrentTeam(null);
-        } catch (err) { setCurrentTeam(null); }
+        } catch (err) { alert("Ошибка удаления"); }
         finally { setIsSubmitting(false); }
     };
 
@@ -135,54 +143,54 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                             </div>
                         )}
 
-                        <div className="mb-8">
-                            <h3 className="text-lg font-bold text-slate-900 mb-3">О проекте</h3>
-                            <p className="text-slate-600 text-center text-sm leading-relaxed">{currentTeam.description}</p>
-                        </div>
+                        {currentTeam.description && (
+                            <div className="mb-8">
+                                <h3 className="text-lg font-bold text-slate-900 mb-3">О проекте</h3>
+                                <p className="text-slate-600 text-center text-sm leading-relaxed">{currentTeam.description}</p>
+                            </div>
+                        )}
 
                         {/* Направления (Теги) */}
-                        <div className="mb-8">
-                            <h3 className="text-lg font-bold text-slate-900 mb-3">Направления</h3>
-                            <div className="flex justify-center flex-wrap gap-2">
-                                {currentTeam.eventDetails?.tags?.map((tag: any) => (
-                                    <Badge key={tag.id} className="bg-slate-50 text-slate-700 border border-slate-200 px-4 py-1.5 rounded-full font-medium">
-                                        {tag.name}
-                                    </Badge>
-                                ))}
+                        {currentTeam.eventDetails?.tags && currentTeam.eventDetails.tags.length > 0 && (
+                            <div className="mb-8">
+                                <h3 className="text-lg font-bold text-slate-900 mb-3">Направления</h3>
+                                <div className="flex justify-center flex-wrap gap-2">
+                                    {currentTeam.eventDetails.tags.map((tag: any) => (
+                                        <Badge key={tag.id} className="bg-slate-50 text-slate-700 border border-slate-200 px-4 py-1.5 rounded-full font-medium">
+                                            {tag.name}
+                                        </Badge>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* СПИСОК УЧАСТНИКОВ*/}
+                        {/* СПИСОК УЧАСТНИКОВ */}
                         <div className="mb-8">
                             <h3 className="text-lg font-bold text-slate-900 mb-3">Участники</h3>
                             <div className="flex flex-col gap-3">
                                 {currentTeam.members?.map((member: any) => {
                                     const profileId = typeof member === 'string' ? member : (member.profileId || member.id);
+                                    const data = membersData[profileId];
 
-                                    const displayName = "Участник команды";
+                                    const name = data?.name || "Загрузка...";
+                                    const username = data?.username || "user";
 
                                     return (
                                         <div key={profileId} className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-violet-600 font-bold shadow-sm">
-                                                    U
+                                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-violet-600 font-bold shadow-sm text-lg">
+                                                    {name[0].toUpperCase()}
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-slate-900">{displayName}</span>
-                                                    <span className="text-[10px] text-slate-400 font-mono">
-                                {profileId.substring(0, 8)}...
-                            </span>
+                                                    <span className="text-sm font-bold text-slate-900">{name}</span>
+                                                    <span className="text-xs text-slate-400">@{username}</span>
                                                 </div>
                                             </div>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
                                                 className="text-violet-600 font-semibold"
-                                                onClick={() => {
-                                                    if (profileId) {
-                                                        handleOpenProfile(profileId);
-                                                    }
-                                                }}
+                                                onClick={() => handleOpenProfile(profileId)}
                                             >
                                                 Подробнее
                                             </Button>
@@ -216,7 +224,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                 <div className="px-4 pt-6 text-center text-slate-400">У вас пока нет команды</div>
             )}
 
-            {/* ШТОРКА ПРОФИЛЯ */}
+            {/* ШТОРКА ПРОФИЛЯ С GITHUB */}
             {selectedProfile && (
                 <div className="modal-overlay bottom" onClick={() => setSelectedProfile(null)}>
                     <div className="modal-content-bottom profile-detail-modal animate-slide-up" onClick={e => e.stopPropagation()}>
@@ -236,6 +244,34 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                 <p className="detail-description">{selectedProfile.description || "Пользователь пока не добавил описание."}</p>
                             </section>
 
+                            {/* GITHUB БЛОК */}
+                            {selectedProfile.githubInfo && (
+                                <section className="detail-section">
+                                    <div className="bg-slate-900 rounded-3xl p-4 text-white">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <CodeXml size={18} className="text-emerald-400" />
+                                            <span className="font-bold text-sm">GitHub: {selectedProfile.githubInfo.username}</span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="bg-white/10 rounded-2xl p-3 text-center">
+                                                <Folder size={14} className="mx-auto mb-1 opacity-50" />
+                                                <div className="text-lg font-bold">{selectedProfile.githubInfo.repositoriesCount}</div>
+                                                <div className="text-[10px] uppercase opacity-50 font-bold tracking-tighter">Репозитории</div>
+                                            </div>
+                                            <div className="bg-white/10 rounded-2xl p-3 text-center">
+                                                <Star size={14} className="mx-auto mb-1 text-amber-400" />
+                                                <div className="text-lg font-bold">{selectedProfile.githubInfo.totalStars}</div>
+                                                <div className="text-[10px] uppercase opacity-50 font-bold">Звезды</div>
+                                            </div>
+                                            <div className="bg-white/10 rounded-2xl p-3 text-center">
+                                                <div className="text-emerald-400 text-[10px] font-bold mb-1 truncate">{selectedProfile.githubInfo.topLanguage}</div>
+                                                <div className="text-[10px] uppercase opacity-50 font-bold mt-4">Язык</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            )}
+
                             {/* Навыки */}
                             {selectedProfile.skills && selectedProfile.skills.length > 0 && (
                                 <section className="detail-section">
@@ -254,17 +290,17 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                             <div className="stats-grid mb-4">
                                 <div className="stat-box">
                                     <Target className="stat-icon text-blue-500" />
-                                    <div className="stat-value">{selectedProfile.hackathonsCount || 0}</div>
+                                    <div className="stat-value">{selectedProfile.hackathons || selectedProfile.hackathons || 0}</div>
                                     <div className="stat-label">Хакатоны</div>
                                 </div>
                                 <div className="stat-box">
                                     <Trophy className="stat-icon text-amber-500" />
-                                    <div className="stat-value">{selectedProfile.winsCount || 0}</div>
+                                    <div className="stat-value">{selectedProfile.wins || selectedProfile.wins || 0}</div>
                                     <div className="stat-label">Победы</div>
                                 </div>
                                 <div className="stat-box">
                                     <Layout className="stat-icon text-emerald-500" />
-                                    <div className="stat-value">{selectedProfile.projectsCount || 0}</div>
+                                    <div className="stat-value">{selectedProfile.projects || selectedProfile.projects || 0}</div>
                                     <div className="stat-label">Проекты</div>
                                 </div>
                             </div>
