@@ -12,16 +12,6 @@
 }
 
 /* ШАПКА: Фиолетовый градиент */
-.team-header {
-    width: 100%;
-    background: linear-gradient(90deg, #6b48ff 0%, #823cf4 50%, #a03af0 100%);
-    padding: 32px 24px;
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    margin-bottom: 0;
-}
 
 .team-header-content {
     max-width: 1200px;
