@@ -148,13 +148,14 @@ public class TeamRepository : ITeamRepository
         }
     }
 
-    public async Task<Result<IEnumerable<TeamEntity>>> GetAllTeams()
+    public async Task<Result<IEnumerable<TeamEntity>>> GetAllTeams(TeamStatus teamStatus)
     {
         var teams = await _context.Teams
+            .AsNoTracking()
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
-            .Where(t => t.Status == TeamStatus.Active).ToListAsync();
+            .Where(t => t.Status == teamStatus).ToListAsync();
 
         if(teams.Count == 0)
             return Result.Failure<IEnumerable<TeamEntity>>("No teams found");
