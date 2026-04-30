@@ -14,4 +14,5 @@ public interface IProfileService
     Task<Result<Profile>> GetWithGithubInfoById(Guid id);
     Task<Result> AddDescription(Guid profileId, string description);
     Task<Result> UpdateSkills(Guid profileId, List<Guid> skillId);
+    Task<Result<Profile>> GetProfileByName(string name);
 }

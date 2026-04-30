@@ -177,4 +177,14 @@ public class ProfileController : BaseController
         
         return Ok();
     }
+    
+    [HttpGet("find-profile/{name}")]
+    public async Task<IActionResult> FindProfileByName(string name)
+    {
+        var result = await _profileService.GetProfileByName(name);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+        
+        return Ok(result.Value);
+    }
 }
