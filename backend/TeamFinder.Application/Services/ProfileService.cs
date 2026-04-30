@@ -42,7 +42,7 @@ public class ProfileService : IProfileService
 
     public async Task<Result<List<Profile>>> FindBySkill(Guid skillId)
     {
-        return await _skillRepository.GetAllParents(skillId)
+        return await _skillRepository.GetAllChildren(skillId)
             .Map(parents => parents.Select(s => s.Id).Append(skillId).ToList())
             .Bind(ids => _profileRepository.FindBySkill(ids))
             .Bind(entities => entities.MapToDomainList(p => p.ToDomain()));
