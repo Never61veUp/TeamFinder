@@ -20,7 +20,7 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
 }
 
 .team-header-content {
