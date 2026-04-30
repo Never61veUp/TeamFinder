@@ -151,6 +151,8 @@ public class SkillRepository : ISkillRepository
 
     public async Task<Result<List<SkillEntity>>> GetAllSkills()
     {
-        return await _context.Skills.AsNoTracking().ToListAsync();
+        return await _context.Skills
+            .AsNoTracking().OrderBy(n => n.Name)
+            .ToListAsync();
     }
 }
