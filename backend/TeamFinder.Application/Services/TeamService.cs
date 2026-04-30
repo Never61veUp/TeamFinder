@@ -55,9 +55,9 @@ public class TeamService : ITeamService
             .Bind(_ => _repository.AcceptJoinRequest(teamId, profileId));
     }
     
-    public async Task<Result<List<Team>>> GetTeams()
+    public async Task<Result<List<Team>>> GetTeams(TeamStatus teamStatus)
     {
-        return await _repository.GetAllTeams()
+        return await _repository.GetAllTeams(teamStatus)
             .Bind(entities => entities
                 .MapToDomainList(e => e.MapToDomain()));
     }
