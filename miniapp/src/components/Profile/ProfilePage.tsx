@@ -7,6 +7,8 @@ import { useProfile } from "../hooks/useProfile";
 import { useGithub } from "../hooks/useGithub";
 import { GithubStatsSection } from "./Stats/GithubStats";
 import { SkillsList } from "./Skills/SkillTags";
+import { TeamHistory } from './Review/TeamHistory';
+import { ReviewList } from './Review/ReviewList';
 import './profile.css';
 import { profileService } from '../../services';
 import { Pencil } from 'lucide-react';
@@ -176,13 +178,21 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
                     <GithubStatsSection githubInfo={profile?.githubInfo} isConnecting={isConnecting} onConnect={connect} />
                 </section>
 
+                {profile?.id && (
+                    <ReviewList userId={profile.id} />
+                )}
+
+                {profile?.id && (
+                    <TeamHistory currentUserId={profile.id} />
+                )}
+
                 <div className="flex justify-center pt-8">
                     <button onClick={onLogout} className="exit-btn text-red-500 text-sm font-bold">Выйти</button>
                 </div>
             </div>
 
             {isSkillsEditorOpen && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+                <div className="fixed inset-0 z-1000 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black opacity-40" onClick={closeSkillsEditor}></div>
                     <div className="relative bg-white rounded-2xl p-6 w-[90%] max-w-120 shadow-lg">
                         <h3 className="font-bold text-lg mb-3 text-slate-800">Выберите навыки</h3>
