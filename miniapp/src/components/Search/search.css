@@ -1,10 +1,11 @@
+/* Базовые стили страницы */
 .search-page {
     min-height: 100vh;
     background-color: #f8fafc;
     padding-bottom: 90px;
 }
 
-/* Оверлей поиска на шапке */
+/* Контейнер поиска на шапке */
 .search-input-container {
     margin: -60px 20px 24px;
     position: relative;
@@ -27,190 +28,429 @@
     background: transparent;
 }
 
+/* Секция фильтров */
 .search-filters-section {
     padding: 0 24px;
     margin-bottom: 24px;
 }
 
 .section-title {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
-    color: #64748b;
-    letter-spacing: 0.08em;
-    margin-bottom: 14px;
+    color: #94a3b8;
+    letter-spacing: 0.2em;
+    margin-bottom: 12px;
     text-transform: uppercase;
 }
 
 .selected-badges-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
 }
 
-/* Стиль активного баджа в основном интерфейсе */
 .skill-badge-active {
-    background-color: #f5f0ff !important;
-    color: #823cf4 !important;
-    border: 1px solid #e9ddff !important;
-    display: flex;
-    align-items: center;
-    padding: 8px 14px !important;
-    font-weight: 600 !important;
+    background-color: #f5f3ff !important;
+    color: #7c3aed !important;
+    border: 1px solid #ddd6fe !important;
+    padding: 6px 12px !important;
     border-radius: 12px !important;
-    font-size: 13px !important;
+    font-weight: 500 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
 }
 
-.add-skill-btn {
+.badge-close-icon {
+    cursor: pointer;
+    margin-left: 4px;
+}
+
+.badge-close-icon:hover {
+    color: #5b21b6;
+}
+
+.add-filter-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    color: #823cf4;
-    font-weight: 700;
-    font-size: 14px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px 4px;
-    transition: opacity 0.2s;
-}
-
-.add-skill-btn:hover {
-    opacity: 0.7;
-}
-
-/* МОДАЛЬНОЕ ОКНО */
-
-.skills-selection-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    max-height: 350px;
-    overflow-y: auto;
-    padding: 4px;
-    margin-top: 10px;
-}
-
-/* Кнопки навыков в модалке */
-.skill-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 14px 10px;
-    border: 1px solid #edf2f7;
-    border-radius: 14px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background-color: white;
-    color: #823cf4;
-    min-height: 48px;
-}
-
-/* Состояние при наведении */
-.skill-label:hover {
-    border-color: #823cf4;
-    background-color: #f9f7ff;
-}
-
-/* Активное состояние (выбранный чекбокс) */
-.skill-label.active {
-    background-color: #823cf4;
-    color: white;
-    border-color: #823cf4;
-    box-shadow: 0 4px 12px rgba(130, 60, 244, 0.2);
-}
-
-/* Результаты */
-.results-header {
-    padding: 0 24px;
-    margin-bottom: 16px;
-}
-
-.results-count {
-    font-size: 14px;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e1;
     color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    transition: all 0.2s;
 }
 
-.results-count b {
-    color: #1e293b;
+.add-filter-btn:hover {
+    background-color: #f1f5f9;
 }
 
 /* Карточки профилей */
 .profiles-list {
+    padding: 0 16px;
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 0 20px;
+    margin-top: 24px;
 }
 
 .profile-card {
     background: white;
-    border-radius: 24px;
-    padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     border: 1px solid #f1f5f9;
+    border-radius: 32px;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.profile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
 }
 
 .profile-name {
-    font-size: 19px;
-    font-weight: 800;
+    font-weight: 700;
+    font-size: 20px;
     color: #1e293b;
-    margin: 0;
+    line-height: 1.2;
 }
 
 .profile-username {
-    color: #823cf4;
-    font-weight: 600;
+    color: #8b5cf6;
     font-size: 14px;
-    margin: 4px 0 12px 0;
-    display: block;
+    font-weight: 500;
 }
 
-.profile-desc {
-    font-size: 14px;
-    color: #475569;
-    line-height: 1.6;
-    margin-bottom: 18px;
+.detail-btn {
+    border-radius: 16px !important;
+    padding: 8px 16px !important;
+    font-size: 12px !important;
 }
 
 .profile-skills-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .profile-tag {
-    font-size: 12px;
-    font-weight: 700;
+    padding: 4px 12px;
+    background-color: #f8fafc;
     color: #64748b;
-    background: #f1f5f9;
-    padding: 4px 10px;
-    border-radius: 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-/* Кастомный скроллбар для сетки навыков */
-.skills-selection-grid::-webkit-scrollbar {
-    width: 4px;
+.invite-btn-full {
+    width: 100% !important;
+    border-radius: 16px !important;
+    height: 48px !important;
+    font-weight: 700 !important;
 }
 
-.skills-selection-grid::-webkit-scrollbar-track {
-    background: #f1f1f1;
+/* Модальные окна (Общие) */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+}
+
+.modal-overlay.centered {
+    align-items: center;
+    padding: 16px;
+}
+
+.modal-overlay.bottom {
+    align-items: flex-end;
+    padding: 0;
+    width: 100%;
+    max-width: 480px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.modal-content {
+    background: white;
+    border-radius: 32px;
+    padding: 24px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Модалка выбора навыков */
+.modal-title {
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: #1e293b;
+}
+
+.skills-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.skill-label {
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid #f1f5f9;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    color: #94a3b8;
+    transition: all 0.2s;
+}
+
+.skill-label.active {
+    border-color: #8b5cf6;
+    background-color: #f5f3ff;
+    color: #7c3aed;
+}
+
+.modal-close-btn {
+    width: 100% !important;
+    margin-top: 24px !important;
+    border-radius: 16px !important;
+    height: 48px !important;
+}
+
+/* Детальная модалка профиля */
+.modal-content-bottom {
+    background: white;
+    border-top-left-radius: 40px;
+    border-top-right-radius: 40px;
+    padding: 24px 24px 24px;
+    width: 100%;
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+.modal-drag-handle {
+    width: 40px;
+    height: 5px;
+    background-color: #e2e8f0;
     border-radius: 10px;
+    margin: 0 auto 20px;
+    flex-shrink: 0;
 }
 
-.skills-selection-grid::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
+.profile-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.detail-avatar {
+    width: 80px;
+    height: 80px;
+    background-color: #f5f3ff;
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #8b5cf6;
+    font-weight: 700;
+    font-size: 30px;
+}
+
+.detail-name {
+    font-size: 24px;
+    font-weight: 900;
+    color: #1e293b;
+    line-height: 1.1;
+}
+
+.detail-username {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.detail-scroll-area {
+    overflow-y: auto;
+    padding-right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.detail-section-title {
+    font-size: 10px;
+    font-weight: 900;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 12px;
+}
+
+.detail-description {
+    color: #475569;
+    line-height: 1.6;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Сетка статистики */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.stat-box {
+    background-color: #f8fafc;
+    padding: 16px;
+    border-radius: 24px;
+    text-align: center;
+}
+
+.stat-icon {
+    width: 20px;
+    height: 20px;
+    margin: 0 auto 8px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 900;
+    color: #1e293b;
+}
+
+.stat-label {
+    font-size: 8px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+}
+
+/* GitHub Карта */
+.github-card {
+    background-color: #0f172a;
+    border-radius: 32px;
+    padding: 24px;
+    color: white;
+    box-shadow: 0 20px 25px -5px rgba(226, 232, 240, 0.8);
+}
+
+.github-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 16px;
+}
+
+.github-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.github-title {
+    font-weight: 900;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.github-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.github-stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.github-stat-item.border-x {
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.github-stat-label {
+    font-size: 9px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+.github-stat-value {
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.detail-close-btn {
+    width: 100% !important;
+    margin-top: 20px !important;
+    border-radius: 20px !important;
+    height: 54px !important;
+    font-weight: 900 !important;
 }
 
 .empty-state {
     text-align: center;
-    padding: 60px 20px;
-    color: #94a3b8;
-    font-size: 15px;
-    line-height: 1.5;
+    padding: 40px 0;
+    color: #64748b;
+}
+
+/* Анимации */
+.animate-in {
+    animation: slideUp 0.3s ease-out;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Кастомный скролл */
+.detail-scroll-area::-webkit-scrollbar,
+.skills-selection-grid::-webkit-scrollbar {
+    width: 4px;
+}
+
+.detail-scroll-area::-webkit-scrollbar-thumb,
+.skills-selection-grid::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
 }

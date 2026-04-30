@@ -36,11 +36,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
 
                 if (team) {
                     const allInvites = await invitationsService.getInvitations(0);
-
                     const sentIds = allInvites
                         .filter((inv: any) => inv.senderTeamId === team.id)
                         .map((inv: any) => inv.receiverId);
-
                     setSentInvitations(sentIds);
                 }
             } catch (error) {
@@ -49,6 +47,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
         };
         loadInitialData();
     }, []);
+
     useEffect(() => {
         const performSearch = async () => {
             if (!searchQuery && selectedSkills.length === 0) {
@@ -110,7 +109,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
     };
 
     return (
-        <div className="search-page pb-20">
+        <div className="search-page">
             <Header title="Поиск участников" onNotificationClick={onOpenNotif} />
 
             <div className="search-input-container">
@@ -125,50 +124,50 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
             </div>
 
             <div className="search-filters-section">
-                <h3 className="section-title text-[10px] tracking-widest text-slate-400 font-bold uppercase mb-3">Выберите навыки для поиска</h3>
-                <div className="selected-badges-row flex flex-wrap gap-2">
+                <h3 className="section-title">Выберите навыки для поиска</h3>
+                <div className="selected-badges-row">
                     {selectedSkills.map((id) => {
                         const skill = HARD_SKILLS.find(s => s.id === id);
                         return (
-                            <Badge key={`sel-${id}`} className="bg-violet-50 text-violet-600 border-violet-100 px-3 py-1.5 rounded-xl flex items-center gap-1 font-medium">
+                            <Badge key={`sel-${id}`} className="skill-badge-active">
                                 {skill?.name || 'Unknown'}
-                                <X size={14} onClick={() => toggleSkill(id)} className="ml-1 cursor-pointer hover:text-violet-800" />
+                                <X size={14} onClick={() => toggleSkill(id)} className="badge-close-icon" />
                             </Badge>
                         );
                     })}
-                    <button className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-dashed border-slate-300 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors" onClick={() => setIsEditorOpen(true)}>
+                    <button className="add-filter-btn" onClick={() => setIsEditorOpen(true)}>
                         <Plus size={16} /> {selectedSkills.length > 0 ? 'Изменить' : 'Добавить'}
                     </button>
                 </div>
             </div>
 
-            <div className="profiles-list px-4 space-y-4 mt-6">
+            <div className="profiles-list">
                 {isLoading ? (
-                    <div className="text-center py-10 text-slate-500">Загрузка...</div>
+                    <div className="empty-state">Загрузка...</div>
                 ) : profiles.length === 0 && (searchQuery || selectedSkills.length > 0) ? (
-                    <div className="text-center py-10 text-slate-400 text-sm">Никого не нашли...</div>
+                    <div className="empty-state">Никого не нашли...</div>
                 ) : profiles.map((profile) => (
-                    <div key={profile.id} className="bg-white border border-slate-100 rounded-4xl p-6 shadow-sm">
-                        <div className="flex justify-between items-start mb-4">
+                    <div key={profile.id} className="profile-card">
+                        <div className="profile-card-header">
                             <div>
-                                <h3 className="font-bold text-xl text-slate-800 leading-tight">{profile.name}</h3>
-                                <p className="text-violet-500 text-sm font-medium">@{profile.username || 'user'}</p>
+                                <h3 className="profile-name">{profile.name}</h3>
+                                <p className="profile-username">@{profile.username || 'user'}</p>
                             </div>
-                            <Button variant="secondary" className="rounded-2xl px-4 py-2 text-xs" onClick={() => setSelectedProfile(profile)}>
+                            <Button variant="secondary" className="detail-btn" onClick={() => setSelectedProfile(profile)}>
                                 Подробнее
                             </Button>
                         </div>
 
-                        <div className="flex flex-wrap gap-2 mb-6">
+                        <div className="profile-skills-row">
                             {profile.skills?.map((s: any, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-slate-50 text-slate-500 rounded-full text-[11px] font-bold uppercase tracking-wider">
+                                <span key={idx} className="profile-tag">
                                     #{typeof s === 'string' ? s : s.name}
                                 </span>
                             ))}
                         </div>
 
                         <Button
-                            className="w-full rounded-2xl h-12 font-bold transition-all"
+                            className="invite-btn-full"
                             variant={sentInvitations.includes(profile.id) ? "secondary" : "primary"}
                             disabled={invitingId === profile.id || sentInvitations.includes(profile.id)}
                             onClick={() => handleInvite(profile.id)}
@@ -181,96 +180,97 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
             </div>
 
             {isEditorOpen && (
-                <div className="fixed inset-0 z-1000 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setIsEditorOpen(false)}>
-                    <div className="bg-white rounded-4xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
-                        <h3 className="font-bold text-xl mb-4 text-slate-800">Навыки</h3>
-                        <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-2">
+                <div className="modal-overlay centered" onClick={() => setIsEditorOpen(false)}>
+                    <div className="modal-content skills-modal" onClick={e => e.stopPropagation()}>
+                        <h3 className="modal-title">Навыки</h3>
+                        <div className="skills-selection-grid">
                             {HARD_SKILLS.map((skill) => (
                                 <div
                                     key={skill.id}
-                                    className={`p-3 rounded-2xl border text-center transition-all cursor-pointer text-sm font-bold ${selectedSkills.includes(skill.id) ? 'border-violet-500 bg-violet-50 text-violet-600' : 'border-slate-100 text-slate-400'}`}
+                                    className={`skill-label ${selectedSkills.includes(skill.id) ? 'active' : ''}`}
                                     onClick={() => toggleSkill(skill.id)}
                                 >
                                     {skill.name}
                                 </div>
                             ))}
                         </div>
-                        <Button className="w-full mt-6 rounded-2xl h-12" onClick={() => setIsEditorOpen(false)}>Готово</Button>
+                        <Button className="modal-close-btn" onClick={() => setIsEditorOpen(false)}>Готово</Button>
                     </div>
                 </div>
             )}
 
             {selectedProfile && (
-                <div className="fixed inset-0 z-1000 flex items-end justify-center bg-black/40 backdrop-blur-sm" onClick={() => setSelectedProfile(null)}>
-                    <div className="bg-white rounded-t-[40px] p-8 w-full max-w-lg shadow-2xl animate-in slide-in-from-bottom duration-300" onClick={e => e.stopPropagation()}>
-                        <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6" onClick={() => setSelectedProfile(null)} />
+                <div className="modal-overlay bottom" onClick={() => setSelectedProfile(null)}>
+                    {/* Добавлен класс animate-slide-up */}
+                    <div className="modal-content-bottom profile-detail-modal animate-slide-up" onClick={e => e.stopPropagation()}>
+                        <div className="modal-drag-handle" onClick={() => setSelectedProfile(null)} />
 
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="w-20 h-20 bg-violet-100 rounded-[28px] flex items-center justify-center text-violet-500 font-bold text-3xl">
+                        <div className="profile-detail-header">
+                            <div className="detail-avatar">
                                 {selectedProfile.name[0]}
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black text-slate-800 leading-tight">{selectedProfile.name}</h2>
-                                <p className="text-slate-400 font-medium">@{selectedProfile.username}</p>
+                                <h2 className="detail-name">{selectedProfile.name}</h2>
+                                <p className="detail-username">@{selectedProfile.username}</p>
                             </div>
                         </div>
 
-                        <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-2">
-                            <section>
-                                <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] mb-3">О себе</h4>
-                                <p className="text-slate-600 leading-relaxed text-sm font-medium">
+                        <div className="detail-scroll-area">
+                            <section className="detail-section">
+                                <h4 className="detail-section-title">О себе</h4>
+                                <p className="detail-description">
                                     {selectedProfile.description || "Пользователь пока не добавил описание."}
                                 </p>
                             </section>
 
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="bg-slate-50 p-4 rounded-3xl text-center">
-                                    <Target className="w-5 h-5 mx-auto mb-2 text-blue-500" />
-                                    <div className="text-lg font-black text-slate-800">{selectedProfile.hackathons || 0}</div>
-                                    <div className="text-[8px] text-slate-400 uppercase font-black tracking-wider">Хакатоны</div>
+                            <div className="stats-grid">
+                                <div className="stat-box">
+                                    <Target className="stat-icon text-blue-500" />
+                                    <div className="stat-value">{selectedProfile.hackathons || 0}</div>
+                                    <div className="stat-label">Хакатоны</div>
                                 </div>
-                                <div className="bg-slate-50 p-4 rounded-3xl text-center">
-                                    <Trophy className="w-5 h-5 mx-auto mb-2 text-amber-500" />
-                                    <div className="text-lg font-black text-slate-800">{selectedProfile.wins || 0}</div>
-                                    <div className="text-[8px] text-slate-400 uppercase font-black tracking-wider">Победы</div>
+                                <div className="stat-box">
+                                    <Trophy className="stat-icon text-amber-500" />
+                                    <div className="stat-value">{selectedProfile.wins || 0}</div>
+                                    <div className="stat-label">Победы</div>
                                 </div>
-                                <div className="bg-slate-50 p-4 rounded-3xl text-center">
-                                    <Layout className="w-5 h-5 mx-auto mb-2 text-emerald-500" />
-                                    <div className="text-lg font-black text-slate-800">{selectedProfile.projects || 0}</div>
-                                    <div className="text-[8px] text-slate-400 uppercase font-black tracking-wider">Проекты</div>
+                                <div className="stat-box">
+                                    <Layout className="stat-icon text-emerald-500" />
+                                    <div className="stat-value">{selectedProfile.projects || 0}</div>
+                                    <div className="stat-label">Проекты</div>
                                 </div>
                             </div>
 
                             {(selectedProfile as ProfileWithGithub).githubInfo && (
-                                <section className="bg-slate-900 rounded-4xl p-6 text-white shadow-xl shadow-slate-200">
-                                    <div className="flex items-center gap-2 mb-6 border-b border-white/10 pb-4">
-                                        <div className="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center text-white">
+                                <section className="github-card">
+                                    <div className="github-header">
+                                        <div className="github-icon-wrapper">
                                             <CodeXml size={18} />
                                         </div>
-                                        <span className="font-black text-xs uppercase tracking-widest">Разработка</span>
+                                        <span className="github-title">Разработка</span>
                                     </div>
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="flex flex-col items-center">
-                                            <CodeXml className="text-slate-500 mb-2" size={16} />
-                                            <div className="text-[9px] text-slate-500 uppercase font-black mb-1">Язык</div>
-                                            <div className="font-bold text-xs">{(selectedProfile as ProfileWithGithub).githubInfo?.topLanguage || '—'}</div>
+                                    <div className="github-stats-row">
+                                        <div className="github-stat-item">
+                                            <CodeXml className="text-slate-500 mb-1" size={14} />
+                                            <div className="github-stat-label">Язык</div>
+                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.topLanguage || '—'}</div>
                                         </div>
-                                        <div className="flex flex-col items-center border-x border-white/5">
-                                            <Folder className="text-slate-500 mb-2" size={16} />
-                                            <div className="text-[9px] text-slate-500 uppercase font-black mb-1">Репо</div>
-                                            <div className="font-bold text-xs">{(selectedProfile as ProfileWithGithub).githubInfo?.repositoriesCount || 0}</div>
+                                        <div className="github-stat-item border-x">
+                                            <Folder className="text-slate-500 mb-1" size={14} />
+                                            <div className="github-stat-label">Репо</div>
+                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.repositoriesCount || 0}</div>
                                         </div>
-                                        <div className="flex flex-col items-center">
-                                            <Star className="text-amber-400 mb-2" size={16} />
-                                            <div className="text-[9px] text-slate-500 uppercase font-black mb-1">Звезды</div>
-                                            <div className="font-bold text-xs">{(selectedProfile as ProfileWithGithub).githubInfo?.totalStars || 0}</div>
+                                        <div className="github-stat-item">
+                                            <Star className="text-amber-400 mb-1" size={14} />
+                                            <div className="github-stat-label">Звезды</div>
+                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.totalStars || 0}</div>
                                         </div>
                                     </div>
                                 </section>
                             )}
                         </div>
 
-                        <Button className="w-full mt-8 rounded-2xl h-14 font-black" onClick={() => setSelectedProfile(null)}>
+                        <Button className="detail-close-btn" onClick={() => setSelectedProfile(null)}>
                             Закрыть
                         </Button>
                     </div>
