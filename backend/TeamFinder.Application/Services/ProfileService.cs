@@ -81,4 +81,10 @@ public class ProfileService : IProfileService
         return await GetById(profileId).Check(profile => profile.AddDescription(description))
             .Bind(profile => _profileRepository.UpdateDescription(profileId, description));
     }
+    
+    public async Task<Result<Profile>> GetProfileByName(string name)
+    {
+        return await _profileRepository.FindByProfileName(name)
+            .Bind(profile => profile.ToDomain());
+    }
 }
