@@ -182,4 +182,12 @@ public class ProfileRepository : IProfileRepository
             };
         }
     }
+
+    public async Task<Result<ProfileEntity>> FindByProfileName(string name)
+    {
+        var profile = await _context.Profiles.FirstOrDefaultAsync(n => n.UserName == name);
+        return profile == null 
+            ? Result.Failure<ProfileEntity>("Profile not found") 
+            : Result.Success(profile);
+    }
 }

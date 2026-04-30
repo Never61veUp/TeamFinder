@@ -17,4 +17,5 @@ public interface IProfileRepository
     Task<Result<List<ProfileEntity>>> FindBySkill(List<Guid> skillIds);
     Task<Result> UpdateDescription(Guid profileId, string description);
     Task<Result> UpdateSkills(Guid profileId, List<Guid> skillIds);
+    Task<Result<ProfileEntity>> FindByProfileName(string name);
 }
