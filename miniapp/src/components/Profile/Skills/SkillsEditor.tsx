@@ -10,21 +10,21 @@ interface Props {
 
 export const SkillsEditor: React.FC<Props> = ({ initialSelectedIds, onSave, onClose }) => {
     const [selected, setSelected] = useState<Record<string, boolean>>({});
+
     useEffect(() => {
         const map: Record<string, boolean> = {};
-        HARD_SKILLS.forEach(name => {
-            map[name] = initialSelectedIds.includes(name);
+        HARD_SKILLS.forEach(skill => {
+            map[skill.id] = initialSelectedIds.includes(skill.id);
         });
         setSelected(map);
     }, [initialSelectedIds]);
 
-    const toggle = (name: string) => {
-        setSelected(prev => ({ ...prev, [name]: !prev[name] }));
+    const toggle = (id: string) => {
+        setSelected(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
     const handleSave = () => {
         const selectedIds = Object.keys(selected).filter(k => selected[k]);
-        console.log('SkillsEditor: saving', selectedIds);
         onSave(selectedIds);
     };
 
@@ -32,27 +32,27 @@ export const SkillsEditor: React.FC<Props> = ({ initialSelectedIds, onSave, onCl
         <div className="fixed inset-0 z-50 flex items-left justify-center">
             <div className="absolute inset-0 bg-black opacity-40" onClick={onClose}></div>
             <div className="relative bg-white rounded-2xl p-6 w-[90%] max-w-lg shadow-lg">
-                <h3 className="font-bold text-lg mb-3">Выберите навыки</h3>
+                <h3 className="font-bold text-lg mb-3 text-slate-800">Выберите навыки</h3>
 
-                <div className="max-h-64 overflow-auto skills-grid">
-                    {HARD_SKILLS.map(name => (
-                        <label key={name} className="flex items-center gap-2 p-2 border rounded-md cursor-pointer">
+                <div className="max-h-64 overflow-auto grid grid-cols-2 gap-2 pr-2">
+                    {HARD_SKILLS.map(skill => (
+                        <label key={skill.id} className={`flex items-center gap-2 p-3 border rounded-xl cursor-pointer transition-colors ${selected[skill.id] ? 'border-violet-500 bg-violet-50' : 'border-gray-100'}`}>
                             <input
                                 type="checkbox"
-                                checked={!!selected[name]}
-                                onChange={() => toggle(name)}
+                                className="w-4 h-4 accent-violet-600"
+                                checked={!!selected[skill.id]}
+                                onChange={() => toggle(skill.id)}
                             />
-                            <span className="text-sm">{name}</span>
+                            <span className="text-sm font-medium text-slate-700">{skill.name}</span>
                         </label>
                     ))}
                 </div>
 
-                <div className="flex justify-end gap-2 mt-4">
-                    <button className="px-4 py-2 rounded-md bg-gray-100" onClick={onClose}>Отмена</button>
+                <div className="flex justify-end gap-2 mt-6">
+                    <button className="px-4 py-2 rounded-xl bg-gray-100 font-semibold text-gray-600" onClick={onClose}>Отмена</button>
                     <button
-                        className="px-4 py-2 rounded-md bg-violet-600 text-white"
+                        className="px-6 py-2 rounded-xl bg-violet-600 text-white font-bold"
                         onClick={handleSave}
-                        data-testid="skills-save-btn"
                     >
                         Сохранить
                     </button>

@@ -5,6 +5,7 @@ import { Navigation } from './components/Navigation/Navigation'
 import { TeamPage } from './components/Team/TeamPage.tsx'
 import { HomePage } from './components/Home/HomePage'
 import { NotificationsSheet } from './components/ui/Notifications/NotificationsSheet'
+import { SearchPage } from './components/Search/SearchPage'
 import './style.css'
 import type { TelegramUser } from "./types/api.ts";
 import { authService } from "./services";
@@ -107,7 +108,10 @@ function App() {
                         path="/"
                         element={<HomePage user={me} onOpenNotif={() => setIsNotifOpen(true)} />}
                     />
-                    <Route path="/search" element={<div className="p-4"><h1>Поиск</h1></div>} />
+                    <Route
+                        path="/search"
+                        element={<SearchPage onOpenNotif={() => setIsNotifOpen(true)} />}
+                    />
 
                     <Route
                         path="/create"

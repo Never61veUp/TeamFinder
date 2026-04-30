@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '../Button';
 import { teamService } from '../../../types/api';
+import { invitationsService } from '../../../services/invitations.service';
 import { acceptJoinRequest } from '../../../services/feed.service';
 import type { Team } from '../../../types/api';
 import './notifications.css';
@@ -11,44 +12,67 @@ interface NotificationsSheetProps {
     onViewProfile?: (id: string) => void;
 }
 
-export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, onClose, onViewProfile }) => {
+export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, onClose}) => {
     const [myTeam, setMyTeam] = useState<Team | null>(null);
+    const [personalInvites, setPersonalInvites] = useState<any[]>([]);
+
     const [isLoading, setIsLoading] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (isOpen) loadMyTeam();
+        if (isOpen) {
+            loadData();
+        }
     }, [isOpen]);
 
-    const loadMyTeam = async () => {
+    const loadData = async () => {
         setIsLoading(true);
         try {
-            const data = await teamService.getMyTeam();
-            console.log('Данные моей команды:', data);
-            setMyTeam(data);
+            try {
+                const teamData = await teamService.getMyTeam();
+                setMyTeam(teamData);
+            } catch (e) {
+                setMyTeam(null);
+            }
+
+            const invitesData = await invitationsService.getInvitations(0);
+            setPersonalInvites(Array.isArray(invitesData) ? invitesData : []);
+
         } catch (error) {
-            console.error('Ошибка загрузки команды:', error);
+            console.error('Ошибка загрузки уведомлений:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleAccept = async (targetId: string) => {
-        if (!myTeam || !targetId || targetId === "undefined") {
-            console.error("Попытка принять заявку с невалидным ID:", targetId);
-            return;
-        }
-
-        setActionLoadingId(targetId);
+    const handleAcceptJoinRequest = async (targetId: string) => {
+        if (!myTeam) return;
+        setActionLoadingId(`join_${targetId}`);
         try {
             await acceptJoinRequest(myTeam.id, targetId);
-            await loadMyTeam();
+            await loadData();
         } catch (error) {
             alert('Ошибка при принятии заявки');
         } finally {
             setActionLoadingId(null);
         }
     };
+
+    const handleAcceptInvite = async (invitationId: string) => {
+        setActionLoadingId(`invite_${invitationId}`);
+        try {
+            await invitationsService.acceptInvitation(invitationId);
+            alert('Вы успешно вступили в команду!');
+            await loadData();
+            onClose(); // Закрываем шторку, т.к. статус изменился
+        } catch (error) {
+            alert('Ошибка при принятии приглашения');
+        } finally {
+            setActionLoadingId(null);
+        }
+    };
+
+    const hasAnyNotifications = myTeam?.joinRequests?.length || personalInvites.length > 0;
 
     return (
         <>
@@ -62,44 +86,67 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                 <div className="sheet-content">
                     {isLoading ? (
                         <div className="empty-state">Загрузка...</div>
-                    ) : myTeam?.joinRequests?.length ? (
+                    ) : hasAnyNotifications ? (
                         <div className="requests-list">
-                            <h5 className="section-subtitle">Новые заявки</h5>
-                            {myTeam.joinRequests.map((req: any) => {
-                                const effectiveId = String(req.profileId || req.id || "");
 
-                                return (
-                                    <div key={effectiveId} className="request-notification-card">
-                                        <div className="request-message">
-                                            <span className="user-name">
-                                                {req.name || `Пользователь #${effectiveId.slice(0, 8)}`}
-                                            </span>
-                                            {' '}хочет вступить к вам в команду
+                            {/* Секция: Вас пригласили в команду */}
+                            {personalInvites.length > 0 && (
+                                <>
+                                    <h5 className="section-subtitle">Вас пригласили</h5>
+                                    {personalInvites.map((invite) => (
+                                        <div key={invite.id} className="request-notification-card">
+                                            <div className="request-message">
+                                                Команда <span className="user-name">{invite.teamName || 'Неизвестная'}</span>{' '}
+                                                приглашает вас присоединиться
+                                            </div>
+                                            <div className="request-actions">
+                                                <Button
+                                                    variant="primary"
+                                                    size="sm"
+                                                    isLoading={actionLoadingId === `invite_${invite.id}`}
+                                                    onClick={() => handleAcceptInvite(invite.id)}
+                                                >
+                                                    Принять инвайт
+                                                </Button>
+                                            </div>
                                         </div>
+                                    ))}
+                                </>
+                            )}
 
-                                        <div className="request-actions">
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                onClick={() => effectiveId && onViewProfile?.(effectiveId)}
-                                            >
-                                                Подробнее
-                                            </Button>
-                                            <Button
-                                                variant="primary"
-                                                size="sm"
-                                                isLoading={actionLoadingId === effectiveId}
-                                                onClick={() => handleAccept(effectiveId)}
-                                            >
-                                                Принять
-                                            </Button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {/* Секция: Хотят вступить в вашу команду */}
+                            {myTeam?.joinRequests?.length ? (
+                                <>
+                                    <h5 className="section-subtitle" style={{ marginTop: '16px' }}>Заявки в вашу команду</h5>
+                                    {myTeam.joinRequests.map((req: any) => {
+                                        const effectiveId = String(req.profileId || req.id || "");
+                                        return (
+                                            <div key={effectiveId} className="request-notification-card">
+                                                <div className="request-message">
+                                                    <span className="user-name">
+                                                        {req.name || `Пользователь #${effectiveId.slice(0, 8)}`}
+                                                    </span>
+                                                    {' '}хочет вступить к вам в команду
+                                                </div>
+                                                <div className="request-actions">
+                                                    <Button
+                                                        variant="primary"
+                                                        size="sm"
+                                                        isLoading={actionLoadingId === `join_${effectiveId}`}
+                                                        onClick={() => handleAcceptJoinRequest(effectiveId)}
+                                                    >
+                                                        Принять
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </>
+                            ) : null}
+
                         </div>
                     ) : (
-                        <div className="empty-state">Новых заявок пока нет</div>
+                        <div className="empty-state">Новых уведомлений пока нет</div>
                     )}
                 </div>
             </div>
