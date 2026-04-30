@@ -79,28 +79,38 @@ public class SkillRepository : ISkillRepository
 
     public async Task<Result<List<SkillEntity>>> GetAllParents(Guid skillId)
     {
-        var parents = await _context.SkillClosures
-            .Where(x => x.DescendantId == skillId && x.Depth > 0)
-            .Select(x => x.Ancestor)
-            .ToListAsync();
+        try
+        {
+            var parents = await _context.SkillClosures
+                .Where(x => x.DescendantId == skillId && x.Depth > 0)
+                .Select(x => x.Ancestor)
+                .AsNoTracking()
+                .ToListAsync();
 
-        if (parents.Count == 0)
-            return Result.Failure<List<SkillEntity>>("No parents found");
-
-        return Result.Success(parents);
+            return Result.Success(parents);
+        }
+        catch (Exception e)
+        {
+            return Result.Failure<List<SkillEntity>>("Failed to get parents");
+        }
     }
 
     public async Task<Result<List<SkillEntity>>> GetAllChildren(Guid skillId)
     {
-        var children = await _context.SkillClosures
-            .Where(x => x.AncestorId == skillId && x.Depth > 0)
-            .Select(x => x.Descendant)
-            .ToListAsync();
-
-        if (children.Count == 0)
-            return Result.Failure<List<SkillEntity>>("No children found");
-
-        return Result.Success(children);
+        try
+        {
+            var children = await _context.SkillClosures
+                .Where(x => x.AncestorId == skillId && x.Depth > 0)
+                .Select(x => x.Descendant)
+                .AsNoTracking()
+                .ToListAsync();
+            
+            return Result.Success(children);
+        }
+        catch (Exception e)
+        {
+            return Result.Failure<List<SkillEntity>>("Failed to get children");
+        }
     }
     public async Task<List<string>> GetSkillTreeDev()
     {

@@ -9,7 +9,7 @@ namespace TeamFinder.Postgresql.Repositories;
 public interface IInvitationRepository
 {
     Task<Result<IEnumerable<InvitationEntity>>> GetInvitationsByInviteeProfileId(Guid inviteeId, InvitationStatus status = InvitationStatus.Pending);
-    Task<Result> AcceptInvitation(Guid invitationId, Guid teamId, Guid profileId);
+    Task<Result> AcceptInvitationAndAddMember(Guid invitationId, Guid teamId, Guid profileId);
     Task<Result<InvitationEntity>> GetInvitationById(Guid invitationId);
 }
 
@@ -32,7 +32,7 @@ public class InvitationRepository : IInvitationRepository
         return  Result.Success<IEnumerable<InvitationEntity>>(invitation);
     }
     
-    public async Task<Result> AcceptInvitation(Guid invitationId, Guid teamId, Guid profileId)
+    public async Task<Result> AcceptInvitationAndAddMember(Guid invitationId, Guid teamId, Guid profileId)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -64,7 +64,7 @@ public class InvitationRepository : IInvitationRepository
             {
                 PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Team or Profile not found"),
                 PostgresErrorCodes.UniqueViolation => Result.Failure("User is already a team member"),
-                _ => Result.Failure($"Database error: {pg.MessageText}")
+                _ => Result.Failure($"Database error")
             };
         }
         catch (Exception)

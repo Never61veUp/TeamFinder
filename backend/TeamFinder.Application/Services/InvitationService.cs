@@ -51,7 +51,7 @@ public class InvitationService : IInvitationService
         if (addMemberResult.IsFailure) 
             return addMemberResult;
         
-        var acceptResult = await _invitationRepository.AcceptInvitation(invitationId, team.Id, currentProfileId);
+        var acceptResult = await _invitationRepository.AcceptInvitationAndAddMember(invitationId, team.Id, currentProfileId);
 
         return acceptResult;
     }
