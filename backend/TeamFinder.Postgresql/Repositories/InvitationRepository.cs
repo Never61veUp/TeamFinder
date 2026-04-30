@@ -34,24 +34,28 @@ public class InvitationRepository : IInvitationRepository
     
     public async Task<Result> AcceptInvitation(Guid invitationId, Guid teamId, Guid profileId)
     {
-        //TODO: использовать транзакции
-        
-        var acceptResult = await _context.Invitations.Where(i => i.Id == invitationId)
-                .ExecuteUpdateAsync(invitation => invitation
-                    .SetProperty(i => i.Status, InvitationStatus.Accepted));
-        
-        if(acceptResult == 0)
-            return Result.Failure("No invitations found");
-        
-        await _context.TeamMembers.AddAsync(new TeamMemberEntity
-        {
-            TeamId = teamId,
-            ProfileId = profileId
-        });
-        
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         try
         {
+            var acceptResult = await _context.Invitations
+                .Where(i => i.Id == invitationId && i.Status == InvitationStatus.Pending)
+                .ExecuteUpdateAsync(invitation => invitation
+                    .SetProperty(i => i.Status, InvitationStatus.Accepted));
+
+            if (acceptResult == 0)
+                return Result.Failure("Invitation not found or already processed");
+            
+            await _context.TeamMembers.AddAsync(new TeamMemberEntity
+            {
+                TeamId = teamId,
+                ProfileId = profileId
+            });
+
             await _context.SaveChangesAsync();
+            
+            await transaction.CommitAsync();
+        
             return Result.Success();
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
@@ -60,13 +64,13 @@ public class InvitationRepository : IInvitationRepository
             {
                 PostgresErrorCodes.ForeignKeyViolation => Result.Failure("Team or Profile not found"),
                 PostgresErrorCodes.UniqueViolation => Result.Failure("User is already a team member"),
-                PostgresErrorCodes.NotNullViolation => Result.Failure("Required data is missing"),
-                _ => Result.Failure("Database error")
+                _ => Result.Failure($"Database error: {pg.MessageText}")
             };
         }
-        
-        
-        return  Result.Success();
+        catch (Exception)
+        {
+            return Result.Failure("An unexpected error occurred");
+        }
     }
 
     public async Task<Result<InvitationEntity>> GetInvitationById(Guid invitationId)
