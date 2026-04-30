@@ -16,57 +16,82 @@ public class SkillRepository : ISkillRepository
 
     public async Task<Result<SkillEntity>> GetSkillById(Guid skillId)
     {
-        var skill = await _context.Skills.FindAsync(skillId);
-        if (skill == null)
-            return Result.Failure<SkillEntity>("Skill not found");
-
-        return Result.Success(skill);
+        var skill = await _context.Skills
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == skillId);
+            
+        return skill == null 
+            ? Result.Failure<SkillEntity>("Skill not found") 
+            : Result.Success(skill);
     }
 
     public async Task<List<Guid>> GetByParentId(Guid skillId)
     {
         return await _context.SkillClosures
             .Where(x => x.AncestorId == skillId)
+            .AsNoTracking()
             .Select(x => x.DescendantId)
             .ToListAsync();
     }
 
     public async Task<Result> AddRelation(Guid parentId, Guid childId, double weight = 1)
     {
-        var parentAncestors = await _context.SkillClosures
-            .Where(x => x.DescendantId == parentId)
-            .ToListAsync();
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try 
+        {
+            var parentAncestors = await _context.SkillClosures
+                .Where(x => x.DescendantId == parentId)
+                .ToListAsync();
 
-        var childDescendants = await _context.SkillClosures
-            .Where(x => x.AncestorId == childId)
-            .ToListAsync();
+            var childDescendants = await _context.SkillClosures
+                .Where(x => x.AncestorId == childId)
+                .ToListAsync();
 
-        var relations = new List<SkillClosure>();
+            var relations = new List<SkillClosure>();
 
-        foreach (var ancestor in parentAncestors)
-        foreach (var descendant in childDescendants)
-            relations.Add(new SkillClosure
+            foreach (var ancestor in parentAncestors)
             {
-                AncestorId = ancestor.AncestorId,
-                DescendantId = descendant.DescendantId,
-                Depth = ancestor.Depth + descendant.Depth + 1
-            });
+                foreach (var descendant in childDescendants)
+                {
+                    var alreadyExists = await _context.SkillClosures.AnyAsync(sc => 
+                        sc.AncestorId == ancestor.AncestorId && 
+                        sc.DescendantId == descendant.DescendantId);
 
-        _context.SkillClosures.AddRange(relations);
-        return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to add relation");
+                    if (!alreadyExists)
+                    {
+                        relations.Add(new SkillClosure
+                        {
+                            AncestorId = ancestor.AncestorId,
+                            DescendantId = descendant.DescendantId,
+                            Depth = ancestor.Depth + descendant.Depth + 1
+                        });
+                    }
+                }
+            }
+
+            if (relations.Count != 0)
+            {
+                _context.SkillClosures.AddRange(relations);
+                await _context.SaveChangesAsync();
+            }
+
+            await transaction.CommitAsync();
+            return Result.Success();
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return Result.Failure("Failed to add relation");
+        }
     }
 
     public async Task<Result> AddSkill(SkillEntity skillEntity)
     {
-        var exists = await _context.Skills
-            .AnyAsync(x => x.Name == skillEntity.Name);
-
+        var exists = await _context.Skills.AnyAsync(x => x.Name == skillEntity.Name);
         if (exists)
             return Result.Failure("Skill already exists");
 
         _context.Skills.Add(skillEntity);
-        await _context.SaveChangesAsync();
-
         _context.SkillClosures.Add(new SkillClosure
         {
             AncestorId = skillEntity.Id,
@@ -74,43 +99,33 @@ public class SkillRepository : ISkillRepository
             Depth = 0
         });
 
-        return await _context.SaveChangesAsync() > 0 ? Result.Success() : Result.Failure("Failed to add skill");
+        return await _context.SaveChangesAsync() > 0 
+            ? Result.Success() 
+            : Result.Failure("Failed to save skill");
     }
 
     public async Task<Result<List<SkillEntity>>> GetAllParents(Guid skillId)
     {
-        try
-        {
-            var parents = await _context.SkillClosures
-                .Where(x => x.DescendantId == skillId && x.Depth > 0)
-                .Select(x => x.Ancestor)
-                .AsNoTracking()
-                .ToListAsync();
+        var parents = await _context.SkillClosures
+            .Where(x => x.DescendantId == skillId && x.Depth > 0)
+            .Select(x => x.Ancestor)
+            .OrderBy(x => x.Name)
+            .AsNoTracking()
+            .ToListAsync();
 
-            return Result.Success(parents);
-        }
-        catch (Exception e)
-        {
-            return Result.Failure<List<SkillEntity>>("Failed to get parents");
-        }
+        return Result.Success(parents);
     }
 
     public async Task<Result<List<SkillEntity>>> GetAllChildren(Guid skillId)
     {
-        try
-        {
-            var children = await _context.SkillClosures
-                .Where(x => x.AncestorId == skillId && x.Depth > 0)
-                .Select(x => x.Descendant)
-                .AsNoTracking()
-                .ToListAsync();
-            
-            return Result.Success(children);
-        }
-        catch (Exception e)
-        {
-            return Result.Failure<List<SkillEntity>>("Failed to get children");
-        }
+        var children = await _context.SkillClosures
+            .Where(x => x.AncestorId == skillId && x.Depth > 0)
+            .Select(x => x.Descendant)
+            .OrderBy(x => x.Name)
+            .AsNoTracking()
+            .ToListAsync();
+        
+        return Result.Success(children);
     }
     public async Task<List<string>> GetSkillTreeDev()
     {
