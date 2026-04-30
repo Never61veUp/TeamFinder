@@ -104,39 +104,57 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                         <div className="requests-list">
 
                             {/* Секция: Вас пригласили в команду */}
-                            {personalInvites.length > 0 && (
-                                <>
-                                    <h5 className="section-subtitle">Вас пригласили</h5>
-                                    {personalInvites.map((invite) => {
-                                        const teamInfo = personalInvitesTeams[invite.teamId];
-                                        return (
-                                            <div key={invite.id} className="request-notification-card">
-                                                <div className="request-message">
-                                                    Команда <span className="user-name">
-                                                        {teamInfo?.name || 'Загрузка...'}
-                                                    </span>{' '}
-                                                    приглашает вас присоединиться
-                                                </div>
-                                                {teamInfo?.description && (
-                                                    <div className="team-small-desc">
-                                                        {teamInfo.description.slice(0, 60)}...
-                                                    </div>
-                                                )}
-                                                <div className="request-actions">
-                                                    <Button
-                                                        variant="primary"
-                                                        size="sm"
-                                                        isLoading={actionLoadingId === `invite_${invite.id}`}
-                                                        onClick={() => handleAcceptInvite(invite.id)}
-                                                    >
-                                                        Принять инвайт
-                                                    </Button>
-                                                </div>
+                            {personalInvites.map((invite) => {
+                                const teamInfo = personalInvitesTeams[invite.teamId];
+                                if (!teamInfo) return null; // Или скелетон
+
+                                return (
+                                    <div key={invite.id} className="request-notification-card">
+                                        <div className="request-message">
+                                            Команда <span className="user-name">{teamInfo.name}</span> приглашает вас
+                                        </div>
+
+                                        {/* Название мероприятия */}
+                                        {teamInfo.eventDetails?.title && (
+                                            <div className="team-event-badge">
+                                                {teamInfo.eventDetails.title}
                                             </div>
-                                        );
-                                    })}
-                                </>
-                            )}
+                                        )}
+
+                                        {/* Полное описание (убрали slice) */}
+                                        {teamInfo.description && (
+                                            <div className="team-full-desc">
+                                                {teamInfo.description}
+                                            </div>
+                                        )}
+
+                                        {/* Теги/Стек технологий */}
+                                        {teamInfo.eventDetails?.tags && teamInfo.eventDetails.tags.length > 0 && (
+                                            <div className="team-tags-row">
+                                                {teamInfo.eventDetails.tags.map((tag: any) => (
+                                                    <span key={tag.id} className="team-mini-tag">#{tag.name}</span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Информация о свободных местах */}
+                                        <div className="team-meta-info">
+                                            Участников: {teamInfo.members?.length || 0} / {teamInfo.maxMembers}
+                                        </div>
+
+                                        <div className="request-actions">
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                isLoading={actionLoadingId === `invite_${invite.id}`}
+                                                onClick={() => handleAcceptInvite(invite.id)}
+                                            >
+                                                Принять заявку
+                                            </Button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
 
                             {/* Секция: Хотят вступить в вашу команду */}
                             {myTeam?.joinRequests?.length ? (
