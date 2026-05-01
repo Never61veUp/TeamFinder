@@ -7,7 +7,7 @@ export const feedService = {
     },
 
     async getRecommendedTeams(): Promise<Team[]> {
-        return await httpClient.get<Team[]>('/teams');
+        return await httpClient.get<Team[]>('/teams/all');
     },
 
     async requestJoin(teamId: string | number): Promise<void> {
