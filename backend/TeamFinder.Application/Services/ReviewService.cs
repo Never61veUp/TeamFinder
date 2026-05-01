@@ -10,6 +10,7 @@ namespace TeamFinder.Application.Services;
 public interface IReviewService
 {
     Task<Result> CreateReview(Guid teamId, Guid profileId, Guid reviewerId, int rating, string comment);
+    Task<Result<List<Review>>> GetReviewsByProfileId(Guid profileId);
 }
 
 public class ReviewService : IReviewService
@@ -43,5 +44,11 @@ public class ReviewService : IReviewService
         
         var result = await _reviewRepository.AddReview(review.Value.ToEntity());
         return result;
+    }
+    
+    public async Task<Result<List<Review>>> GetReviewsByProfileId(Guid profileId)
+    {
+        return await _reviewRepository.GetByProfileId(profileId)
+            .Bind(reviews => reviews.MapToDomainList(r => r.ToDomain()));
     }
 }
