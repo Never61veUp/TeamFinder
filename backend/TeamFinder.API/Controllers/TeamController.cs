@@ -97,9 +97,9 @@ public class TeamController : BaseController
     }
 
     [HttpGet("my-team")]
-    public async Task<IActionResult> GetMyTeam()
+    public async Task<IActionResult> GetMyTeam([FromQuery] TeamStatus status = TeamStatus.Active)
     {
-        var result = await _teamService.GetMyTeam(CurrentProfileId);
+        var result = await _teamService.GetMyTeam(CurrentProfileId, status);
         if (result.IsFailure)
             return BadRequest(result.Error);
 

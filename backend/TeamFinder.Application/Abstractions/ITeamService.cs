@@ -12,7 +12,7 @@ public interface ITeamService
     Task<Result> CreateJoinRequest(Guid teamId, Guid profileId);
     Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId, Guid acceptInitiatorId);
     Task<Result<List<Team>>> GetTeams(TeamStatus teamStatus);
-    Task<Result<Team>> GetMyTeam(Guid profileId);
+    Task<Result<Team>> GetMyTeam(Guid profileId, TeamStatus status = TeamStatus.Active);
     Task<Result> LeaveTeam(Guid profileId);
     Task<Result> MakeInactive(Guid profileId);
     Task<Result<Team>> GetTeamById(Guid teamId);

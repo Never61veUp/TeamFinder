@@ -62,9 +62,9 @@ public class TeamService : ITeamService
                 .MapToDomainList(e => e.MapToDomain()));
     }
 
-    public async Task<Result<Team>> GetMyTeam(Guid profileId)
+    public async Task<Result<Team>> GetMyTeam(Guid profileId, TeamStatus status)
     {
-        return await _repository.GetByProfileId(profileId)
+        return await _repository.GetByProfileId(profileId, status)
             .Bind(entity => entity.MapToDomain());
     }
     
