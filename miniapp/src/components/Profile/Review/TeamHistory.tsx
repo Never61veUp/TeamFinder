@@ -17,7 +17,7 @@ export const TeamHistory: React.FC<TeamHistoryProps> = ({ currentUserId }) => {
         const fetchEverything = async () => {
             setIsLoading(true);
             try {
-                const res = await httpClient.get('/teams/my-team?status=0');
+                const res = await httpClient.get('/teams/my-team-list?status=0');
                 const teamsArray = Array.isArray(res) ? res : (res as any).data || [];
                 setPastTeams(teamsArray);
 
