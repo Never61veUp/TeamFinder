@@ -106,6 +106,16 @@ public class TeamController : BaseController
         return Ok(result.Value);
     }
     
+    [HttpGet("my-team-list")]
+    public async Task<IActionResult> GetMyTeamList([FromQuery] TeamStatus status = TeamStatus.Inactive)
+    {
+        var result = await _teamService.GetMyTeamList(CurrentProfileId, status);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+    
     [HttpPost("leave")]
     public async Task<IActionResult> LeaveTeam()
     {

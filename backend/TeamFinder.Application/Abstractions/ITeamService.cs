@@ -16,4 +16,5 @@ public interface ITeamService
     Task<Result> LeaveTeam(Guid profileId);
     Task<Result> MakeInactive(Guid profileId);
     Task<Result<Team>> GetTeamById(Guid teamId);
+    Task<Result<List<Team>>> GetMyTeamList(Guid profileId, TeamStatus status);
 }

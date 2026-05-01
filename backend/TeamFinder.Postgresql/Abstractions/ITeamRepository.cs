@@ -17,4 +17,5 @@ public interface ITeamRepository
     Task<Result> MakeInactive(Guid teamId);
     Task<Result> AddMember(Guid teamId, Guid profileId);
     Task<Result<List<TeamEntity>>> GetTeamsByProfileId(Guid id, TeamStatus status = TeamStatus.Active);
+    
 }
