@@ -61,7 +61,7 @@ export const ReviewList: React.FC<ReviewListProps> = ({ userId }) => {
                             <p className="text-sm text-gray-600 leading-relaxed mb-2">{review.comment}</p>
                         )}
                         <div className="text-xs text-gray-400 text-right font-medium">
-                            {review.createdAt.getDate().toString()}
+                            {new Date(review.createdAt).toLocaleDateString()}
                         </div>
                     </div>
                 ))}
