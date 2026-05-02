@@ -112,3 +112,13 @@ export const teamService = {
     await httpClient.post('/teams/make-inactive', {});
   }
 };
+
+export interface Review {
+    profileId: string;
+    reviewerId: string;
+    rating: number;
+    comment: string;
+    id: string;
+    createdAt: Date;
+    reviewerName: string;
+}

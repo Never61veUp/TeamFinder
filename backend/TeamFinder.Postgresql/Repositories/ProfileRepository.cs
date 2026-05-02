@@ -190,4 +190,17 @@ public class ProfileRepository : IProfileRepository
             ? Result.Failure<ProfileEntity>("Profile not found") 
             : Result.Success(profile);
     }
+    
+    public async Task<Result<Dictionary<Guid, string>>> GetNamesByIds(List<Guid> ids)
+    {
+        var profiles = await _context.Profiles
+            .Where(p => ids.Contains(p.Id))
+            .Select(p => new { p.Id, p.UserName })
+            .AsNoTracking()
+            .ToDictionaryAsync(p => p.Id, p => p.UserName);
+    
+        return profiles.Count == 0
+            ? Result.Failure<Dictionary<Guid, string>>("Profiles not found") 
+            : Result.Success(profiles);
+    }
 }
