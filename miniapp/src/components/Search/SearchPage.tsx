@@ -154,8 +154,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                     <div key={profile.id} className="profile-card">
                         <div className="profile-card-header">
                             <div>
-                                <h3 className="profile-name">{profile.name}</h3>
-                                <p className="profile-username">@{profile.username || 'user'}</p>
+                                <h3 className="search-profile-name">{profile.name}</h3>
+                                <p className="search-profile-username">@{profile.username || 'user'}</p>
                             </div>
                             <Button variant="secondary" className="detail-btn" onClick={() => setSelectedProfile(profile)}>
                                 Подробнее

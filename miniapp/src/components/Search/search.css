@@ -113,11 +113,22 @@
     margin-bottom: 16px;
 }
 
-.profile-name {
+.search-profile-name {
     font-weight: 700;
     font-size: 20px;
     color: #1e293b;
     line-height: 1.2;
+}
+
+.search-profile-username {
+    color: #8b5cf6;
+    font-size: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 4px;
+    transition: opacity 0.2s;
+    font-weight: 500;
 }
 
 .detail-btn {
