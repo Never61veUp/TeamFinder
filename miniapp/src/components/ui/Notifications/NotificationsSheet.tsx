@@ -106,7 +106,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                             {/* Секция: Вас пригласили в команду */}
                             {personalInvites.map((invite) => {
                                 const teamInfo = personalInvitesTeams[invite.teamId];
-                                if (!teamInfo) return null; // Или скелетон
+                                if (!teamInfo) return null;
 
                                 return (
                                     <div key={invite.id} className="request-notification-card">

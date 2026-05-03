@@ -19,11 +19,10 @@ const sizes = {
   lg: 'px-6 py-3 text-lg',
 }
 
-// Отдельный объект для силы сжатия в зависимости от размера
 const tapAnimation = {
-  sm: 'active:scale-90',    // Маленькие кнопки сжимаются сильно
-  md: 'active:scale-[0.96]', // Средние — стандартно
-  lg: 'active:scale-[0.98]', // Большие — почти незаметно (деликатно)
+  sm: 'active:scale-90',
+  md: 'active:scale-[0.96]',
+  lg: 'active:scale-[0.98]',
 }
 
 export function Button({
@@ -41,7 +40,6 @@ export function Button({
           className={cn(
               'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all duration-200 ease-in-out',
 
-              // Применяем анимацию в зависимости от размера
               tapAnimation[size],
 
               'disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100',

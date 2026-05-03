@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Header } from '../ui/Header/Header';
@@ -8,7 +8,7 @@ import { teamService } from '../../types/api';
 import type { Team, Tag, CreateTeamRequest, ProfileWithGithub } from '../../types/api';
 import {
     LogOut, Trash2, Loader2, Target, Trophy,
-    Layout, CodeXml, Folder, Star
+    Layout, Computer, CodeXml, Folder, Star
 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import './team.css';
@@ -44,7 +44,6 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
     useEffect(() => {
         const initPage = async () => {
             try {
-                // Загружаем теги и команду одновременно
                 const [tagsRes, myTeamRes] = await Promise.allSettled([
                     httpClient.get<Tag[]>('/teams/event-tags'),
                     teamService.getMyTeam()
@@ -90,7 +89,6 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         const teamData = currentTeam as any;
         const myId = myProfile.id.toString();
         const ownerId = teamData.ownerId?.toString();
-        // Если поле ownerId пустое, считаем создателем первого участника
         const firstMemberId = currentTeam.members?.[0]?.profileId?.toString() || (currentTeam.members?.[0] as any)?.id?.toString();
         return myId === ownerId || myId === firstMemberId;
     }, [currentTeam, myProfile]);
@@ -326,29 +324,47 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                         </div>
                         <div className="detail-scroll-area">
                             <section className="detail-section">
+                                <section className="detail-section mb-8">
+                                    <h4 className="detail-section-title">Навыки</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedProfile.skills && selectedProfile.skills.length > 0 ? (
+                                            selectedProfile.skills.map((skill: any) => (
+                                                <Badge key={skill.id} variant="secondary" className="px-3 py-1 font-bold">
+                                                    {skill.name}
+                                                </Badge>
+                                            ))
+                                        ) : (
+                                            <p className="text-sm text-slate-400 italic">Навыки не указаны</p>
+                                        )}
+                                    </div>
+                                </section>
+
                                 <h4 className="detail-section-title">О себе</h4>
                                 <p className="detail-description">{selectedProfile.description || "Нет описания."}</p>
                             </section>
                             {selectedProfile.githubInfo && (
-                                <section className="detail-section bg-slate-900 rounded-3xl p-4 text-white">
+                                <section className="github-card">
                                     <div className="flex items-center gap-2 mb-4">
-                                        <CodeXml size={18} className="text-emerald-400" />
+                                        <Computer size={18} className="text-emerald-400" />
                                         <span className="font-bold text-sm">GitHub: {selectedProfile.githubInfo.username}</span>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
                                         <div className="bg-white/10 rounded-2xl p-3 text-center">
-                                            <Folder size={14} className="mx-auto mb-1 opacity-50" />
+                                            <Folder size={15} className="mx-auto mb-1 opacity-50" />
                                             <div className="text-lg font-bold">{selectedProfile.githubInfo.repositoriesCount}</div>
                                             <div className="text-[10px] uppercase opacity-50 font-bold">Репо</div>
                                         </div>
                                         <div className="bg-white/10 rounded-2xl p-3 text-center">
-                                            <Star size={14} className="mx-auto mb-1 text-amber-400" />
+                                            <Star size={15} className="mx-auto mb-1 text-amber-400" />
                                             <div className="text-lg font-bold">{selectedProfile.githubInfo.totalStars}</div>
                                             <div className="text-[10px] uppercase opacity-50 font-bold">Звезды</div>
                                         </div>
-                                        <div className="bg-white/10 rounded-2xl p-3 text-center">
-                                            <div className="text-emerald-400 text-[10px] font-bold mb-1 truncate">{selectedProfile.githubInfo.topLanguage}</div>
-                                            <div className="text-[10px] uppercase opacity-50 font-bold mt-4">Язык</div>
+                                        <div className="bg-white/10 rounded-2xl p-3 text-center flex flex-col items-center justify-center min-h-20">
+                                            <CodeXml size={15} className="mb-1 text-emerald-400" />
+                                            <div className="text-emerald-400 text-[10px] font-bold truncate w-full px-1">
+                                                {selectedProfile.githubInfo.topLanguage}
+                                            </div>
+                                            <div className="text-[10px] uppercase opacity-50 font-bold mt-1">Язык</div>
                                         </div>
                                     </div>
                                 </section>

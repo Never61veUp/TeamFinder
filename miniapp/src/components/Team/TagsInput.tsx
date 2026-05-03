@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
-// Подключаем общий CSS
 import './team.css';
 import type { Tag } from "../../types/api";
 
@@ -13,7 +12,6 @@ interface TagsInputProps {
 export const TagsInput: React.FC<TagsInputProps> = ({ tags, availableTags, onChange }) => {
     const [selectedTagId, setSelectedTagId] = useState<string>('');
 
-    // ЛОГИКА ОСТАЛАСЬ
     const handleAdd = () => {
         if (!selectedTagId) return;
         const tagToAdd = availableTags.find(t => t.id === Number(selectedTagId));
@@ -35,7 +33,6 @@ export const TagsInput: React.FC<TagsInputProps> = ({ tags, availableTags, onCha
                 <select
                     value={selectedTagId}
                     onChange={(e) => setSelectedTagId(e.target.value)}
-                    // Убрали flex-1, bg-transparent, оставили только CSS-класс
                     className="form-input"
                 >
                     <option value="" disabled>Добавить тег...</option>

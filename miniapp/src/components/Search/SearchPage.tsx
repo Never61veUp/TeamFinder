@@ -205,7 +205,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
 
             {selectedProfile && (
                 <div className="modal-overlay bottom" onClick={() => setSelectedProfile(null)}>
-                    {/* Добавлен класс animate-slide-up */}
                     <div className="modal-content-bottom profile-detail-modal animate-slide-up" onClick={e => e.stopPropagation()}>
                         <div className="modal-drag-handle" onClick={() => setSelectedProfile(null)} />
 

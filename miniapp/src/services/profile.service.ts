@@ -67,7 +67,6 @@ export const profileService = {
         name: (current as any)?.name ?? (payload as any).name ?? 'Unknown',
         username: (current as any)?.username,
         photoUrl: (current as any)?.photoUrl,
-        // Если API ждет 'description', лучше переименовать здесь
         description: payload.about ?? (current as any)?.description ?? (current as any)?.about,
         hackathons: payload.hackathons ?? (current as any)?.hackathons,
         wins: payload.wins ?? (current as any)?.wins,
