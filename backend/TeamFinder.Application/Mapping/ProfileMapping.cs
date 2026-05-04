@@ -31,6 +31,8 @@ public static class ProfileMapping
                 entity.Id,
                 entity.UserName,
                 entity.TgId,
+                entity.Rating,
+                entity.ReviewsCount,
                 githubInfo,
                 skills,
                 entity.Description));
@@ -44,6 +46,8 @@ public static class ProfileMapping
             UserName = domain.Name,
             TgId = domain.TelegramId,
             Description = domain.Description,
+            Rating = domain.Rating,
+            ReviewsCount = domain.ReviewsCount,
             Skills = domain.Skills
                 .Select(s => new ProfileSkillEntity
                 {

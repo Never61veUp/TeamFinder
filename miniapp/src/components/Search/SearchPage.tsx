@@ -156,6 +156,15 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                             <div>
                                 <h3 className="search-profile-name">{profile.name}</h3>
                                 <p className="search-profile-username">@{profile.username || 'user'}</p>
+                                <div className="flex gap-0.5">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <Star
+                                            key={star}
+                                            size={14}
+                                            className={star <= profile.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200 fill-gray-200'}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                             <Button variant="secondary" className="detail-btn" onClick={() => setSelectedProfile(profile)}>
                                 Подробнее

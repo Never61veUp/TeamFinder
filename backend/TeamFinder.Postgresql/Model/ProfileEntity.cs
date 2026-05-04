@@ -7,6 +7,8 @@ public class ProfileEntity
     public GithubEntity? GithubInfo { get; set; }
     public long TgId { get; set; }
     public string? Description { get; set; }
+    public double Rating { get; set; }
+    public int ReviewsCount { get; set; }
 
-    public ICollection<ProfileSkillEntity> Skills { get; set; } = new List<ProfileSkillEntity>();
+    public ICollection<ProfileSkillEntity> Skills { get; set; } = [];
 }

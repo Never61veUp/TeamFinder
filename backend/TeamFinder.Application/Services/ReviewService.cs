@@ -37,16 +37,14 @@ public class ReviewService : IReviewService
         if(!team.Value.Members.Contains(profileId))
             return Result.Failure<Review>("Only member can create review");
 
-        var rating = Rating.Create(ratingValue);
-        if(rating.IsFailure)
-            return Result.Failure<Review>(rating.Error);
+        var profile = await _profileRepository.GetById(profileId)
+            .Bind(p => p.ToDomain());
         
-        var review = Review.Create(profileId, reviewerId, rating.Value, comment);
+        var review = profile.Value.AddReview(reviewerId, teamId, ratingValue, comment);
         if (review.IsFailure)
             return Result.Failure<Review>(review.Error);
         
-        var result = await _reviewRepository.AddReview(review.Value.ToEntity());
-        return result;
+        return await _reviewRepository.AddReview(review.Value.ToEntity(), profile.Value.Rating);
     }
     
     public async Task<Result<List<ReviewResponse>>> GetReviewsByProfileId(Guid profileId)
