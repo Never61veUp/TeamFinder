@@ -173,9 +173,12 @@ public class TeamRepository : ITeamRepository
                 (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
                 && t.Status == status
             );
-
         if (entity == null)
             return Result.Failure<TeamEntity>("Team not found");
+        
+        var statusResult = await UpdateStatus(entity, status);
+        if (statusResult.IsFailure)
+            return Result.Failure<TeamEntity>(statusResult.Error);
 
         return Result.Success(entity);
     }
@@ -240,5 +243,20 @@ public class TeamRepository : ITeamRepository
                 _ => Result.Failure("Database error")
             };
         }
+    }
+
+    private async Task<Result> UpdateStatus(TeamEntity entity, TeamStatus status)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        
+        if (entity.Status == TeamStatus.Active && entity.EventEnd < today)
+        {
+            entity.Status = TeamStatus.Inactive;
+            await _context.SaveChangesAsync();
+            
+            if (status == TeamStatus.Active)
+                return Result.Failure<TeamEntity>("Team is now inactive due to expiration");
+        }
+        return  Result.Success();
     }
 }
