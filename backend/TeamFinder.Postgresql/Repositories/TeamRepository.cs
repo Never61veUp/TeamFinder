@@ -18,33 +18,7 @@ public class TeamRepository : ITeamRepository
 
     public async Task<Result> SaveTeam(TeamEntity team)
     {
-        var existing = await _context.Teams
-            .Include(t => t.Members)
-            .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
-            .Include(t => t.Invitations)
-            .FirstOrDefaultAsync(t => t.Id == team.Id);
-
-        if (existing == null)
-            await _context.Teams.AddAsync(team);
-        else
-        {
-            existing.Name = team.Name;
-            existing.OwnerId = team.OwnerId;
-            existing.MaxMembers = team.MaxMembers;
-
-            _context.TeamMembers.RemoveRange(_context.TeamMembers.Where(m => m.TeamId == existing.Id));
-            var oldWanted = _context.WantedProfiles.Where(w => w.TeamId == existing.Id).Include(w => w.RequiredSkills)
-                .ToList();
-            _context.WantedProfileSkills.RemoveRange(oldWanted.SelectMany(w => w.RequiredSkills));
-            _context.WantedProfiles.RemoveRange(oldWanted);
-            _context.Invitations.RemoveRange(_context.Invitations.Where(i => i.TeamId == existing.Id));
-
-            existing.Members = team.Members;
-            existing.WantedProfiles = team.WantedProfiles;
-            existing.Invitations = team.Invitations;
-
-            _context.Teams.Update(existing);
-        }
+        await _context.Teams.AddAsync(team);
 
         var changes = await _context.SaveChangesAsync();
         return changes > 0 ? Result.Success() : Result.Failure("Team not saved");
@@ -188,7 +162,7 @@ public class TeamRepository : ITeamRepository
         var entity = await _context.Teams
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
-            .Include(t => t.Invitations)
+            .Include(t => t.Invitations).OrderBy(t => t.EventEnd)
             .Where(t => 
                 (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
                 && t.Status == status
@@ -214,6 +188,7 @@ public class TeamRepository : ITeamRepository
             return Result.Failure("Team not found");
 
         team.Status = TeamStatus.Inactive;
+        team.EventEnd = DateOnly.FromDateTime(DateTime.UtcNow);
 
         return await _context.SaveChangesAsync() > 0 
             ? Result.Success() 
