@@ -17,12 +17,16 @@ public class Review : Entity<Guid>
         Comment = comment;
     }
 
-    public static Result<Review> Create(Guid profileId, Guid reviewerId, Rating rating, string comment)
+    public static Result<Review> Create(Guid profileId, Guid reviewerId, int ratingValue, string comment)
     {
         if (string.IsNullOrWhiteSpace(comment))
             return Result.Failure<Review>("Comment cannot be empty");
+        
+        var rating = Rating.Create(ratingValue);
+        if (rating.IsFailure)
+            return Result.Failure<Review>(rating.Error);
 
-        var review = new Review(Guid.NewGuid(), profileId, reviewerId, rating, comment);
+        var review = new Review(Guid.NewGuid(), profileId, reviewerId, rating.Value, comment);
         return Result.Success(review);
     }
 

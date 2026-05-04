@@ -203,4 +203,14 @@ public class ProfileRepository : IProfileRepository
             ? Result.Failure<Dictionary<Guid, string>>("Profiles not found") 
             : Result.Success(profiles);
     }
+
+    public async Task<Result> UpdateRating(Guid profileId, double rating)
+    {
+        var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.Id == profileId);
+        profile.Rating = rating;
+        profile.ReviewsCount++;
+        await _context.SaveChangesAsync();
+    
+        return Result.Success();
+    }
 }

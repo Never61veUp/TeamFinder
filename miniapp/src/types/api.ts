@@ -24,6 +24,8 @@ export interface Profile {
   hackathons?: number;
   wins?: number;
   projects?: number;
+  rating: number;
+  reviewsCount: number;
 }
 
 export interface ProfileWithGithub extends Profile {
