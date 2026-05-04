@@ -125,38 +125,51 @@ public class TeamRepository : ITeamRepository
 
     public async Task<Result<IEnumerable<TeamsResponse>>> GetAllTeams(TeamStatus teamStatus, int from = 0, int count = 5)
     {
-        var teams = await _context.Teams
+        var query = _context.Teams
             .AsNoTracking()
-            .Where(t => t.Status == teamStatus)
-            .OrderByDescending(t => t.EventEnd)
-            .Skip(from)
-            .Take(count)
+            .Where(t => t.Status == teamStatus);
+        
+        var teamData = await query
             .Select(t => new 
             {
-                Team = t,
+                t.Id,
+                t.Name,
+                t.OwnerId,
+                t.MaxMembers,
+                t.Description,
+                t.EventTitle,
+                t.EventStart,
+                t.EventEnd,
+                t.EventTags,
+                t.Status,
                 MemberIds = t.Members.Select(m => m.ProfileId).ToList(),
-                AverageRating = t.Members.Select(m => (double?)m.Profile.Rating).Average()
+                AverageRating = t.Members.Average(m => (double?)m.Profile.Rating) ?? 0
             })
+            .OrderByDescending(t => t.AverageRating)
+            .Skip(from)
+            .Take(count)
             .ToListAsync();
-        
-        var response = teams.Select(team => new TeamsResponse(
-            team.Team.Name,
-            team.Team.OwnerId,
-            team.MemberIds,
-            team.Team.MaxMembers,
-            team.Team.Description ?? string.Empty,
-            EventDetails.Create(team.Team.EventTitle ?? string.Empty,
-                    team.Team.EventStart,
-                    team.Team.EventEnd,
-                    team.Team.EventTags).Value,
-            (int)team.Team.Status,
-            team.Team.Id,
-            Math.Round(team.AverageRating ?? 0, 1)
-        )).ToList();
 
-        if(teams.Count == 0)
+        if (teamData.Count == 0)
             return Result.Failure<IEnumerable<TeamsResponse>>("No teams found");
-        return Result.Success<IEnumerable<TeamsResponse>>(response);
+        
+        var response = teamData.Select(t => new TeamsResponse(
+            t.Name,
+            t.OwnerId,
+            t.MemberIds,
+            t.MaxMembers,
+            t.Description ?? string.Empty,
+            EventDetails.Create(
+                t.EventTitle ?? string.Empty,
+                t.EventStart,
+                t.EventEnd,
+                t.EventTags).Value,
+            (int)t.Status,
+            t.Id,
+            Math.Round(t.AverageRating, 1)
+        ));
+
+        return Result.Success(response);
     }
     
     public async Task<Result<TeamEntity>> GetByProfileId(Guid id, TeamStatus status = TeamStatus.Active)
