@@ -9,6 +9,7 @@ import type { Team, Tag, CreateTeamRequest, ProfileWithGithub } from '../../type
 import { LogOut, Trash2, Loader2 } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
+import { RatingStars } from '../ui/RatingStars';
 import './team.css';
 
 interface TeamPageProps {
@@ -236,6 +237,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                                 <div className="flex flex-col">
                                                     <span className="text-sm font-bold text-slate-900">{name}</span>
                                                     <span className="text-xs text-slate-400">@{username}</span>
+                                                    <RatingStars rating={data?.rating || 0} size={12} />
                                                 </div>
                                             </div>
                                             <Button variant="ghost" size="sm" className="text-violet-600 font-semibold" onClick={() => handleOpenProfile(profileId)}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, X, Star } from 'lucide-react';
+import { Search, Plus, X } from 'lucide-react';
 import { Header } from '../ui/Header/Header';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -7,6 +7,7 @@ import { searchService } from '../../services/search.service';
 import { invitationsService } from '../../services/invitations.service';
 import { type Skill, teamService } from '../../types/api';
 import type { Profile, Team } from '../../types/api';
+import { RatingStars } from '../ui/RatingStars';
 import './search.css';
 import { profileService } from "../../services";
 import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
@@ -153,15 +154,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                             <div>
                                 <h3 className="search-profile-name">{profile.name}</h3>
                                 <p className="search-profile-username">@{profile.username || 'user'}</p>
-                                <div className="flex gap-0.5">
-                                    {[1, 2, 3, 4, 5].map(star => (
-                                        <Star
-                                            key={star}
-                                            size={14}
-                                            className={star <= (profile.rating || 0) ? 'fill-amber-400 text-amber-400' : 'text-gray-200 fill-gray-200'}
-                                        />
-                                    ))}
-                                </div>
+                                <RatingStars rating={profile.rating || 0} />
                             </div>
                             <Button variant="secondary" className="detail-btn" onClick={() => setSelectedProfile(profile)}>
                                 Подробнее

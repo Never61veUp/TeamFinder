@@ -5,6 +5,7 @@ import { Button } from '../ui/Button'
 import { feedService } from '../../services/feed.service'
 import { httpClient } from '../../lib/http-client'
 import { ProfilePreviewModal } from './ProfilePreviewModal';
+import { RatingStars } from '../ui/RatingStars';
 import './home.css'
 
 interface TeamCardProps {
@@ -204,6 +205,7 @@ export function TeamCard({ team, myProfileId}: TeamCardProps) {
                                                             <div className="flex flex-col text-left">
                                                                 <span className="text-sm font-bold text-slate-900">{name}</span>
                                                                 <span className="text-xs text-slate-400">@{username}</span>
+                                                                <RatingStars rating={data?.rating || 0} size={12} />
                                                             </div>
                                                         </div>
                                                         <Button

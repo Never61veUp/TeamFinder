@@ -14,8 +14,6 @@ import { profileService } from '../../services';
 import { Pencil } from 'lucide-react';
 import { Button } from "../ui/Button.tsx";
 
-const HARD_SKILLS: string[] = ["Backend", "Programming", "Frontend", "React", "Python", "Jango"];
-
 interface Props {
     user: TelegramUser;
     onLogout: () => void;
@@ -62,7 +60,6 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
         const initialNames = (profile.skills ?? []).map((s: any) => s.name ?? String(s));
         setLocalSkills(initialNames);
         const map: Record<string, boolean> = {};
-        HARD_SKILLS.forEach(name => { map[name] = initialNames.includes(name); });
         setSkillsModalSelected(map);
     }, [profile]);
 
