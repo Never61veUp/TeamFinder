@@ -7,7 +7,7 @@ public class Team : Entity<Guid>
 {
     private readonly List<Invitation> _invitations = [];
     private readonly List<JoinRequest> _joinRequests = [];
-    private readonly List<Guid> _members = [];
+    private readonly List<Guid> _members;
     private readonly List<WantedProfile> _wantedProfiles = [];
 
     private Team(Guid id, Guid ownerId, string name, int maxMembers, List<Guid> members, string description, EventDetails? eventDetails) : base(id)
@@ -18,6 +18,7 @@ public class Team : Entity<Guid>
         _members = members;
         Description = description;
         EventDetails = eventDetails;
+        UpdateStatus();
     }
 
     public string Name { get; private set; }
@@ -59,16 +60,6 @@ public class Team : Entity<Guid>
         List<WantedProfile>? wantedProfiles = null, List<Invitation>? invitations = null,
         List<JoinRequest>? joinRequests = null)
     {
-        //TODO: Доверяем бд?
-        if (ownerId == Guid.Empty)
-            return Result.Failure<Team>("OwnerId is required");
-        if (string.IsNullOrWhiteSpace(name))
-            return Result.Failure<Team>("Name is required");
-        if (maxMembers <= 0)
-            return Result.Failure<Team>("MaxMembers must be > 0");
-        if (members.Count > maxMembers)
-            return Result.Failure<Team>("Members exceed maxMembers");
-
         var normalizedMembers = members.Distinct().ToList();
 
         if (!normalizedMembers.Contains(ownerId))
@@ -87,6 +78,8 @@ public class Team : Entity<Guid>
             team._joinRequests.AddRange(joinRequests);
         if (invitations != null)
             team._invitations.AddRange(invitations);
+        
+        
 
         return Result.Success(team);
     }
@@ -198,6 +191,12 @@ public class Team : Entity<Guid>
         
         Status = TeamStatus.Inactive;
         return Result.Success(Id);
+    }
+    
+    private void UpdateStatus()
+    {
+        if (EventDetails?.Period?.IsOver(DateOnly.FromDateTime(DateTime.UtcNow)) is true)
+            Status = TeamStatus.Inactive;
     }
 }
 
