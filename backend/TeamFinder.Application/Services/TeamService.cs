@@ -55,11 +55,12 @@ public class TeamService : ITeamService
             .Bind(_ => _repository.AcceptJoinRequest(teamId, profileId));
     }
     
-    public async Task<Result<List<Team>>> GetTeams(TeamStatus teamStatus)
+    public async Task<Result<PagedResult<TeamsResponse>>> GetTeams(TeamStatus teamStatus, int from = 0, int count = 5)
     {
-        return await _repository.GetAllTeams(teamStatus)
-            .Bind(entities => entities
-                .MapToDomainList(e => e.MapToDomain()));
+        var teamsCount = await _repository.Count(teamStatus);
+        var teams = await _repository.GetAllTeams(teamStatus, from, count);
+
+        return new PagedResult<TeamsResponse>(teams.Value, teamsCount);
     }
 
     public async Task<Result<Team>> GetMyTeam(Guid profileId, TeamStatus status)

@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Abstractions;
 using TeamFinder.Postgresql.Model;
@@ -122,18 +123,40 @@ public class TeamRepository : ITeamRepository
         }
     }
 
-    public async Task<Result<IEnumerable<TeamEntity>>> GetAllTeams(TeamStatus teamStatus)
+    public async Task<Result<IEnumerable<TeamsResponse>>> GetAllTeams(TeamStatus teamStatus, int from = 0, int count = 5)
     {
         var teams = await _context.Teams
             .AsNoTracking()
-            .Include(t => t.Members)
-            .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
-            .Include(t => t.Invitations)
-            .Where(t => t.Status == teamStatus).ToListAsync();
+            .Where(t => t.Status == teamStatus)
+            .OrderByDescending(t => t.EventEnd)
+            .Skip(from)
+            .Take(count)
+            .Select(t => new 
+            {
+                Team = t,
+                MemberIds = t.Members.Select(m => m.ProfileId).ToList(),
+                AverageRating = t.Members.Select(m => (double?)m.Profile.Rating).Average()
+            })
+            .ToListAsync();
+        
+        var response = teams.Select(team => new TeamsResponse(
+            team.Team.Name,
+            team.Team.OwnerId,
+            team.MemberIds,
+            team.Team.MaxMembers,
+            team.Team.Description ?? string.Empty,
+            team.Team.EventTitle,
+            team.Team.EventStart,
+            team.Team.EventEnd,
+            team.Team.EventTags,
+            (int)team.Team.Status,
+            team.Team.Id,
+            Math.Round(team.AverageRating ?? 0, 1)
+        )).ToList();
 
         if(teams.Count == 0)
-            return Result.Failure<IEnumerable<TeamEntity>>("No teams found");
-        return Result.Success<IEnumerable<TeamEntity>>(teams);
+            return Result.Failure<IEnumerable<TeamsResponse>>("No teams found");
+        return Result.Success<IEnumerable<TeamsResponse>>(response);
     }
     
     public async Task<Result<TeamEntity>> GetByProfileId(Guid id, TeamStatus status = TeamStatus.Active)
@@ -233,5 +256,10 @@ public class TeamRepository : ITeamRepository
                 return Result.Failure<TeamEntity>("Team is now inactive due to expiration");
         }
         return  Result.Success();
+    }
+
+    public async Task<int> Count(TeamStatus status =  TeamStatus.Active)
+    {
+        return await _context.Teams.CountAsync(t => t.Status == status);
     }
 }

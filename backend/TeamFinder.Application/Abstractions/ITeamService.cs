@@ -11,7 +11,7 @@ public interface ITeamService
     Task<Result> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId);
     Task<Result> CreateJoinRequest(Guid teamId, Guid profileId);
     Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId, Guid acceptInitiatorId);
-    Task<Result<List<Team>>> GetTeams(TeamStatus teamStatus);
+    Task<Result<PagedResult<TeamsResponse>>> GetTeams(TeamStatus teamStatus, int from = 0, int count = 5);
     Task<Result<Team>> GetMyTeam(Guid profileId, TeamStatus status = TeamStatus.Active);
     Task<Result> LeaveTeam(Guid profileId);
     Task<Result> MakeInactive(Guid profileId);

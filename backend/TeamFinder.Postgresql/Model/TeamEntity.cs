@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Teams;
 

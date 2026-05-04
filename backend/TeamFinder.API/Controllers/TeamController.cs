@@ -72,9 +72,9 @@ public class TeamController : BaseController
     }
     
     [HttpGet("all")]
-    public async Task<IActionResult> GetTeams([FromQuery] TeamStatus status = TeamStatus.Active)
+    public async Task<IActionResult> GetTeams([FromQuery] GetAllTeamsRequest request)
     {
-        var result = await _teamService.GetTeams(status);
+        var result = await _teamService.GetTeams(request.Status, request.From, request.Count);
 
         if (result.IsFailure)
             return BadRequest(result.Error);
@@ -137,4 +137,4 @@ public class TeamController : BaseController
     }
 }
 
-public record GetAllTeamsRequest(TeamStatus TeamStatus = TeamStatus.Active);
+public record GetAllTeamsRequest(TeamStatus Status = TeamStatus.Active, int From = 0, int Count = 5);
