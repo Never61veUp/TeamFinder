@@ -85,6 +85,14 @@ export interface Team {
   status: number;
   members: TeamMember[];
   joinRequests?: TeamMember[];
+    ownerId?: string;
+    averageRating?: number;
+    eventTitle?: string;
+}
+
+export interface PagedResponse<T> {
+    items: T[];
+    totalCount: number;
 }
 
 export interface CreateTeamRequest {

@@ -105,6 +105,7 @@ export function TeamCard({ team, myProfileId}: TeamCardProps) {
                 <div className="team-capacity">
                     {currentCount} / {team.maxMembers}
                 </div>
+                <RatingStars rating={team.averageRating || 0} />
             </div>
 
             <p className="team-desc-short">

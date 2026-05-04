@@ -1,4 +1,4 @@
-import type { Tag, Team } from '../types/api'
+import type {PagedResponse, Tag, Team} from '../types/api'
 import { httpClient } from "../lib/http-client";
 
 export const feedService = {
@@ -6,8 +6,13 @@ export const feedService = {
         return await httpClient.get<Tag[]>('/teams/event-tags');
     },
 
-    async getRecommendedTeams(): Promise<Team[]> {
-        return await httpClient.get<Team[]>('/teams/all');
+    async getRecommendedTeams(status: number = 1, from: number = 0, count: number = 5): Promise<PagedResponse<Team>> {
+        const params = new URLSearchParams({
+            Status: status.toString(),
+            From: from.toString(),
+            Count: count.toString()
+        });
+        return await httpClient.get<PagedResponse<Team>>(`/teams/all?${params.toString()}`);
     },
 
     async requestJoin(teamId: string | number): Promise<void> {

@@ -17,18 +17,19 @@ export function HomePage({user, onOpenNotif}: HomePageProps) {
     useEffect(() => {
         feedService.getRecommendedTeams()
             .then((data) => {
-                const teamsData = Array.isArray(data) ? data : (data as any).data || [];
+                const teamsData = data && 'items' in data ? data.items : (Array.isArray(data) ? data : []);
                 setTeams(teamsData);
+                console.log(teamsData);
             })
             .catch(err => console.error("Ошибка загрузки команд:", err))
             .finally(() => setIsLoading(false))
     }, [])
 
     const hasTeam = teams.some(team => {
-        const isOwner = String((team as any).ownerId) === String(user.profileId);
+        const isOwner = String(team.ownerId) === String(user.profileId);
 
-        const isMember = team.members?.some(member =>
-            String(member.id) === String(user.profileId)
+        const isMember = team.members?.some(memberId =>
+            String(memberId) === String(user.profileId)
         );
 
         return isOwner || isMember;
