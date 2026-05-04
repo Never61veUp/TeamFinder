@@ -40,13 +40,11 @@ public class ReviewService : IReviewService
         var profile = await _profileRepository.GetById(profileId)
             .Bind(p => p.ToDomain());
         
-        var review = profile.Value.AddReview(reviewerId, ratingValue, comment);
+        var review = profile.Value.AddReview(reviewerId, teamId, ratingValue, comment);
         if (review.IsFailure)
             return Result.Failure<Review>(review.Error);
         
-        var reviewResult = await _reviewRepository.AddReview(review.Value.ToEntity());
-        var ratingResult = await _profileRepository.UpdateRating(profileId, profile.Value.Rating);
-        return Result.Combine(reviewResult, ratingResult);
+        return await _reviewRepository.AddReview(review.Value.ToEntity(), profile.Value.Rating);
     }
     
     public async Task<Result<List<ReviewResponse>>> GetReviewsByProfileId(Guid profileId)

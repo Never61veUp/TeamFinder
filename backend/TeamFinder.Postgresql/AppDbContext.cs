@@ -31,6 +31,7 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfiguration(new UserSkillConfiguration());
         modelBuilder.ApplyConfiguration(new TeamConfiguration());
         modelBuilder.ApplyConfiguration(new JoinRequestConfiguration());
+        modelBuilder.ApplyConfiguration(new ReviewConfiguration());
 
         modelBuilder.Entity<TeamMemberEntity>()
             .HasKey(k => new { k.TeamId, k.ProfileId });

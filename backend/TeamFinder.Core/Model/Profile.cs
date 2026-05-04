@@ -87,9 +87,9 @@ public sealed class Profile : Entity<Guid>
         return Result.Success();
     }
 
-    public Result<Review> AddReview(Guid reviewerId, int rating, string comment)
+    public Result<Review> AddReview(Guid reviewerId, Guid teamId, int rating, string comment)
     {
-        var review = Review.Create(Id, reviewerId, rating, comment);
+        var review = Review.Create(Id, reviewerId, teamId, rating, comment);
         ReviewsCount++;
         Rating += (rating - Rating) / ReviewsCount;
 
