@@ -8,10 +8,7 @@ public record TeamsResponse(
     IReadOnlyCollection<Guid> Members,
     int MaxMembers,
     string Description,
-    string? EventTitle,
-    DateOnly? EventStart,
-    DateOnly? EventEnd,
-    List<Tag> EventTags,
+    EventDetails EventDetails,
     int Status,
     Guid Id,
     double AverageRating
