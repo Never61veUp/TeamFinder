@@ -162,11 +162,11 @@ public class TeamRepository : ITeamRepository
         var entity = await _context.Teams
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
-            .Include(t => t.Invitations).OrderBy(t => t.EventEnd)
+            .Include(t => t.Invitations)
             .Where(t => 
                 (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
                 && t.Status == status
-            ).ToListAsync();
+            ).OrderByDescending(t => t.EventEnd).ToListAsync();
 
         if (entity.Count == 0)
             return Result.Failure<List<TeamEntity>>("Teams not found");
