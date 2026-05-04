@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import {
-    Search, Plus, X, Trophy, Layout, Target,
-    Folder, Star, CodeXml
-} from 'lucide-react';
+import { Search, Plus, X, Star } from 'lucide-react';
 import { Header } from '../ui/Header/Header';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { searchService } from '../../services/search.service';
 import { invitationsService } from '../../services/invitations.service';
-import {type Skill, teamService} from '../../types/api';
-import type { Profile, Team, ProfileWithGithub } from '../../types/api';
+import { type Skill, teamService } from '../../types/api';
+import type { Profile, Team } from '../../types/api';
 import './search.css';
-import {profileService} from "../../services";
+import { profileService } from "../../services";
+import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
 
 interface SearchPageProps {
     onOpenNotif: () => void;
@@ -34,7 +32,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
             try {
                 const team = await teamService.getMyTeam().catch(() => null);
                 setMyTeam(team);
-
                 const skills = await profileService.getAllSkills();
                 setAvailableSkills(skills);
 
@@ -161,7 +158,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                                         <Star
                                             key={star}
                                             size={14}
-                                            className={star <= profile.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200 fill-gray-200'}
+                                            className={star <= (profile.rating || 0) ? 'fill-amber-400 text-amber-400' : 'text-gray-200 fill-gray-200'}
                                         />
                                     ))}
                                 </div>
@@ -192,6 +189,11 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                 ))}
             </div>
 
+            <ProfileModal
+                profile={selectedProfile}
+                onClose={() => setSelectedProfile(null)}
+            />
+
             {isEditorOpen && (
                 <div className="modal-overlay centered" onClick={() => setIsEditorOpen(false)}>
                     <div className="modal-content skills-modal" onClick={e => e.stopPropagation()}>
@@ -208,83 +210,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                             ))}
                         </div>
                         <Button className="modal-close-btn" onClick={() => setIsEditorOpen(false)}>Готово</Button>
-                    </div>
-                </div>
-            )}
-
-            {selectedProfile && (
-                <div className="modal-overlay bottom" onClick={() => setSelectedProfile(null)}>
-                    <div className="modal-content-bottom profile-detail-modal animate-slide-up" onClick={e => e.stopPropagation()}>
-                        <div className="modal-drag-handle" onClick={() => setSelectedProfile(null)} />
-
-                        <div className="profile-detail-header">
-                            <div className="detail-avatar">
-                                {selectedProfile.name[0]}
-                            </div>
-                            <div>
-                                <h2 className="detail-name">{selectedProfile.name}</h2>
-                                <p className="detail-username">@{selectedProfile.username}</p>
-                            </div>
-                        </div>
-
-                        <div className="detail-scroll-area">
-                            <section className="detail-section">
-                                <h4 className="detail-section-title">О себе</h4>
-                                <p className="detail-description">
-                                    {selectedProfile.description || "Пользователь пока не добавил описание."}
-                                </p>
-                            </section>
-
-                            <div className="stats-grid">
-                                <div className="stat-box">
-                                    <Target className="stat-icon text-blue-500" />
-                                    <div className="stat-value">{selectedProfile.hackathons || 0}</div>
-                                    <div className="stat-label">Хакатоны</div>
-                                </div>
-                                <div className="stat-box">
-                                    <Trophy className="stat-icon text-amber-500" />
-                                    <div className="stat-value">{selectedProfile.wins || 0}</div>
-                                    <div className="stat-label">Победы</div>
-                                </div>
-                                <div className="stat-box">
-                                    <Layout className="stat-icon text-emerald-500" />
-                                    <div className="stat-value">{selectedProfile.projects || 0}</div>
-                                    <div className="stat-label">Проекты</div>
-                                </div>
-                            </div>
-
-                            {(selectedProfile as ProfileWithGithub).githubInfo && (
-                                <section className="github-card">
-                                    <div className="github-header">
-                                        <div className="github-icon-wrapper">
-                                            <CodeXml size={18} />
-                                        </div>
-                                        <span className="github-title">GitHub</span>
-                                    </div>
-                                    <div className="github-stats-row">
-                                        <div className="github-stat-item">
-                                            <CodeXml className="text-slate-500 mb-1" size={14} />
-                                            <div className="github-stat-label">Язык</div>
-                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.topLanguage || '—'}</div>
-                                        </div>
-                                        <div className="github-stat-item border-x">
-                                            <Folder className="text-slate-500 mb-1" size={14} />
-                                            <div className="github-stat-label">Репо</div>
-                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.repositoriesCount || 0}</div>
-                                        </div>
-                                        <div className="github-stat-item">
-                                            <Star className="text-amber-400 mb-1" size={14} />
-                                            <div className="github-stat-label">Звезды</div>
-                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.totalStars || 0}</div>
-                                        </div>
-                                    </div>
-                                </section>
-                            )}
-                        </div>
-
-                        <Button className="detail-close-btn" onClick={() => setSelectedProfile(null)}>
-                            Закрыть
-                        </Button>
                     </div>
                 </div>
             )}

@@ -9,13 +9,15 @@ export function useProfile(profileId: string | undefined) {
     const [error, setError] = useState<string | null>(null)
 
     const fetch = useCallback(async () => {
-        setIsLoading(true)
-        setError(null)
+        setIsLoading(true);
+        setError(null);
         try {
-            const data = await profileService.getMyProfile()
-            setProfile(data)
-            console.log("Данные профиля загружены:", data)
-            setSkills(data.skills || [])
+            const data = profileId
+                ? await profileService.getById(profileId)
+                : await profileService.getMyProfile();
+
+            setProfile(data as ProfileWithGithub);
+            setSkills(data.skills || []);
         } catch (e) {
             console.error("Ошибка загрузки профиля:", e)
             setError(e instanceof Error ? e.message : 'Failed to fetch profile')

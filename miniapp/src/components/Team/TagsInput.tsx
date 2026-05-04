@@ -28,7 +28,6 @@ export const TagsInput: React.FC<TagsInputProps> = ({ tags, availableTags, onCha
 
     return (
         <div className="tags-container">
-            {/* Используем CSS-классы */}
             <div className="tags-input-row">
                 <select
                     value={selectedTagId}

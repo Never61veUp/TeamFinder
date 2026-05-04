@@ -103,7 +103,6 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                     ) : hasAnyNotifications ? (
                         <div className="requests-list">
 
-                            {/* Секция: Вас пригласили в команду */}
                             {personalInvites.map((invite) => {
                                 const teamInfo = personalInvitesTeams[invite.teamId];
                                 if (!teamInfo) return null;
@@ -114,21 +113,18 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                                             Команда <span className="user-name">{teamInfo.name}</span> приглашает вас
                                         </div>
 
-                                        {/* Название мероприятия */}
                                         {teamInfo.eventDetails?.title && (
                                             <div className="team-event-badge">
                                                 {teamInfo.eventDetails.title}
                                             </div>
                                         )}
 
-                                        {/* Полное описание (убрали slice) */}
                                         {teamInfo.description && (
                                             <div className="team-full-desc">
                                                 {teamInfo.description}
                                             </div>
                                         )}
 
-                                        {/* Теги/Стек технологий */}
                                         {teamInfo.eventDetails?.tags && teamInfo.eventDetails.tags.length > 0 && (
                                             <div className="team-tags-row">
                                                 {teamInfo.eventDetails.tags.map((tag: any) => (
@@ -137,7 +133,6 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                                             </div>
                                         )}
 
-                                        {/* Информация о свободных местах */}
                                         <div className="team-meta-info">
                                             Участников: {teamInfo.members?.length || 0} / {teamInfo.maxMembers}
                                         </div>
@@ -156,7 +151,6 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                                 );
                             })}
 
-                            {/* Секция: Хотят вступить в вашу команду */}
                             {myTeam?.joinRequests?.length ? (
                                 <>
                                     <h5 className="section-subtitle" style={{ marginTop: '16px' }}>Заявки в вашу команду</h5>
