@@ -3,6 +3,7 @@ import { Badge } from '../Badge';
 import { Button } from '../Button';
 import { Computer, CodeXml, Folder, Star, Target, Trophy, Layout } from 'lucide-react';
 import type { ProfileWithGithub } from '../../../types/api';
+import { ReviewList } from '../Review/ReviewList';
 import './profile-modal.css';
 
 interface ProfileModalProps {
@@ -56,13 +57,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                         </div>
                     </section>
 
-                    <section className="detail-section">
+                    <section className="detail-section mb-6">
                         <h4 className="detail-section-title">О себе</h4>
                         <p className="detail-description">{profile.description || "Нет описания."}</p>
                     </section>
 
                     {profile.githubInfo && (
-                        <section className="github-card">
+                        <section className="github-card mb-6">
                             <div className="flex items-center gap-2 mb-4">
                                 <Computer size={18} className="text-emerald-400" />
                                 <span className="font-bold text-sm">GitHub: {profile.githubInfo.username}</span>
@@ -106,9 +107,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                             <div className="stat-label">Проекты</div>
                         </div>
                     </div>
+
+                    <div className="mt-2 mb-6">
+                        <ReviewList userId={profile.id} />
+                    </div>
+
                 </div>
 
-                <Button variant="primary" className="detail-close-btn" onClick={onClose}>
+                <Button variant="primary" className="detail-close-btn mt-auto" onClick={onClose}>
                     Закрыть
                 </Button>
             </div>
