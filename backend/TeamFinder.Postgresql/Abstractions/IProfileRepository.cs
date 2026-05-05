@@ -6,7 +6,6 @@ namespace TeamFinder.Postgresql.Abstractions;
 public interface IProfileRepository
 {
     Task<Result<ProfileEntity>> GetById(Guid id);
-    Task<List<ProfileEntity>> GetAll();
     Task<Result> Add(ProfileEntity profile);
     Task<List<ProfileEntity>> GetProfilesBySkillAsync(Guid ancestorSkillId);
     Task<Result> Update(ProfileEntity profile);
@@ -19,4 +18,6 @@ public interface IProfileRepository
     Task<Result> UpdateSkills(Guid profileId, List<Guid> skillIds);
     Task<Result<ProfileEntity>> FindByProfileName(string name);
     Task<Result<Dictionary<Guid, string>>> GetNamesByIds(List<Guid> ids);
+    Task<Result<List<ProfileEntity>>> GetAll(int from = 0, int count = 5);
+    Task<int> Count();
 }

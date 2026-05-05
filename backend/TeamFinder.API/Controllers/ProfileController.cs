@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 using TeamFinder.Contracts;
+using TeamFinder.Core.Model.Teams;
 
 namespace TeamFinder.API.Controllers;
 
@@ -185,6 +186,16 @@ public class ProfileController : BaseController
         if(result.IsFailure)
             return BadRequest(result.Error);
         
+        return Ok(result.Value);
+    }
+    
+    [HttpGet("all")]
+    public async Task<IActionResult> GetProfiles([FromQuery]int from = 0, int count = 5)
+    {
+        var result = await _profileService.GetList(from, count);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+
         return Ok(result.Value);
     }
 }
