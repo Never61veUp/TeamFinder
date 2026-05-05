@@ -143,7 +143,9 @@ public class TeamRepository : ITeamRepository
                 t.EventTags,
                 t.Status,
                 MemberIds = t.Members.Select(m => m.ProfileId).ToList(),
-                AverageRating = t.Members.Average(m => (double?)m.Profile.Rating) ?? 0
+                AverageRating = 
+                    t.Members.Where(m => m.Profile.Rating > 0)
+                        .Average(m => (double?)m.Profile.Rating) ?? 0
             })
             .OrderByDescending(t => t.AverageRating)
             .Skip(from)
