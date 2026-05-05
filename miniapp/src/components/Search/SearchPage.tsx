@@ -34,6 +34,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
     const [count] = useState(5);
     const [hasMore, setHasMore] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const getInviteKey = (profileId: string) => `invite_sent_${profileId}`;
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -46,10 +47,18 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
 
                 if (team) {
                     const allInvites = await invitationsService.getInvitations(0);
-                    const sentIds = allInvites
+
+                    const apiSentIds = allInvites
                         .filter((inv: any) => inv.senderTeamId === team.id)
-                        .map((inv: any) => inv.receiverId);
-                    setSentInvitations(sentIds);
+                        .map((inv: any) => String(inv.receiverId));
+
+                    const localSentIds = profiles
+                        .map(p => p.id)
+                        .filter(id => localStorage.getItem(getInviteKey(id)) === 'true');
+
+                    const combined = Array.from(new Set([...apiSentIds, ...localSentIds]));
+
+                    setSentInvitations(combined);
                 }
             } catch (error) {
                 console.error('❌ Ошибка инициализации:', error);
@@ -58,6 +67,18 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
 
         loadInitialData();
     }, []);
+
+    useEffect(() => {
+        const localSentIds = profiles
+            .map(p => p.id)
+            .filter(id => localStorage.getItem(getInviteKey(id)) === 'true');
+
+        if (localSentIds.length > 0) {
+            setSentInvitations(prev =>
+                Array.from(new Set([...prev, ...localSentIds]))
+            );
+        }
+    }, [profiles]);
 
     useEffect(() => {
         const loadProfiles = async () => {
@@ -197,14 +218,30 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
 
         try {
             await invitationsService.inviteToTeam(myTeam.id, profileId);
-            setSentInvitations(prev => [...prev, profileId]);
-        } catch (error: any) {
-            if (error.response?.data === "Invitation already sent") {
-                setSentInvitations(prev => [...prev, profileId]);
+            localStorage.setItem(getInviteKey(profileId), 'true');
+
+            setSentInvitations(prev =>
+                prev.includes(profileId) ? prev : [...prev, profileId]
+            );
+        }
+        catch (error: any) {
+            const message =
+                error?.response?.data ||
+                error?.response?.body ||
+                error?.message;
+
+            if (typeof message === 'string' && message.includes("Invitation already sent")) {
+                localStorage.setItem(getInviteKey(profileId), 'true');
+
+                setSentInvitations(prev =>
+                    prev.includes(profileId) ? prev : [...prev, profileId]
+                );
             } else {
+                console.error('Invite error:', error);
                 alert('Не удалось отправить приглашение');
             }
-        } finally {
+        }
+        finally {
             setInvitingId(null);
         }
     };
