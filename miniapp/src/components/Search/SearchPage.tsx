@@ -35,12 +35,21 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
     const [hasMore, setHasMore] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const getInviteKey = (profileId: string) => `invite_sent_${profileId}`;
+    const [teamMembers, setTeamMembers] = useState<string[]>([]);
 
     useEffect(() => {
         const loadInitialData = async () => {
             try {
                 const team = await teamService.getMyTeam().catch(() => null);
                 setMyTeam(team);
+
+                if (team?.members) {
+                    const ids = team.members.map((m: any) =>
+                        String(typeof m === 'string' ? m : (m.profileId || m.id))
+                    );
+
+                    setTeamMembers(ids);
+                }
 
                 const skills = await profileService.getAllSkills();
                 setAvailableSkills(skills);
@@ -218,15 +227,25 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                 error?.response?.body ||
                 error?.message;
 
-            if (typeof message === 'string' && message.includes("Invitation already sent")) {
-                localStorage.setItem(getInviteKey(profileId), 'true');
+            if (typeof message === 'string') {
 
-                setSentInvitations(prev =>
-                    prev.includes(profileId) ? prev : [...prev, profileId]
-                );
-            } else {
-                console.error('Invite error:', error);
-                alert('Не удалось отправить приглашение');
+                if (message.includes("Invitation already sent")) {
+                    localStorage.setItem(getInviteKey(profileId), 'true');
+
+                    setSentInvitations(prev =>
+                        prev.includes(profileId) ? prev : [...prev, profileId]
+                    );
+                }
+
+                else if (message.includes("User is already a member")) {
+                    setTeamMembers(prev =>
+                        prev.includes(profileId) ? prev : [...prev, profileId]
+                    );
+                }
+
+                else {
+                    alert('Не удалось отправить приглашение');
+                }
             }
         }
         finally {
@@ -308,15 +327,22 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                                     ))}
                                 </div>
 
-                                <Button className="invite-btn-full"
-                                    disabled={invitingId === profile.id || sentInvitations.includes(profile.id)}
+                                <Button
+                                    className="invite-btn-full"
+                                    disabled={
+                                        invitingId === profile.id ||
+                                        sentInvitations.includes(profile.id) ||
+                                        teamMembers.includes(profile.id)
+                                    }
                                     onClick={() => handleInvite(profile.id)}
                                 >
                                     {invitingId === profile.id
                                         ? 'Отправка...'
-                                        : sentInvitations.includes(profile.id)
-                                            ? 'Заявка отправлена'
-                                            : 'Пригласить'}
+                                        : teamMembers.includes(profile.id)
+                                            ? 'Уже в команде'
+                                            : sentInvitations.includes(profile.id)
+                                                ? 'Заявка отправлена'
+                                                : 'Пригласить'}
                                 </Button>
                             </div>
                         ))}
