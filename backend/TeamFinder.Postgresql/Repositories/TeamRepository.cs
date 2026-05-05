@@ -125,6 +125,7 @@ public class TeamRepository : ITeamRepository
 
     public async Task<Result<IEnumerable<TeamsResponse>>> GetAllTeams(TeamStatus teamStatus, int from = 0, int count = 5)
     {
+        await UpdateStatusesIfExpired();
         var query = _context.Teams
             .AsNoTracking()
             .Where(t => t.Status == teamStatus);
@@ -188,9 +189,11 @@ public class TeamRepository : ITeamRepository
         if (entity == null)
             return Result.Failure<TeamEntity>("Team not found");
         
-        var statusResult = await UpdateStatus(entity, status);
-        if (statusResult.IsFailure)
-            return Result.Failure<TeamEntity>(statusResult.Error);
+        var oldStatus = entity.Status;
+        ChangeStatusIfExpired(entity);
+        
+        if (oldStatus != entity.Status)
+            await _context.SaveChangesAsync();
 
         return Result.Success(entity);
     }
@@ -258,23 +261,25 @@ public class TeamRepository : ITeamRepository
         }
     }
 
-    private async Task<Result> UpdateStatus(TeamEntity entity, TeamStatus status)
-    {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        
-        if (entity.Status == TeamStatus.Active && entity.EventEnd < today)
-        {
-            entity.Status = TeamStatus.Inactive;
-            await _context.SaveChangesAsync();
-            
-            if (status == TeamStatus.Active)
-                return Result.Failure<TeamEntity>("Team is now inactive due to expiration");
-        }
-        return  Result.Success();
-    }
-
     public async Task<int> Count(TeamStatus status =  TeamStatus.Active)
     {
         return await _context.Teams.CountAsync(t => t.Status == status);
+    }
+    
+    private async Task UpdateStatusesIfExpired()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        
+        await _context.Teams
+            .Where(t => t.Status == TeamStatus.Active && t.EventEnd < today)
+            .ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, TeamStatus.Inactive));
+    }
+    
+    private void ChangeStatusIfExpired(TeamEntity entity)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+    
+        if (entity.Status == TeamStatus.Active && entity.EventEnd < today)
+            entity.Status = TeamStatus.Inactive;
     }
 }
