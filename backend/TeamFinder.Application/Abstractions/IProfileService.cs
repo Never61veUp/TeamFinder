@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model;
 
 namespace TeamFinder.Application.Abstractions;
@@ -15,4 +16,5 @@ public interface IProfileService
     Task<Result> AddDescription(Guid profileId, string description);
     Task<Result> UpdateSkills(Guid profileId, List<Guid> skillId);
     Task<Result<Profile>> GetProfileByName(string name);
+    Task<Result<PagedResult<Profile>>> GetList(int from = 0, int count = 5);
 }

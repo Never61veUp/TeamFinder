@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Mapping;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model;
 using TeamFinder.Postgresql;
 using TeamFinder.Postgresql.Abstractions;
@@ -86,5 +87,13 @@ public class ProfileService : IProfileService
     {
         return await _profileRepository.FindByProfileName(name)
             .Bind(profile => profile.ToDomain());
+    }
+    
+    public async Task<Result<PagedResult<Profile>>> GetList(int from, int count)
+    {
+        var teamsCount = await _profileRepository.Count();
+        var profiles = await _profileRepository.GetAll(from, count)
+            .Bind(profiles => profiles.MapToDomainList(profile => profile.ToDomain()));
+        return new PagedResult<Profile>(profiles.Value, teamsCount);
     }
 }
