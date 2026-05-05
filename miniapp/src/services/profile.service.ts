@@ -52,6 +52,17 @@ export const profileService = {
     return httpClient.put(`/profiles/${profileId}/skills`, { skills: skillIds });
   },
 
+  getAllProfiles(from: number, count: number): Promise<Profile[]> {
+    return httpClient
+        .get<any>(`/profiles/all?from=${from}&count=${count}`)
+        .then((res) => {
+          if (!res) return [];
+          if (Array.isArray(res)) return res;
+          if (res.items) return res.items;
+          return [];
+        });
+  },
+
   async updateProfile(profileId: string, payload: Partial<Profile & {
     about?: string;
     hackathons?: number;
