@@ -52,9 +52,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                         .filter((inv: any) => inv.senderTeamId === team.id)
                         .map((inv: any) => String(inv.receiverId));
 
-                    const localSentIds = profiles
-                        .map(p => p.id)
-                        .filter(id => localStorage.getItem(getInviteKey(id)) === 'true');
+                    const localSentIds = Object.keys(localStorage)
+                        .filter(key => key.startsWith('invite_sent_'))
+                        .map(key => key.replace('invite_sent_', ''));
 
                     const combined = Array.from(new Set([...apiSentIds, ...localSentIds]));
 
@@ -67,18 +67,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
 
         loadInitialData();
     }, []);
-
-    useEffect(() => {
-        const localSentIds = profiles
-            .map(p => p.id)
-            .filter(id => localStorage.getItem(getInviteKey(id)) === 'true');
-
-        if (localSentIds.length > 0) {
-            setSentInvitations(prev =>
-                Array.from(new Set([...prev, ...localSentIds]))
-            );
-        }
-    }, [profiles]);
 
     useEffect(() => {
         const loadProfiles = async () => {
