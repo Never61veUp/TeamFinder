@@ -13,7 +13,7 @@ public class TeamEntity
     public TeamStatus Status { get; set; }
     public string? Description { get; set; } = string.Empty;
     
-    public string? EventTitle { get; set; }
+    public string EventTitle { get; set; } = string.Empty;
     public DateOnly? EventStart { get; set; }
     public DateOnly? EventEnd { get; set; }
     public List<Tag> EventTags { get; set; } = [];
