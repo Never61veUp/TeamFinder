@@ -67,9 +67,22 @@ export function HomePage({user, onOpenNotif}: HomePageProps) {
                 ) : (
                     <>
                         <div className="teams-grid">
-                            {teams.map((team) => (
-                                <TeamCard key={team.id} team={team} myProfileId={user.profileId} />
-                            ))}
+                            {teams.map((team) => {
+                                const isOwner = String(team.ownerId) === String(user.profileId);
+
+                                const isMember = team.members?.some(memberId =>
+                                    String(memberId) === String(user.profileId)
+                                );
+
+                                return (
+                                    <TeamCard
+                                        key={team.id}
+                                        team={team}
+                                        myProfileId={user.profileId}
+                                        isAlreadyMember={isOwner || isMember}
+                                    />
+                                );
+                            })}
                         </div>
 
                         {teams.length < totalCount && (

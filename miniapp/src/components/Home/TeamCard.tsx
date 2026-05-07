@@ -9,12 +9,13 @@ import { RatingStars } from '../ui/RatingStars';
 import './home.css'
 
 interface TeamCardProps {
-    team: Team
+    team: Team;
     myProfileId?: string;
     onOpenProfile?: (profileId: string) => void;
+    isAlreadyMember?: boolean;
 }
 
-export function TeamCard({ team, myProfileId}: TeamCardProps) {
+export function TeamCard({ team, isAlreadyMember }: TeamCardProps) {
     const [showDetails, setShowDetails] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
     const [alreadyJoined, setAlreadyJoined] = useState(false);
@@ -26,13 +27,12 @@ export function TeamCard({ team, myProfileId}: TeamCardProps) {
     const storageKey = `req_sent_${team.id}`;
 
     useEffect(() => {
-        const isMember = team.members?.some(m => String(m) === String(myProfileId));
         const hasLocalRecord = localStorage.getItem(storageKey) === 'true';
 
-        if (isMember || hasLocalRecord) {
+        if (isAlreadyMember || hasLocalRecord) {
             setAlreadyJoined(true);
         }
-    }, [team.members, myProfileId, storageKey]);
+    }, [isAlreadyMember, storageKey]);
 
     useEffect(() => {
         if (showDetails && team.members && team.members.length > 0) {
@@ -81,9 +81,20 @@ export function TeamCard({ team, myProfileId}: TeamCardProps) {
             setAlreadyJoined(true);
             alert('Заявка успешно отправлена!');
             setShowDetails(false);
-        } catch (e: any) {
-            alert('Ошибка при отправке заявки.');
-        } finally {
+        }
+        catch (e: any) {
+            const message =
+                e?.response?.data ||
+                e?.response?.body ||
+                e?.message;
+
+            if (typeof message === 'string' && message.includes("User is already a member")) {
+                setAlreadyJoined(true);
+            } else {
+                alert('Ошибка при отправке заявки.');
+            }
+        }
+        finally {
             setIsJoining(false);
         }
     };
@@ -131,7 +142,9 @@ export function TeamCard({ team, myProfileId}: TeamCardProps) {
                 onClick={() => setShowDetails(true)}
                 disabled={alreadyJoined}
             >
-                {alreadyJoined ? 'Заявка подана' : 'Подробнее'}
+                {alreadyJoined
+                    ? (isAlreadyMember ? 'Вы в команде' : 'Заявка подана')
+                    : 'Подробнее'}
             </Button>
 
             {showDetails && (
