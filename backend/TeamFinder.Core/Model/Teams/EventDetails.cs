@@ -16,7 +16,7 @@ public class EventDetails : ValueObject
         _tags = tags;
     }
     
-    public static Result<EventDetails> Create(string title, DateOnly? start, DateOnly? end, List<Tag> tags)
+    public static Result<EventDetails> Create(string? title, DateOnly? start, DateOnly? end, List<Tag> tags)
     {
         if(string.IsNullOrWhiteSpace(title))
             title = string.Empty;

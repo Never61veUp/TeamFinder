@@ -199,9 +199,3 @@ public class Team : Entity<Guid>
             Status = TeamStatus.Inactive;
     }
 }
-
-public enum TeamStatus
-{
-    Active = 1,
-    Inactive = 0
-}
