@@ -230,6 +230,22 @@ public class Team : Entity<Guid>
         Status = TeamStatus.Inactive;
         return Result.Success(Id);
     }
+
+    public Result<Guid> KickMember(Guid initiatorId, Guid profileId)
+    {
+        if(initiatorId != OwnerId)
+            return Result.Failure<Guid>("Only team owner can kick the member");
+        
+        var member = _members.FirstOrDefault(m => m.Id == profileId);
+        if (member is null)
+            return Result.Failure<Guid>("Member not found");
+        if(member.Status == MemberStatus.Inactive)
+            return Result.Failure<Guid>("Member is already kicked");
+        
+        member.SetStatus(MemberStatus.Inactive);
+        
+        return Result.Success(member.Id);
+    }
     
     private void UpdateStatus()
     {

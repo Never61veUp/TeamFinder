@@ -135,6 +135,16 @@ public class TeamController : BaseController
 
         return Ok();
     }
+    
+    [HttpPost("kick-member/{profileId:guid}")]
+    public async Task<IActionResult> DisbandTeam(Guid profileId)
+    {
+        var result = await _teamService.KickMember(CurrentProfileId,  profileId);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok();
+    }
 }
 
 public record GetAllTeamsRequest(TeamStatus Status = TeamStatus.Active, int From = 0, int Count = 5);

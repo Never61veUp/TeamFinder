@@ -273,6 +273,16 @@ public class TeamRepository : ITeamRepository
         }
     }
 
+    public async Task<Result> MakeMemberInactive(Guid profileId, Guid teamId)
+    {
+        return await _context.TeamMembers
+            .Where(t => t.ProfileId == profileId && t.TeamId == teamId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(t => t.Status, MemberStatus.Inactive)) > 0
+            ? Result.Success()
+            : Result.Failure("Failed to update member");
+    }
+
     public async Task<int> Count(TeamStatus status =  TeamStatus.Active)
     {
         return await _context.Teams.CountAsync(t => t.Status == status);

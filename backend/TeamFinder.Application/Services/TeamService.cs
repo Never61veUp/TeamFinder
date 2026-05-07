@@ -98,4 +98,12 @@ public class TeamService : ITeamService
         return await _repository.GetById(teamId)
             .Bind(entity => entity.MapToDomain());
     }
+    
+    public async Task<Result> KickMember(Guid initiatorId, Guid profileId)
+    {
+        return await _repository.GetByProfileId(profileId)
+            .Bind(entity => entity.MapToDomain())
+            .Check(team => team.KickMember(initiatorId, profileId))
+            .Bind(team => _repository.MakeMemberInactive(profileId, team.Id));
+    }
 }
