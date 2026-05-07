@@ -59,6 +59,8 @@ public class TeamService : ITeamService
     {
         var teamsCount = await _repository.Count(teamStatus);
         var teams = await _repository.GetAllTeams(teamStatus, from, count);
+        if (teams.IsFailure)
+            return Result.Failure<PagedResult<TeamsResponse>>(teams.Error);
 
         return new PagedResult<TeamsResponse>(teams.Value, teamsCount);
     }
