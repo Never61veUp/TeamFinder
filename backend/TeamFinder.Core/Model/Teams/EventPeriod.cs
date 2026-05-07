@@ -17,7 +17,7 @@ public class EventPeriod : ValueObject
     
     public static Result<EventPeriod> Create(DateOnly? start, DateOnly? end)
     {
-        if (end < start)
+        if (end.GetValueOrDefault() < start.GetValueOrDefault())
             return Result.Failure<EventPeriod>("End date cannot be before start date");
             
         return new EventPeriod(start, end);
