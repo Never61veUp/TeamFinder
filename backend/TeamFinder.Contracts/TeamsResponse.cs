@@ -5,7 +5,7 @@ namespace TeamFinder.Contracts;
 public record TeamsResponse(
     string Name,
     Guid OwnerId,
-    IReadOnlyCollection<Guid> Members,
+    IReadOnlyCollection<Member> Members,
     int MaxMembers,
     string Description,
     EventDetails EventDetails,

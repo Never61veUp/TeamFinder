@@ -14,7 +14,7 @@ public interface ITeamRepository
     Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId);
     Task<Result<IEnumerable<TeamsResponse>>> GetAllTeams(TeamStatus teamStatus, int from = 0, int count = 5);
     Task<Result<TeamEntity>> GetByProfileId(Guid id, TeamStatus status = TeamStatus.Active);
-    Task<Result> DeleteMemberByProfileId(Guid profileId);
+    Task<Result> LeaveTeamByProfileId(Guid profileId);
     Task<Result> MakeInactive(Guid teamId);
     Task<Result> AddMember(Guid teamId, Guid profileId);
     Task<Result<List<TeamEntity>>> GetTeamsByProfileId(Guid id, TeamStatus status = TeamStatus.Active);

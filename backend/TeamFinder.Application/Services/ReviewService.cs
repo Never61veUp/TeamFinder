@@ -34,7 +34,7 @@ public class ReviewService : IReviewService
         
         if(team.Value.Status == TeamStatus.Active)
             return Result.Failure<Review>("Team is still active");
-        if(!team.Value.Members.Contains(profileId))
+        if(team.Value.Members.All(m => m.Id != profileId))
             return Result.Failure<Review>("Only member can create review");
 
         var profile = await _profileRepository.GetById(profileId)

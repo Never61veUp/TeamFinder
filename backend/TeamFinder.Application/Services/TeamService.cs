@@ -82,7 +82,7 @@ public class TeamService : ITeamService
         return await _repository.GetByProfileId(profileId)
             .Bind(entity => entity.MapToDomain())
             .Check(team => team.LeaveTeam(profileId))
-            .Bind(_ => _repository.DeleteMemberByProfileId(profileId));
+            .Bind(_ => _repository.LeaveTeamByProfileId(profileId));
     }
     
     public async Task<Result> MakeInactive(Guid profileId)
