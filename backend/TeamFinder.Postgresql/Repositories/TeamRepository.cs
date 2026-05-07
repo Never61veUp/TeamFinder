@@ -19,6 +19,12 @@ public class TeamRepository : ITeamRepository
 
     public async Task<Result> SaveTeam(TeamEntity team)
     {
+        var isAlreadyInTeam = await _context.Teams.AnyAsync(t => 
+            t.Status == TeamStatus.Active && t.Members.Any(m => m.ProfileId == team.OwnerId));
+        
+        if (isAlreadyInTeam)
+            return Result.Failure("That user is already in a team");
+        
         await _context.Teams.AddAsync(team);
 
         var changes = await _context.SaveChangesAsync();
