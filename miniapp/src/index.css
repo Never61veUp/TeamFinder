@@ -73,6 +73,7 @@ body {
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  padding-top: 0 !important;
 }
 
 body {
