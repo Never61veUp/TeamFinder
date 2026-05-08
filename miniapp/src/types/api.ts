@@ -55,10 +55,11 @@ export interface Tag {
 }
 
 export interface TeamMember {
-  profileId: string | number;
+  profileId?: string | number;
   id: string | number;
-  initials: string;
+  initials?: string;
   name?: string;
+  status?: number;
 }
 
 export interface Team {

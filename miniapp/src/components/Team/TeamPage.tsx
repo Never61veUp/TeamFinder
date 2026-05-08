@@ -83,14 +83,20 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         initPage();
     }, []);
 
+    const activeMembers = useMemo(() => {
+        if (!currentTeam?.members) return [];
+        return currentTeam.members.filter((m: any) => m.status === 1 || m.status === undefined);
+    }, [currentTeam?.members]);
+
     const isCreator = useMemo(() => {
         if (!currentTeam || !myProfile) return false;
         const teamData = currentTeam as any;
         const myId = myProfile.id.toString();
         const ownerId = teamData.ownerId?.toString();
-        const firstMemberId = currentTeam.members?.[0]?.profileId?.toString() || (currentTeam.members?.[0] as any)?.id?.toString();
+
+        const firstMemberId = activeMembers[0]?.profileId?.toString() || (activeMembers[0] as any)?.id?.toString();
         return myId === ownerId || myId === firstMemberId;
-    }, [currentTeam, myProfile]);
+    }, [currentTeam, myProfile, activeMembers]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -237,7 +243,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                         <div className="mb-8">
                             <h3 className="text-lg font-bold text-slate-900 mb-3">Участники</h3>
                             <div className="flex flex-col gap-3">
-                                {currentTeam.members?.map((member: any) => {
+                                {activeMembers.map((member: any) => {
                                     const profileId = typeof member === 'string' ? member : (member.profileId || member.id);
                                     const data = membersData[profileId];
                                     const name = data?.name || "Загрузка...";
@@ -247,7 +253,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                         <div key={profileId} className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-violet-600 font-bold shadow-sm text-lg">
-                                                    {name[0].toUpperCase()}
+                                                    {name && name.length > 0 ? name[0].toUpperCase() : "?"}
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="text-sm font-bold text-slate-900">{name}</span>
