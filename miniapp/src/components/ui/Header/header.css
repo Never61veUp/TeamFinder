@@ -17,6 +17,7 @@
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
+    padding-top: calc(var(--tg-safe-area-inset-top, 0px) + 20px) !important;
 }
 
 .team-title {
