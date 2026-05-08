@@ -14,7 +14,8 @@
 /* === HEADER === */
 .profile-header {
 	width: 100%;
-	height: 220px;
+	height: auto !important;
+	min-height: 200px;
 	background: linear-gradient(90deg, #6b48ff 0%, #823cf4 50%, #a03af0 100%);
 	border-bottom-left-radius: 30px;
 	border-bottom-right-radius: 30px;
@@ -27,14 +28,14 @@
 	position: relative;
 	padding-top: calc(var(--tg-safe-area-inset-top, 0px) + 20px) !important;
 	margin-top: 0 !important;
-	padding-bottom: 20px;
+	padding-bottom: 30px;
 }
 
 .avatar-container {
 	width: 100px;
 	height: 100px;
 	margin-bottom: 12px;
-	top: calc(var(--tg-safe-area-inset-top, 0px) + 10px) !important;
+	position: relative;
 }
 
 .avatar-img,
@@ -49,6 +50,7 @@
 	font-weight: bold;
 	font-size: 34px;
 	color: #7c3aed;
+	object-fit: cover;
 }
 
 .profile-name {
@@ -76,7 +78,7 @@
 	align-items: center;
 	justify-content: center;
 	transition: background 0.2s;
-	top: calc(var(--tg-safe-area-inset-top, 0px) + 10px) !important;
+	top: calc(var(--tg-safe-area-inset-top, 0px) + 15px) !important;
 }
 
 .profile-bell-btn:active {
