@@ -6,7 +6,7 @@ import { TagsInput } from './TagsInput';
 import { httpClient } from '../../lib/http-client';
 import { teamService } from '../../types/api';
 import type { Team, Tag, CreateTeamRequest, ProfileWithGithub } from '../../types/api';
-import { LogOut, Trash2, Loader2 } from 'lucide-react';
+import { LogOut, Trash2, Loader2, Calendar } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
 import { RatingStars } from '../ui/RatingStars';
@@ -168,6 +168,21 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         catch (e) { return '—'; }
     };
 
+    const handleDateClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const input = e.currentTarget.querySelector('input');
+        if (input) {
+            if ('showPicker' in HTMLInputElement.prototype) {
+                try {
+                    input.showPicker();
+                } catch (error) {
+                    input.focus();
+                }
+            } else {
+                input.focus();
+            }
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -283,11 +298,54 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="form-group">
                                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Начало</label>
-                                <input name="startDate" type="date" min={today} max={maxDate} value={formData.startDate} onChange={handleChange} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm" />
+                                <div
+                                    onClick={handleDateClick}
+                                    className="relative flex items-center group cursor-pointer"
+                                >
+                                    <input
+                                        name="startDate"
+                                        type="date"
+                                        min={today}
+                                        max={maxDate}
+                                        value={formData.startDate}
+                                        onChange={handleChange}
+                                        className="w-full p-3 pr-10 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none
+                           transition-all duration-200
+                           group-hover:bg-white group-hover:border-violet-300
+                           focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white"
+                                    />
+                                    <Calendar
+                                        size={16}
+                                        className="absolute right-3 text-slate-400 transition-colors duration-200
+                           group-hover:text-violet-500 pointer-events-none"
+                                    />
+                                </div>
                             </div>
+
                             <div className="form-group">
                                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Конец</label>
-                                <input name="endDate" type="date" min={formData.startDate || today} max={maxDate} value={formData.endDate} onChange={handleChange} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm" />
+                                <div
+                                    onClick={handleDateClick}
+                                    className="relative flex items-center group cursor-pointer"
+                                >
+                                    <input
+                                        name="endDate"
+                                        type="date"
+                                        min={formData.startDate || today}
+                                        max={maxDate}
+                                        value={formData.endDate}
+                                        onChange={handleChange}
+                                        className="w-full p-3 pr-10 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none
+                           transition-all duration-200
+                           group-hover:bg-white group-hover:border-violet-300
+                           focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white"
+                                    />
+                                    <Calendar
+                                        size={16}
+                                        className="absolute right-3 text-slate-400 transition-colors duration-200
+                           group-hover:text-violet-500 pointer-events-none"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -310,7 +368,6 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                 </form>
             )}
 
-            {/* ШТОРКА ПРОФИЛЯ */}
             <ProfileModal
                 profile={selectedProfile}
                 onClose={() => setSelectedProfile(null)}
