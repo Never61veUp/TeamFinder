@@ -1,7 +1,6 @@
 .team-header {
     width: 100%;
     background: linear-gradient(90deg, #6b48ff 0%, #823cf4 50%, #a03af0 100%);
-    padding: 24px 20px;
     margin-bottom: 50px;
     color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -9,6 +8,7 @@
     border-bottom-right-radius: 20px;
     top: 0;
     z-index: 100;
+    padding: calc(var(--tg-safe-area-inset-top, 0px) + 16px) 16px 16px;
 }
 
 .team-header-content {

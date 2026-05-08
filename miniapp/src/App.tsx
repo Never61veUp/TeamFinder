@@ -36,7 +36,7 @@ function App() {
                 }
             }
         } catch (e) {
-            console.error("WebApp initialization error", e);
+            console.error("Ошибка инициализации:", e);
         }
     }, []);
 
