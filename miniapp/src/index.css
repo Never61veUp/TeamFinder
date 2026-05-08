@@ -23,6 +23,9 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --tg-theme-bg-color: #ffffff;
+  --tg-safe-area-inset-top: 0px;
+  --tg-safe-area-inset-bottom: 0px;
 
   --tg-viewport-height: 100dvh;
 }
@@ -60,6 +63,7 @@ body {
   flex-direction: column;
   box-sizing: border-box;
   text-align: left;
+  background-color: var(--tg-theme-bg-color, #ffffff);
 }
 
 .main-scroll-area {
@@ -70,6 +74,8 @@ body {
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  padding-top: var(--tg-safe-area-inset-top, 0px);
+  padding-bottom: var(--tg-safe-area-inset-bottom, 0px);
 }
 
 body {
