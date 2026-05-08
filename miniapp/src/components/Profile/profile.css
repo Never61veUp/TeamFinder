@@ -32,10 +32,14 @@
 }
 
 .avatar-container {
-	width: 100px;
-	height: 100px;
+	width: 100px !important;
+	height: 100px !important;
+	flex-shrink: 0;
 	margin-bottom: 12px;
-	position: relative;
+	border-radius: 50%;
+	overflow: hidden;
+	background: #e5e7eb;
+	border: 3px solid rgba(255, 255, 255, 0.2);
 }
 
 .avatar-img,
@@ -68,7 +72,7 @@
 
 .profile-bell-btn {
 	position: absolute;
-	right: 20px;
+	right: 40px;
 	background: rgba(255, 255, 255, 0.2);
 	border: none;
 	border-radius: 12px;
@@ -78,7 +82,8 @@
 	align-items: center;
 	justify-content: center;
 	transition: background 0.2s;
-	top: calc(var(--tg-safe-area-inset-top, 0px) + 15px) !important;
+	top: calc(var(--tg-safe-area-inset-top, 0px) + 25px) !important;
+	z-index: 10;
 }
 
 .profile-bell-btn:active {
