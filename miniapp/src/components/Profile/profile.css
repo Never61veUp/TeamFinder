@@ -74,6 +74,7 @@
 	position: absolute;
 	background: rgba(255, 255, 255, 0.2);
 	border: none;
+	right: 20px;
 	border-radius: 12px;
 	padding: 8px;
 	cursor: pointer;
@@ -81,7 +82,7 @@
 	align-items: center;
 	justify-content: center;
 	transition: background 0.2s;
-	top: calc(var(--tg-safe-area-inset-top, 0px) + 45px) !important;
+	top: calc(var(--tg-safe-area-inset-top, 0px) + 65px) !important;
 	z-index: 10;
 }
 
