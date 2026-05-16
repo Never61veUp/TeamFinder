@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { Team } from '../../types/api'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
@@ -15,7 +15,7 @@ interface TeamCardProps {
     isAlreadyMember?: boolean;
 }
 
-export function TeamCard({ team, isAlreadyMember }: TeamCardProps) {
+export function TeamCard({ team, myProfileId, isAlreadyMember }: TeamCardProps) {
     const [showDetails, setShowDetails] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
     const [alreadyJoined, setAlreadyJoined] = useState(false);
@@ -25,6 +25,15 @@ export function TeamCard({ team, isAlreadyMember }: TeamCardProps) {
     const [previewProfileId, setPreviewProfileId] = useState<string | null>(null);
 
     const storageKey = `req_sent_${team.id}`;
+
+    const myTeamStatus = useMemo(() => {
+        if (!team.members || !myProfileId) return null;
+        const found = team.members.find((m: any) => {
+            const memberId = typeof m === 'string' ? m : (m.profileId || m.id);
+            return String(memberId) === String(myProfileId);
+        });
+        return found && found.status !== undefined ? found.status : null;
+    }, [team.members, myProfileId]);
 
     useEffect(() => {
         const hasLocalRecord = localStorage.getItem(storageKey) === 'true';
@@ -99,12 +108,27 @@ export function TeamCard({ team, isAlreadyMember }: TeamCardProps) {
         }
     };
 
-
     const currentCount = team.currentMembers || team.members?.length || 1;
     const description = team.description || 'Описание отсутствует';
     const eventTitle = team.eventDetails?.title;
     const period = team.eventDetails?.period;
     const teamTags = team.eventDetails?.tags || [];
+
+    const renderCardButtonText = () => {
+        if (myTeamStatus === 0) return 'Покинули';
+        if (isAlreadyMember || myTeamStatus === 1) return 'Вы в команде';
+        if (alreadyJoined) return 'Заявка подана';
+        return 'Подробнее';
+    };
+
+    const renderModalButtonText = () => {
+        if (myTeamStatus === 0) return 'Доступ закрыт';
+        if (isAlreadyMember || myTeamStatus === 1) return 'Вы уже в команде';
+        if (alreadyJoined) return 'Заявка уже отправлена';
+        return 'Подать заявку';
+    };
+
+    const isButtonDisabled = alreadyJoined || isAlreadyMember || myTeamStatus === 1 || myTeamStatus === 0;
 
     return (
         <div className="team-card">
@@ -140,11 +164,9 @@ export function TeamCard({ team, isAlreadyMember }: TeamCardProps) {
                 variant="primary"
                 className="team-card-btn"
                 onClick={() => setShowDetails(true)}
-                disabled={alreadyJoined}
+                disabled={isButtonDisabled && myTeamStatus !== 0}
             >
-                {alreadyJoined
-                    ? (isAlreadyMember ? 'Вы в команде' : 'Заявка подана')
-                    : 'Подробнее'}
+                {renderCardButtonText()}
             </Button>
 
             {showDetails && (
@@ -246,9 +268,9 @@ export function TeamCard({ team, isAlreadyMember }: TeamCardProps) {
                                     onClick={handleJoin}
                                     isLoading={isJoining}
                                     className="w-full"
-                                    disabled={alreadyJoined}
+                                    disabled={isButtonDisabled}
                                 >
-                                    {alreadyJoined ? 'Заявка уже отправлена' : 'Подать заявку'}
+                                    {renderModalButtonText()}
                                 </Button>
                             </div>
                             <Button variant="ghost" onClick={() => setShowDetails(false)}>
