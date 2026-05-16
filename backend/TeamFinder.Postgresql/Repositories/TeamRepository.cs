@@ -185,6 +185,7 @@ public class TeamRepository : ITeamRepository
     public async Task<Result<TeamEntity>> GetByProfileId(Guid id, TeamStatus status = TeamStatus.Active)
     {
         var entity = await _context.Teams
+            .AsNoTracking()
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
@@ -208,6 +209,7 @@ public class TeamRepository : ITeamRepository
     public async Task<Result<List<TeamEntity>>> GetTeamsByProfileId(Guid id, TeamStatus status = TeamStatus.Active)
     {
         var entity = await _context.Teams
+            .AsNoTracking()
             .Include(t => t.Members)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
