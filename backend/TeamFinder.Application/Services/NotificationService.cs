@@ -4,7 +4,7 @@ namespace TeamFinder.Application.Services;
 
 public interface INotificationService
 {
-    Task NotifyProfileAsync(Guid profileId, string text);
+    Task NotifyProfileAsync(Guid profileId, string text, string additionalUrl = "");
 }
 
 public class NotificationService : INotificationService
@@ -18,7 +18,7 @@ public class NotificationService : INotificationService
         _profileRepository = profileRepository;
     }
     
-    public async Task NotifyProfileAsync(Guid profileId, string text)
+    public async Task NotifyProfileAsync(Guid profileId, string text, string additionalUrl = "")
     {
         var tgIdResult = await _profileRepository
             .GetTgIdByProfileId(profileId);
@@ -27,7 +27,8 @@ public class NotificationService : INotificationService
         {
             await _sender.SendTextMessageAsync(
                 tgIdResult.Value,
-                text);
+                text,
+                additionalUrl);
         }
     }
 }

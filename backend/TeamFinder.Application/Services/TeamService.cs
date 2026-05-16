@@ -11,14 +11,15 @@ namespace TeamFinder.Application.Services;
 public class TeamService : ITeamService
 {
     private readonly ITeamRepository _teamRepository;
-    private readonly IProfileRepository _profileRepository;
     private readonly INotificationService _notificationService;
+    private readonly ITelegramNotificationTemplate _telegramNotificationTemplate;
 
-    public TeamService(ITeamRepository teamRepository, IProfileRepository profileRepository, INotificationService notificationService)
+    public TeamService(ITeamRepository teamRepository, IProfileRepository profileRepository, 
+        INotificationService notificationService, ITelegramNotificationTemplate telegramNotificationTemplate)
     {
         _teamRepository = teamRepository;
-        _profileRepository = profileRepository;
         _notificationService = notificationService;
+        _telegramNotificationTemplate = telegramNotificationTemplate;
     }
 
     public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description, string? eventTitle, DateOnly? eventStart, DateOnly? eventEnd,
@@ -36,16 +37,24 @@ public class TeamService : ITeamService
 
     public async Task<Result> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
     {
-        var result = await _teamRepository.GetById(teamId)
+        var teamResult = await _teamRepository.GetById(teamId);
+        if(teamResult.IsFailure)
+            return teamResult;
+        
+        var result = await teamResult
             .Bind(entity => entity.MapToDomain())
             .Bind(team => team.SendInvitation(inviterId, inviteeId))
             .Map(invite => invite.MapToEntity())
             .Bind(invitationEntity => _teamRepository.AddInvitation(invitationEntity));
-        
+
         if (result.IsSuccess)
+        {
+            var message = _telegramNotificationTemplate.CreateTeamInvitationMessage(teamResult.Value.Name,
+                teamResult.Value.Members.FirstOrDefault(m => m.ProfileId == inviterId)?.Profile.UserName);
             await _notificationService.NotifyProfileAsync(
                 inviteeId,
-                "Вам пришло новое приглашение в команду!");
+                message);
+        }
 
         return result;
     }
@@ -59,26 +68,38 @@ public class TeamService : ITeamService
         
         var requestResult = await teamResult.Value.RequestToJoin(profileId)
             .Bind(_ => _teamRepository.AddJoinRequest(teamId, profileId));
-        
+
         if (requestResult.IsSuccess)
+        {
+            var message =
+                _telegramNotificationTemplate.CreateNewJoinRequestMessage(teamResult.Value.Name);
             await _notificationService.NotifyProfileAsync(
                 teamResult.Value.OwnerId,
-                "Вам пришла новая заявка в команду!");
+                message);
+        }
 
         return requestResult;
     }
     
     public async Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId, Guid acceptInitiatorId)
     {
-        var acceptResult = await _teamRepository.GetById(teamId)
+        var teamResult = await _teamRepository.GetById(teamId);
+        if (teamResult.IsFailure)
+            return teamResult;
+        
+        var acceptResult = await teamResult
             .Bind(entity => entity.MapToDomain())
             .Check(team => team.AcceptJoinRequest(profileId, acceptInitiatorId))
             .Bind(_ => _teamRepository.AcceptJoinRequest(teamId, profileId));
-        
+
         if (acceptResult.IsSuccess)
+        {
+            var message = _telegramNotificationTemplate.CreateJoinRequestAcceptedMessage(teamResult.Value.Name);
             await _notificationService.NotifyProfileAsync(
                 profileId,
-                "Ваша заявка в команду была принята!");
+                message,
+                additionalUrl: "/create");
+        }
 
         return acceptResult;
     }
@@ -126,13 +147,15 @@ public class TeamService : ITeamService
             .Bind(teamId => _teamRepository.MakeInactive(teamId));
         if (inactiveResult.IsFailure) 
             return inactiveResult;
-        
+
+        var message = _telegramNotificationTemplate.CreateTeamDisbandedMessage(teamResult.Value.Name);
         var notifyTasks = team.Members
             .Where(x => x.Id != profileId)
             .Select(member =>
                 _notificationService.NotifyProfileAsync(
                     member.Id,
-                    "Команда была расформирована"));
+                    message,
+                    additionalUrl: "/profile")).ToList();
 
         await Task.WhenAll(notifyTasks);
 
@@ -147,15 +170,23 @@ public class TeamService : ITeamService
     
     public async Task<Result> KickMember(Guid initiatorId, Guid profileId)
     {
-        var kickResult = await _teamRepository.GetByProfileId(profileId)
+        var teamResult = await _teamRepository.GetByProfileId(profileId);
+        if(teamResult.IsFailure)
+            return teamResult;
+        
+        var kickResult = await teamResult
             .Bind(entity => entity.MapToDomain())
             .Check(team => team.KickMember(initiatorId, profileId))
             .Bind(team => _teamRepository.MakeMemberInactive(profileId, team.Id));
-        
+
         if (kickResult.IsSuccess)
+        {
+            var message = _telegramNotificationTemplate.CreateKickedFromTeamMessage(teamResult.Value.Name);
             await _notificationService.NotifyProfileAsync(
                 profileId,
-                "Вас исключили из команды!");
+                message,
+                additionalUrl: "/profile");
+        }
 
         return kickResult;
     }

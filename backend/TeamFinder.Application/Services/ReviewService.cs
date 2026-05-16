@@ -21,14 +21,16 @@ public class ReviewService : IReviewService
     private readonly IReviewRepository _reviewRepository;
     private readonly IProfileRepository _profileRepository;
     private readonly INotificationService _notificationService;
+    private readonly ITelegramNotificationTemplate _telegramNotificationTemplate;
 
     public ReviewService(ITeamRepository teamRepository, IReviewRepository reviewRepository, 
-        IProfileRepository profileRepository, INotificationService notificationService)
+        IProfileRepository profileRepository, INotificationService notificationService, ITelegramNotificationTemplate telegramNotificationTemplate)
     {
         _teamRepository = teamRepository;
         _reviewRepository = reviewRepository;
         _profileRepository = profileRepository;
         _notificationService = notificationService;
+        _telegramNotificationTemplate = telegramNotificationTemplate;
     }
     
     public async Task<Result> CreateReview(Guid teamId, Guid profileId, Guid reviewerId, int ratingValue, string comment)
@@ -50,9 +52,13 @@ public class ReviewService : IReviewService
         
         var reviewResult = await _reviewRepository.AddReview(review.Value.ToEntity(), profile.Value.Rating);
         if (reviewResult.IsSuccess)
+        {
+            var message = _telegramNotificationTemplate.CreateReviewReceivedMessage(review.Value.Rating.Value, review.Value.Comment);
             await _notificationService.NotifyProfileAsync(
                 profileId,
-                "Вам оставили новый отзыв");
+                message,
+                additionalUrl: "/profile");
+        }
         
         return reviewResult;
     }

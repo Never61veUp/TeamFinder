@@ -9,7 +9,7 @@ namespace TeamFinder.Application.Services;
 
 public interface ITelegramSender
 {
-    Task SendTextMessageAsync(long userId, string message);
+    Task SendTextMessageAsync(long userId, string message, string additionalUrl = "");
 }
 
 public class TelegramSender : ITelegramSender
@@ -24,15 +24,22 @@ public class TelegramSender : ITelegramSender
         _logger = logger;
     }
     
-    public async Task SendTextMessageAsync(long userId, string message)
+    public async Task SendTextMessageAsync(long userId, string message, string additionalUrl = "")
     {
+        const string baseUrl = "https://teamfinder.mixdev.me";
+        var cleanAdditionalUrl = additionalUrl.TrimStart('/');
+
+        var url = string.IsNullOrEmpty(cleanAdditionalUrl) 
+            ? baseUrl 
+            : $"{baseUrl}/{cleanAdditionalUrl}";
+        
         try
         {
             var inlineKeyboard = new InlineKeyboardMarkup([
                 [
                     InlineKeyboardButton.WithWebApp(
                         text: "Открыть",
-                        webApp: new WebAppInfo { Url = "https://teamfinder.mixdev.me/" }
+                        webApp: new WebAppInfo { Url = url }
                     )
                 ]
             ]);
@@ -40,6 +47,7 @@ public class TelegramSender : ITelegramSender
             await _botClient.SendMessage(
                 chatId: userId,
                 text: message,
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.Html,
                 replyMarkup: inlineKeyboard
             );
             
@@ -47,7 +55,7 @@ public class TelegramSender : ITelegramSender
         }
         catch (Exception ex)
         {
-            _logger.Log(LogLevel.Error, ex, "Telegram notification failed");
+            _logger.Log(LogLevel.Error, ex, "Telegram notification failed for user {UserId}", userId);
         }
     }
 }
