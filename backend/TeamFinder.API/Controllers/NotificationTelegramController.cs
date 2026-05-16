@@ -7,9 +7,9 @@ namespace TeamFinder.API.Controllers;
 [Route("api/telegramNotification")]
 public class NotificationTelegramController : BaseController
 {
-    private readonly ITelegramNotificationService _service;
+    private readonly ITelegramSender _service;
 
-    public NotificationTelegramController(ITelegramNotificationService service)
+    public NotificationTelegramController(ITelegramSender service)
     {
         _service = service;
     }
@@ -17,7 +17,7 @@ public class NotificationTelegramController : BaseController
     [HttpPost]
     public async Task<IActionResult> SendNotification([FromBody]TelegramNotificationRequest request)
     {
-        await _service.SendTextNotificationAsync(request.UserId, request.Text);
+        await _service.SendTextMessageAsync(request.UserId, request.Text);
         return Ok();
     }
 }

@@ -7,24 +7,24 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TeamFinder.Application.Services;
 
-public interface ITelegramNotificationService
+public interface ITelegramSender
 {
-    Task SendTextNotificationAsync(long userId, string message);
+    Task SendTextMessageAsync(long userId, string message);
 }
 
-public class TelegramNotificationService : ITelegramNotificationService
+public class TelegramSender : ITelegramSender
 {
-    private readonly ILogger<TelegramNotificationService> _logger;
+    private readonly ILogger<TelegramSender> _logger;
     private readonly TelegramBotClient _botClient;
 
-    public TelegramNotificationService(IOptions<TelegramOptions> options, ILogger<TelegramNotificationService> logger)
+    public TelegramSender(IOptions<TelegramOptions> options, ILogger<TelegramSender> logger)
     {
         var token = options.Value.BotToken;
         _botClient = new TelegramBotClient(token);
         _logger = logger;
     }
     
-    public async Task SendTextNotificationAsync(long userId, string message)
+    public async Task SendTextMessageAsync(long userId, string message)
     {
         try
         {
