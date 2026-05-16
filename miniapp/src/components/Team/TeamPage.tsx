@@ -214,7 +214,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
             <Header title={currentTeam ? "Моя команда" : "Создать команду"} onNotificationClick={onOpenNotif} />
 
             {currentTeam ? (
-                <div className="px-4 pt-6 overflow-y-auto h-full pb-20">
+                <div className="px-4 pt-6 pb-20">
                     <div className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100">
                         <div className="text-center mb-6">
                             <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">{currentTeam.name}</h2>
