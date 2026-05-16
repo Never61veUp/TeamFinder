@@ -47,7 +47,9 @@ public class ReviewRepository : IReviewRepository
         {
             var results = await _context.Reviews
                 .AsNoTracking()
-                .Where(r => r.TargetId == targetProfileId).ToListAsync();
+                .Where(r => r.TargetId == targetProfileId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
             return Result.Success(results);
         }
         catch (Exception)
