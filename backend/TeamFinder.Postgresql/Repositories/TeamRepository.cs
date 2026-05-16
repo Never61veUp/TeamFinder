@@ -190,7 +190,7 @@ public class TeamRepository : ITeamRepository
             .Include(t => t.Invitations)
             .Include(t => t.JoinRequests)
             .FirstOrDefaultAsync(t => 
-                (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id)) 
+                (t.OwnerId == id || t.Members.Any(m => m.ProfileId == id && m.Status == MemberStatus.Active)) 
                 && t.Status == status
             );
         if (entity == null)
