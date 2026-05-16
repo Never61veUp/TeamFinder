@@ -20,12 +20,15 @@ public class ReviewService : IReviewService
     private readonly ITeamRepository _teamRepository;
     private readonly IReviewRepository _reviewRepository;
     private readonly IProfileRepository _profileRepository;
+    private readonly INotificationService _notificationService;
 
-    public ReviewService(ITeamRepository teamRepository, IReviewRepository reviewRepository, IProfileRepository profileRepository)
+    public ReviewService(ITeamRepository teamRepository, IReviewRepository reviewRepository, 
+        IProfileRepository profileRepository, INotificationService notificationService)
     {
         _teamRepository = teamRepository;
         _reviewRepository = reviewRepository;
         _profileRepository = profileRepository;
+        _notificationService = notificationService;
     }
     
     public async Task<Result> CreateReview(Guid teamId, Guid profileId, Guid reviewerId, int ratingValue, string comment)
@@ -45,7 +48,13 @@ public class ReviewService : IReviewService
         if (review.IsFailure)
             return Result.Failure<Review>(review.Error);
         
-        return await _reviewRepository.AddReview(review.Value.ToEntity(), profile.Value.Rating);
+        var reviewResult = await _reviewRepository.AddReview(review.Value.ToEntity(), profile.Value.Rating);
+        if (reviewResult.IsSuccess)
+            await _notificationService.NotifyProfileAsync(
+                profileId,
+                "Вам оставили новый отзыв");
+        
+        return reviewResult;
     }
     
     public async Task<Result<List<ReviewResponse>>> GetReviewsByProfileId(Guid profileId)

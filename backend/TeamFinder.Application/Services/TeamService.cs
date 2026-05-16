@@ -12,9 +12,9 @@ public class TeamService : ITeamService
 {
     private readonly ITeamRepository _teamRepository;
     private readonly IProfileRepository _profileRepository;
-    private readonly ITelegramNotificationService _notificationService;
+    private readonly INotificationService _notificationService;
 
-    public TeamService(ITeamRepository teamRepository, IProfileRepository profileRepository, ITelegramNotificationService notificationService)
+    public TeamService(ITeamRepository teamRepository, IProfileRepository profileRepository, INotificationService notificationService)
     {
         _teamRepository = teamRepository;
         _profileRepository = profileRepository;
@@ -43,7 +43,7 @@ public class TeamService : ITeamService
             .Bind(invitationEntity => _teamRepository.AddInvitation(invitationEntity));
         
         if (result.IsSuccess)
-            await TryNotify(
+            await _notificationService.NotifyProfileAsync(
                 inviteeId,
                 "Вам пришло новое приглашение в команду!");
 
@@ -61,7 +61,7 @@ public class TeamService : ITeamService
             .Bind(_ => _teamRepository.AddJoinRequest(teamId, profileId));
         
         if (requestResult.IsSuccess)
-            await TryNotify(
+            await _notificationService.NotifyProfileAsync(
                 teamResult.Value.OwnerId,
                 "Вам пришла новая заявка в команду!");
 
@@ -76,7 +76,7 @@ public class TeamService : ITeamService
             .Bind(_ => _teamRepository.AcceptJoinRequest(teamId, profileId));
         
         if (acceptResult.IsSuccess)
-            await TryNotify(
+            await _notificationService.NotifyProfileAsync(
                 profileId,
                 "Ваша заявка в команду была принята!");
 
@@ -130,7 +130,7 @@ public class TeamService : ITeamService
         var notifyTasks = team.Members
             .Where(x => x.Id != profileId)
             .Select(member =>
-                TryNotify(
+                _notificationService.NotifyProfileAsync(
                     member.Id,
                     "Команда была расформирована"));
 
@@ -153,23 +153,10 @@ public class TeamService : ITeamService
             .Bind(team => _teamRepository.MakeMemberInactive(profileId, team.Id));
         
         if (kickResult.IsSuccess)
-            await TryNotify(
+            await _notificationService.NotifyProfileAsync(
                 profileId,
                 "Вас исключили из команды!");
 
         return kickResult;
-    }
-    
-    private async Task TryNotify(Guid profileId, string text)
-    {
-        var tgIdResult = await _profileRepository
-            .GetTgIdByProfileId(profileId);
-
-        if (tgIdResult.IsSuccess)
-        {
-            await _notificationService.SendTextNotificationAsync(
-                tgIdResult.Value,
-                text);
-        }
     }
 }
