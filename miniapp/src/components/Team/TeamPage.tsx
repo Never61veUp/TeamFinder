@@ -90,13 +90,10 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
 
     const isCreator = useMemo(() => {
         if (!currentTeam || !myProfile) return false;
-        const teamData = currentTeam as any;
-        const myId = myProfile.id.toString();
-        const ownerId = teamData.ownerId?.toString();
-
-        const firstMemberId = activeMembers[0]?.profileId?.toString() || (activeMembers[0] as any)?.id?.toString();
-        return myId === ownerId || myId === firstMemberId;
-    }, [currentTeam, myProfile, activeMembers]);
+        const myId = myProfile.id.toString().toLowerCase();
+        const ownerId = currentTeam.ownerId?.toString().toLowerCase();
+        return myId === ownerId;
+    }, [currentTeam, myProfile]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -154,7 +151,6 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         setIsSubmitting(true);
         try {
             await teamService.kickMember(profileId);
-            // Если запрос успешен, запрашиваем свежие данные команды
             const freshTeamRes = await teamService.getMyTeam();
             if (freshTeamRes) setCurrentTeam(freshTeamRes);
         } catch (err) {
