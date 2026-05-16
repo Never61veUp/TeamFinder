@@ -346,15 +346,19 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                                 </Button>
                             </div>
                         ))}
-
-                        {hasMore && !searchQuery && selectedSkills.length === 0 && (
-                            <Button onClick={handleLoadMore} disabled={isLoadingMore}>
-                                {isLoadingMore ? 'Загрузка...' : 'Показать ещё'}
-                            </Button>
-                        )}
                     </>
                 )}
             </div>
+
+            {hasMore && !searchQuery && selectedSkills.length === 0 && !isLoading && profiles.length > 0 && (
+                <div className="load-more-container">
+                    <Button className="load-more-btn" onClick={handleLoadMore} disabled={isLoadingMore}>
+                        {isLoadingMore ? 'Загрузка...' : 'Показать ещё'}
+                    </Button>
+                </div>
+            )}
+
+            <div className="bottom-spacer" />
 
             <ProfileModal
                 profile={selectedProfile}

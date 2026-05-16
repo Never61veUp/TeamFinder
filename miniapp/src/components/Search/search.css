@@ -2,7 +2,6 @@
 .search-page {
     min-height: 100vh;
     background-color: #f8fafc;
-    padding-bottom: 90px;
 }
 
 /* Контейнер поиска на шапке */
@@ -236,6 +235,27 @@
     margin-top: 24px !important;
     border-radius: 16px !important;
     height: 48px !important;
+}
+
+.load-more-container {
+    padding: 0 16px;
+    margin-top: 16px;
+    position: relative;
+    z-index: 10;
+}
+
+.load-more-btn {
+    width: 100% !important;
+    border-radius: 16px !important;
+    height: 48px !important;
+    font-weight: 700 !important;
+}
+
+.bottom-spacer {
+    height: 100px;
+    width: 100%;
+    flex-shrink: 0;
+    pointer-events: none;
 }
 
 .empty-state {
