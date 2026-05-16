@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TeamFinder.API.Options;
+namespace TeamFinder.Application.Options;
 
 public record GitHubOptions
 {
