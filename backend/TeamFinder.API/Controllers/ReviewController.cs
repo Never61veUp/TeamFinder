@@ -43,6 +43,15 @@ public class ReviewController : BaseController
             ? BadRequest(result.Error) 
             : Ok(result.Value);
     }
+    
+    [HttpGet("leftByMe")]
+    public async Task<IActionResult> GetLeftByMeReviews()
+    {
+        var result = await _reviewService.GetLeftByMe(CurrentProfileId);
+        return result.IsFailure 
+            ? BadRequest(result.Error) 
+            : Ok(result.Value);
+    }
 }
 
 public record CreateReviewRequest(Guid TeamId, Guid TargetProfileId, int Rating, string Comment);

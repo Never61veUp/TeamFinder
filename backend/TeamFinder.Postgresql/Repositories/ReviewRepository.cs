@@ -9,6 +9,7 @@ public interface IReviewRepository
 {
     Task<Result> AddReview(ReviewEntity review, double profileRating);
     Task<Result<List<ReviewEntity>>> GetByProfileId(Guid targetProfileId);
+    Task<Result<List<ReviewEntity>>> GetLeftByMeReviews(Guid myProfileId);
 }
 
 public class ReviewRepository : IReviewRepository
@@ -47,6 +48,21 @@ public class ReviewRepository : IReviewRepository
             var results = await _context.Reviews
                 .AsNoTracking()
                 .Where(r => r.TargetId == targetProfileId).ToListAsync();
+            return Result.Success(results);
+        }
+        catch (Exception)
+        {
+            return Result.Failure<List<ReviewEntity>>("Failed to retrieve reviews");
+        }
+    }
+
+    public async Task<Result<List<ReviewEntity>>> GetLeftByMeReviews(Guid myProfileId)
+    {
+        try
+        {
+            var results = await _context.Reviews
+                .AsNoTracking()
+                .Where(r => r.ReviewerId == myProfileId).ToListAsync();
             return Result.Success(results);
         }
         catch (Exception)

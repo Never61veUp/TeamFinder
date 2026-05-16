@@ -12,6 +12,7 @@ public interface IReviewService
 {
     Task<Result> CreateReview(Guid teamId, Guid profileId, Guid reviewerId, int rating, string comment);
     Task<Result<List<ReviewResponse>>> GetReviewsByProfileId(Guid profileId);
+    Task<Result<List<ReviewResponse>>> GetLeftByMe(Guid profileId);
 }
 
 public class ReviewService : IReviewService
@@ -50,6 +51,31 @@ public class ReviewService : IReviewService
     public async Task<Result<List<ReviewResponse>>> GetReviewsByProfileId(Guid profileId)
     {
         var reviews = await _reviewRepository.GetByProfileId(profileId)
+            .Bind(reviews => reviews.MapToDomainList(r => r.ToDomain()));
+        
+        var reviewerIds = reviews.Value.Select(r => r.ReviewerId).Distinct().ToList();
+        
+        var profilesResult = await _profileRepository.GetNamesByIds(reviewerIds);
+        var namesDict = profilesResult.IsSuccess 
+            ? profilesResult.Value 
+            : new Dictionary<Guid, string>();
+        //TODO DateTime
+        var reviewResponses = reviews.Value.Select(r => new ReviewResponse(
+            r.Id,
+            r.ReviewerId, 
+            namesDict.GetValueOrDefault(r.ReviewerId) ?? "Аноним", 
+            r.Rating.Value, 
+            r.Comment, 
+            r.TeamId,
+            r.ProfileId,
+            DateTime.UtcNow)).ToList();
+
+        return Result.Success(reviewResponses);
+    }
+    
+    public async Task<Result<List<ReviewResponse>>> GetLeftByMe(Guid profileId)
+    {
+        var reviews = await _reviewRepository.GetLeftByMeReviews(profileId)
             .Bind(reviews => reviews.MapToDomainList(r => r.ToDomain()));
         
         var reviewerIds = reviews.Value.Select(r => r.ReviewerId).Distinct().ToList();
