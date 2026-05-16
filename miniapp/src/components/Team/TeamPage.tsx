@@ -4,13 +4,13 @@ import { Badge } from '../ui/Badge';
 import { Header } from '../ui/Header/Header';
 import { TagsInput } from './TagsInput';
 import { httpClient } from '../../lib/http-client';
-import { teamService } from '../../types/api';
 import type { Team, Tag, CreateTeamRequest, ProfileWithGithub } from '../../types/api';
 import { LogOut, Trash2, Loader2, Calendar, UserMinus } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
 import { RatingStars } from '../ui/RatingStars';
 import './team.css';
+import {teamService} from "../../services/team.service.ts";
 
 interface TeamPageProps {
     onOpenNotif?: () => void;

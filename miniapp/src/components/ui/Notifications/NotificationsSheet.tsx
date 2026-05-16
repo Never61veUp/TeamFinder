@@ -1,10 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {Button} from '../Button';
 import type {Team} from '../../../types/api';
-import {teamService} from '../../../types/api';
 import {invitationsService} from '../../../services/invitations.service';
 import {acceptJoinRequest} from '../../../services/feed.service';
 import './notifications.css';
+import {teamService} from "../../../services/team.service.ts";
 
 interface NotificationsSheetProps {
     isOpen: boolean;

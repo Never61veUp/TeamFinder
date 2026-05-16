@@ -5,12 +5,13 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { searchService } from '../../services/search.service';
 import { invitationsService } from '../../services/invitations.service';
-import { type Skill, teamService } from '../../types/api';
+import { type Skill } from '../../types/api';
 import type { Profile, Team } from '../../types/api';
 import { RatingStars } from '../ui/RatingStars';
 import './search.css';
 import { profileService } from "../../services";
 import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
+import {teamService} from "../../services/team.service.ts";
 
 interface SearchPageProps {
     onOpenNotif: () => void;

@@ -8,4 +8,7 @@ export const reviewService = {
     getMy() {
         return httpClient.get<Review[]>(`/reviews/`);
     },
+    getByMe() {
+        return httpClient.get<Review[]>('/reviews/leftByMe');
+    }
 }

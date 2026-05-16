@@ -1,5 +1,3 @@
-import { httpClient } from '../lib/http-client';
-
 export interface AuthResponse {
   token: string
 }
@@ -55,8 +53,8 @@ export interface Tag {
 }
 
 export interface TeamMember {
-  profileId?: string | number;
-  id: string | number;
+  profileId?: string;
+  id: string;
   initials?: string;
   name?: string;
   status?: number;
@@ -106,34 +104,13 @@ export interface CreateTeamRequest {
   tags: number[];
 }
 
-export const teamService = {
-  getMyTeam: async (): Promise<Team> => {
-    return await httpClient.get<Team>('/teams/my-team');
-  },
-
-  getTeam: async (teamId: string): Promise<Team> => {
-    return await httpClient.get<Team>(`/teams/${teamId}`);
-  },
-
-  leaveTeam: async (): Promise<void> => {
-    await httpClient.post('/teams/leave', {});
-  },
-
-  makeInactive: async (): Promise<void> => {
-    await httpClient.post('/teams/make-inactive', {});
-  },
-
-  kickMember: async (profileId: string): Promise<void> => {
-    await httpClient.post(`/teams/kick-member/${profileId}`, {});
-  }
-};
-
 export interface Review {
-    profileId: string;
+    id: string;
     reviewerId: string;
+    reviewerName: string;
+    targetProfileId: string;
+    teamId: string;
     rating: number;
     comment: string;
-    id: string;
     createdAt: string;
-    reviewerName: string;
 }
