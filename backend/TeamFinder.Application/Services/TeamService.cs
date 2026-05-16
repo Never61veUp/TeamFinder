@@ -78,7 +78,8 @@ public class TeamService : ITeamService
         if (acceptResult.IsSuccess)
             await _notificationService.NotifyProfileAsync(
                 profileId,
-                "Ваша заявка в команду была принята!");
+                "Ваша заявка в команду была принята!",
+                additionalUrl: "/create");
 
         return acceptResult;
     }
@@ -132,7 +133,8 @@ public class TeamService : ITeamService
             .Select(member =>
                 _notificationService.NotifyProfileAsync(
                     member.Id,
-                    "Команда была расформирована"));
+                    "Команда была расформирована",
+                    additionalUrl: "/profile"));
 
         await Task.WhenAll(notifyTasks);
 
@@ -155,7 +157,8 @@ public class TeamService : ITeamService
         if (kickResult.IsSuccess)
             await _notificationService.NotifyProfileAsync(
                 profileId,
-                "Вас исключили из команды!");
+                "Вас исключили из команды!",
+                additionalUrl: "/profile");
 
         return kickResult;
     }

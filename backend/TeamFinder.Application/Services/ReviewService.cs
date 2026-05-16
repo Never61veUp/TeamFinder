@@ -52,7 +52,8 @@ public class ReviewService : IReviewService
         if (reviewResult.IsSuccess)
             await _notificationService.NotifyProfileAsync(
                 profileId,
-                "Вам оставили новый отзыв");
+                "Вам оставили новый отзыв",
+                additionalUrl: "/profile");
         
         return reviewResult;
     }
