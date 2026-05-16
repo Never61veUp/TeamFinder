@@ -12,7 +12,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<ReviewEntity>
         
         builder.HasKey(x => x.Id);
         
-        builder.HasIndex(r => new { r.ReviewerId, r.TargetId })
+        builder.HasIndex(r => new { r.TeamId, r.TargetId, r.ReviewerId })
             .IsUnique();
     }
 }
