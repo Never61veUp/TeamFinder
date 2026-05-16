@@ -34,7 +34,7 @@ public class TeamRepository : ITeamRepository
     public async Task<Result<TeamEntity>> GetById(Guid id, TeamStatus status = TeamStatus.Active)
     {
         var entity = await _context.Teams
-            .Include(t => t.Members)
+            .Include(t => t.Members).ThenInclude(t => t.Profile)
             .Include(t => t.WantedProfiles).ThenInclude(w => w.RequiredSkills)
             .Include(t => t.Invitations)
             .Include(t => t.JoinRequests)
