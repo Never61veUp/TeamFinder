@@ -38,6 +38,7 @@ public static class DiExtension
             services.AddScoped<IReviewService, ReviewService>();
             services.AddSingleton<ITelegramSender, TelegramSender>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddSingleton<ITelegramNotificationTemplate, TelegramNotificationTemplate>();
         
             return services;
         }

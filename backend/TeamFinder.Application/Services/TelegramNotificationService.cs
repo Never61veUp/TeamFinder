@@ -47,6 +47,7 @@ public class TelegramSender : ITelegramSender
             await _botClient.SendMessage(
                 chatId: userId,
                 text: message,
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.Html,
                 replyMarkup: inlineKeyboard
             );
             
