@@ -65,6 +65,8 @@ public class ReviewService : IReviewService
             namesDict.GetValueOrDefault(r.ReviewerId) ?? "Аноним", 
             r.Rating.Value, 
             r.Comment, 
+            r.TeamId,
+            r.ProfileId,
             DateTime.UtcNow)).ToList();
 
         return Result.Success(reviewResponses);

@@ -5,4 +5,6 @@ public record ReviewResponse(Guid Id,
     string ReviewerName,
     int Rating,
     string Comment,
+    Guid TeamId,
+    Guid TargetProfileId,
     DateTime CreatedAt);
