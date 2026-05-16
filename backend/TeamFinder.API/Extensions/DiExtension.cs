@@ -36,6 +36,7 @@ public static class DiExtension
             services.AddScoped<ITeamService, TeamService>();
             services.AddScoped<IInvitationService, InvitationService>();
             services.AddScoped<IReviewService, ReviewService>();
+            services.AddSingleton<ITelegramNotificationService, TelegramNotificationService>();
         
             return services;
         }

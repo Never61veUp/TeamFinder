@@ -11,4 +11,8 @@
         <ProjectReference Include="..\TeamFinder.Postgresql\TeamFinder.Postgresql.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Telegram.Bot" Version="22.10.0" />
+    </ItemGroup>
+
 </Project>
