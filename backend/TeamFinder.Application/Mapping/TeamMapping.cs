@@ -18,7 +18,7 @@ public static class TeamMapping
             inv.MapToDomain());
         
         var joinRequests = e.JoinRequests.Select(jr => new JoinRequest(jr.TeamId, jr.ProfileId)).ToList();
-        var members = e.Members.Select(m => m.ProfileId).ToList();
+        var members = e.Members.Select(m => new Member(m.ProfileId, m.Status)).ToList();
         var eventDetails = EventDetails.Create(e.EventTitle, e.EventStart, e.EventEnd, e.EventTags).Value;
         
         return Team.Restore(
@@ -50,7 +50,7 @@ public static class TeamMapping
             EventEnd = t.EventDetails?.Period?.End,
             EventTags = t.EventDetails?.Tags.ToList(),
             
-            Members = t.Members.Select(m => new TeamMemberEntity { TeamId = t.Id, ProfileId = m }).ToList(),
+            Members = t.Members.Select(m => new TeamMemberEntity { TeamId = t.Id, ProfileId = m.Id, Status = m.Status}).ToList(),
             JoinRequests = t.JoinRequests.Select(jr => new JoinRequestEntity { TeamId = t.Id, ProfileId = jr.ProfileId }).ToList(),
             WantedProfiles = t.WantedProfiles.Select(wp => new WantedProfileEntity
             {

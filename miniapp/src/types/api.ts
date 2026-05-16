@@ -55,10 +55,11 @@ export interface Tag {
 }
 
 export interface TeamMember {
-  profileId: string | number;
+  profileId?: string | number;
   id: string | number;
-  initials: string;
+  initials?: string;
   name?: string;
+  status?: number;
 }
 
 export interface Team {
@@ -120,6 +121,10 @@ export const teamService = {
 
   makeInactive: async (): Promise<void> => {
     await httpClient.post('/teams/make-inactive', {});
+  },
+
+  kickMember: async (profileId: string): Promise<void> => {
+    await httpClient.post(`/teams/kick-member/${profileId}`, {});
   }
 };
 

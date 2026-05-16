@@ -7,9 +7,15 @@ interface ReviewModalProps {
     teamId: string;
     targetProfileId: string;
     onClose: () => void;
+    onSuccess?: (targetId: string) => void;
 }
 
-export const ReviewModal: React.FC<ReviewModalProps> = ({ teamId, targetProfileId, onClose }) => {
+export const ReviewModal: React.FC<ReviewModalProps> = ({
+                                                            teamId,
+                                                            targetProfileId,
+                                                            onClose,
+                                                            onSuccess
+                                                        }) => {
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -29,11 +35,16 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ teamId, targetProfileI
                 rating,
                 comment
             });
-            alert('Отзыв успешно отправлен!');
+
+            if (onSuccess) {
+                onSuccess(targetProfileId);
+            }
+
             onClose();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Ошибка при отправке отзыва', error);
-            alert('Не удалось отправить отзыв');
+            const errorMessage = error.response?.data?.message || 'Не удалось отправить отзыв';
+            alert(errorMessage);
         } finally {
             setIsLoading(false);
         }

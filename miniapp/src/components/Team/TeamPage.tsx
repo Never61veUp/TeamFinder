@@ -6,7 +6,7 @@ import { TagsInput } from './TagsInput';
 import { httpClient } from '../../lib/http-client';
 import { teamService } from '../../types/api';
 import type { Team, Tag, CreateTeamRequest, ProfileWithGithub } from '../../types/api';
-import { LogOut, Trash2, Loader2 } from 'lucide-react';
+import { LogOut, Trash2, Loader2, Calendar, UserMinus } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
 import { RatingStars } from '../ui/RatingStars';
@@ -83,14 +83,20 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         initPage();
     }, []);
 
+    const activeMembers = useMemo(() => {
+        if (!currentTeam?.members) return [];
+        return currentTeam.members.filter((m: any) => m.status === 1 || m.status === undefined);
+    }, [currentTeam?.members]);
+
     const isCreator = useMemo(() => {
         if (!currentTeam || !myProfile) return false;
         const teamData = currentTeam as any;
         const myId = myProfile.id.toString();
         const ownerId = teamData.ownerId?.toString();
-        const firstMemberId = currentTeam.members?.[0]?.profileId?.toString() || (currentTeam.members?.[0] as any)?.id?.toString();
+
+        const firstMemberId = activeMembers[0]?.profileId?.toString() || (activeMembers[0] as any)?.id?.toString();
         return myId === ownerId || myId === firstMemberId;
-    }, [currentTeam, myProfile]);
+    }, [currentTeam, myProfile, activeMembers]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -142,6 +148,22 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         }
     };
 
+    const handleKickMember = async (profileId: string) => {
+        if (!confirm("Вы уверены, что хотите удалить этого участника из команды?")) return;
+
+        setIsSubmitting(true);
+        try {
+            await teamService.kickMember(profileId);
+            // Если запрос успешен, запрашиваем свежие данные команды
+            const freshTeamRes = await teamService.getMyTeam();
+            if (freshTeamRes) setCurrentTeam(freshTeamRes);
+        } catch (err) {
+            alert("Не удалось удалить участника. Попробуйте позже.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const handleLeave = async () => {
         if (!confirm("Выйти из команды?")) return;
         setIsSubmitting(true);
@@ -166,6 +188,21 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         if (!dateValue) return '—';
         try { return new Date(dateValue).toLocaleDateString('ru-RU'); }
         catch (e) { return '—'; }
+    };
+
+    const handleDateClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const input = e.currentTarget.querySelector('input');
+        if (input) {
+            if ('showPicker' in HTMLInputElement.prototype) {
+                try {
+                    input.showPicker();
+                } catch (error) {
+                    input.focus();
+                }
+            } else {
+                input.focus();
+            }
+        }
     };
 
     if (isLoading) {
@@ -222,17 +259,19 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                         <div className="mb-8">
                             <h3 className="text-lg font-bold text-slate-900 mb-3">Участники</h3>
                             <div className="flex flex-col gap-3">
-                                {currentTeam.members?.map((member: any) => {
+                                {activeMembers.map((member: any) => {
                                     const profileId = typeof member === 'string' ? member : (member.profileId || member.id);
                                     const data = membersData[profileId];
                                     const name = data?.name || "Загрузка...";
                                     const username = data?.username || "user";
 
+                                    const isMe = myProfile?.id.toString() === profileId;
+
                                     return (
                                         <div key={profileId} className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-violet-600 font-bold shadow-sm text-lg">
-                                                    {name[0].toUpperCase()}
+                                                    {name && name.length > 0 ? name[0].toUpperCase() : "?"}
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="text-sm font-bold text-slate-900">{name}</span>
@@ -240,9 +279,24 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                                     <RatingStars rating={data?.rating || 0} size={12} />
                                                 </div>
                                             </div>
-                                            <Button variant="ghost" size="sm" className="text-violet-600 font-semibold" onClick={() => handleOpenProfile(profileId)}>
-                                                Подробнее
-                                            </Button>
+
+                                            <div className="flex items-center gap-1">
+                                                <Button variant="ghost" size="sm" className="text-violet-600 font-semibold px-2" onClick={() => handleOpenProfile(profileId)}>
+                                                    Подробнее
+                                                </Button>
+
+                                                {isCreator && !isMe && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-red-500 hover:bg-red-50 hover:text-red-600 px-2"
+                                                        onClick={() => handleKickMember(profileId)}
+                                                        title="Удалить участника"
+                                                    >
+                                                        <UserMinus size={18} />
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     );
                                 })}
@@ -283,11 +337,54 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="form-group">
                                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Начало</label>
-                                <input name="startDate" type="date" min={today} max={maxDate} value={formData.startDate} onChange={handleChange} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm" />
+                                <div
+                                    onClick={handleDateClick}
+                                    className="relative flex items-center group cursor-pointer"
+                                >
+                                    <input
+                                        name="startDate"
+                                        type="date"
+                                        min={today}
+                                        max={maxDate}
+                                        value={formData.startDate}
+                                        onChange={handleChange}
+                                        className="w-full p-3 pr-10 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none
+                           transition-all duration-200
+                           group-hover:bg-white group-hover:border-violet-300
+                           focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white"
+                                    />
+                                    <Calendar
+                                        size={16}
+                                        className="absolute right-3 text-slate-400 transition-colors duration-200
+                           group-hover:text-violet-500 pointer-events-none"
+                                    />
+                                </div>
                             </div>
+
                             <div className="form-group">
                                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Конец</label>
-                                <input name="endDate" type="date" min={formData.startDate || today} max={maxDate} value={formData.endDate} onChange={handleChange} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm" />
+                                <div
+                                    onClick={handleDateClick}
+                                    className="relative flex items-center group cursor-pointer"
+                                >
+                                    <input
+                                        name="endDate"
+                                        type="date"
+                                        min={formData.startDate || today}
+                                        max={maxDate}
+                                        value={formData.endDate}
+                                        onChange={handleChange}
+                                        className="w-full p-3 pr-10 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none
+                           transition-all duration-200
+                           group-hover:bg-white group-hover:border-violet-300
+                           focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white"
+                                    />
+                                    <Calendar
+                                        size={16}
+                                        className="absolute right-3 text-slate-400 transition-colors duration-200
+                           group-hover:text-violet-500 pointer-events-none"
+                                    />
+                                </div>
                             </div>
                         </div>
 
@@ -310,7 +407,6 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                 </form>
             )}
 
-            {/* ШТОРКА ПРОФИЛЯ */}
             <ProfileModal
                 profile={selectedProfile}
                 onClose={() => setSelectedProfile(null)}

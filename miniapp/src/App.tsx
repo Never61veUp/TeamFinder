@@ -21,10 +21,24 @@ function App() {
 
     useEffect(() => {
         try {
-            window.Telegram?.WebApp?.ready?.()
-            window.Telegram?.WebApp?.expand?.()
-        } catch { /* empty */ }
-    }, [])
+            const tg = (window as any).Telegram?.WebApp;
+
+            if (tg) {
+                tg.ready();
+                tg.expand();
+
+                if (tg.setHeaderColor) {
+                    tg.setHeaderColor('bg_color');
+                }
+
+                if (tg.requestFullscreen) {
+                    tg.requestFullscreen();
+                }
+            }
+        } catch (e) {
+            console.error("Ошибка инициализации:", e);
+        }
+    }, []);
 
     useEffect(() => {
         if (!token) return
