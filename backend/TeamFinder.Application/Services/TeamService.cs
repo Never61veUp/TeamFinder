@@ -11,10 +11,14 @@ namespace TeamFinder.Application.Services;
 public class TeamService : ITeamService
 {
     private readonly ITeamRepository _repository;
+    private readonly IProfileRepository _profileRepository;
+    private readonly ITelegramNotificationService _notificationService;
 
-    public TeamService(ITeamRepository repository)
+    public TeamService(ITeamRepository repository, IProfileRepository profileRepository, ITelegramNotificationService notificationService)
     {
         _repository = repository;
+        _profileRepository = profileRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<Result> CreateTeam(Guid ownerId, string name, int maxMembers, string? description, string? eventTitle, DateOnly? eventStart, DateOnly? eventEnd,
@@ -32,11 +36,25 @@ public class TeamService : ITeamService
 
     public async Task<Result> InviteProfile(Guid teamId, Guid inviterId, Guid inviteeId)
     {
-        return await _repository.GetById(teamId)
+        var result = await _repository.GetById(teamId)
             .Bind(entity => entity.MapToDomain())
             .Bind(team => team.SendInvitation(inviterId, inviteeId))
             .Map(invite => invite.MapToEntity())
-            .Bind(entity => _repository.AddInvitation(entity));
+            .Bind(invitationEntity => _repository.AddInvitation(invitationEntity));
+        
+        if (result.IsFailure)
+            return result;
+
+        var tgIdResult = await _profileRepository.GetTgIdByProfileId(inviteeId);
+
+        if (tgIdResult.IsSuccess)
+        {
+            await _notificationService.SendTextNotificationAsync(
+                tgIdResult.Value,
+                "Вам пришло новое приглашение в команду! Откройте приложение, чтобы узнать подробности.");
+        }
+
+        return result;
     }
     
     public async Task<Result> CreateJoinRequest(Guid teamId, Guid profileId)

@@ -19,5 +19,6 @@ public interface IProfileRepository
     Task<Result<ProfileEntity>> FindByProfileName(string name);
     Task<Result<Dictionary<Guid, string>>> GetNamesByIds(List<Guid> ids);
     Task<Result<List<ProfileEntity>>> GetAll(int from = 0, int count = 5);
+    Task<Result<long>> GetTgIdByProfileId(Guid profileId);
     Task<int> Count();
 }

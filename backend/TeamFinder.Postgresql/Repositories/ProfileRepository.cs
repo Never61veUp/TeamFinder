@@ -207,6 +207,19 @@ public class ProfileRepository : IProfileRepository
             : Result.Success(profiles);
     }
 
+    public async Task<Result<long>> GetTgIdByProfileId(Guid profileId)
+    {
+        var tgId = await _context.Profiles
+            .AsNoTracking()
+            .Where(p => p.Id == profileId)
+            .Select(p => p.TgId)
+            .FirstOrDefaultAsync();
+        
+        return tgId == 0
+            ? Result.Failure<long>("Profile not found")
+            : Result.Success(tgId);
+    }
+
     public async Task<int> Count()
     {
         return await _context.Profiles.CountAsync();
