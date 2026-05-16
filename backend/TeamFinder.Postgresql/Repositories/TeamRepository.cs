@@ -20,7 +20,7 @@ public class TeamRepository : ITeamRepository
     public async Task<Result> SaveTeam(TeamEntity team)
     {
         var isAlreadyInTeam = await _context.Teams.AnyAsync(t => 
-            t.Status == TeamStatus.Active && t.Members.Any(m => m.ProfileId == team.OwnerId));
+            t.Status == TeamStatus.Active && t.Members.Any(m => m.ProfileId == team.OwnerId && m.Status == MemberStatus.Active));
         
         if (isAlreadyInTeam)
             return Result.Failure("That user is already in a team");
@@ -149,7 +149,7 @@ public class TeamRepository : ITeamRepository
                 t.EventEnd,
                 t.EventTags,
                 t.Status,
-                MemberIds = t.Members.Select(m => m.ProfileId).ToList(),
+                MemberIds = t.Members.Select(m => new Member(m.ProfileId, m.Status)).ToList(),
                 AverageRating = 
                     t.Members.Where(m => m.Profile.Rating > 0)
                         .Average(m => (double?)m.Profile.Rating) ?? 0
@@ -221,25 +221,31 @@ public class TeamRepository : ITeamRepository
         return Result.Success(entity);
     }
     
-    public async Task<Result> DeleteMemberByProfileId(Guid profileId)
+    public async Task<Result> LeaveTeamByProfileId(Guid profileId)
     {
-        return await _context.TeamMembers.Where(x => x.ProfileId == profileId).ExecuteDeleteAsync() > 0
+        return await _context.TeamMembers.Where(x => x.ProfileId == profileId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(m => m.Status, MemberStatus.Inactive)) > 0
             ? Result.Success() 
-            : Result.Failure("Failed to remove team member");
+            : Result.Failure("Failed to leave team");
     }
     
     public async Task<Result> MakeInactive(Guid teamId)
     {
-        var team = await _context.Teams.FindAsync(teamId);
-        if (team == null) 
-            return Result.Failure("Team not found");
-
-        team.Status = TeamStatus.Inactive;
-        team.EventEnd = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        return await _context.SaveChangesAsync() > 0 
+        await _context.TeamMembers
+            .Where(m => m.TeamId == teamId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(m => m.Status, MemberStatus.Inactive));
+        
+        var updatedRows = await _context.Teams
+            .Where(t => t.Id == teamId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(t => t.Status, TeamStatus.Inactive)
+                .SetProperty(t => t.EventEnd, DateOnly.FromDateTime(DateTime.UtcNow)));
+        
+        return updatedRows > 0 
             ? Result.Success() 
-            : Result.Failure("Failed to inactive team");
+            : Result.Failure("Team not found");
     }
     
     public async Task<Result> AddMember(Guid teamId, Guid profileId)
@@ -265,6 +271,16 @@ public class TeamRepository : ITeamRepository
                 _ => Result.Failure("Database error")
             };
         }
+    }
+
+    public async Task<Result> MakeMemberInactive(Guid profileId, Guid teamId)
+    {
+        return await _context.TeamMembers
+            .Where(t => t.ProfileId == profileId && t.TeamId == teamId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(t => t.Status, MemberStatus.Inactive)) > 0
+            ? Result.Success()
+            : Result.Failure("Failed to update member");
     }
 
     public async Task<int> Count(TeamStatus status =  TeamStatus.Active)

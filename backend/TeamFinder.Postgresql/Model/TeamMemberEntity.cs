@@ -1,4 +1,6 @@
-﻿namespace TeamFinder.Postgresql.Model;
+﻿using TeamFinder.Core.Model.Teams;
+
+namespace TeamFinder.Postgresql.Model;
 
 public class TeamMemberEntity
 {
@@ -6,4 +8,5 @@ public class TeamMemberEntity
     public TeamEntity Team { get; set; } = null!;
     public Guid ProfileId { get; set; }
     public ProfileEntity Profile { get; set; } = null!;
+    public MemberStatus  Status { get; set; }
 }

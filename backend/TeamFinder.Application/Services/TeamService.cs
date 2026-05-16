@@ -82,7 +82,7 @@ public class TeamService : ITeamService
         return await _repository.GetByProfileId(profileId)
             .Bind(entity => entity.MapToDomain())
             .Check(team => team.LeaveTeam(profileId))
-            .Bind(_ => _repository.DeleteMemberByProfileId(profileId));
+            .Bind(_ => _repository.LeaveTeamByProfileId(profileId));
     }
     
     public async Task<Result> MakeInactive(Guid profileId)
@@ -97,5 +97,13 @@ public class TeamService : ITeamService
     {
         return await _repository.GetById(teamId)
             .Bind(entity => entity.MapToDomain());
+    }
+    
+    public async Task<Result> KickMember(Guid initiatorId, Guid profileId)
+    {
+        return await _repository.GetByProfileId(profileId)
+            .Bind(entity => entity.MapToDomain())
+            .Check(team => team.KickMember(initiatorId, profileId))
+            .Bind(team => _repository.MakeMemberInactive(profileId, team.Id));
     }
 }
