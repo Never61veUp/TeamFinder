@@ -6,7 +6,7 @@ import { TagsInput } from './TagsInput';
 import { httpClient } from '../../lib/http-client';
 import { teamService } from '../../types/api';
 import type { Team, Tag, CreateTeamRequest, ProfileWithGithub } from '../../types/api';
-import { LogOut, Trash2, Loader2, Calendar } from 'lucide-react';
+import { LogOut, Trash2, Loader2, Calendar, UserMinus } from 'lucide-react';
 import { useProfile } from '../hooks/useProfile';
 import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
 import { RatingStars } from '../ui/RatingStars';
@@ -148,6 +148,22 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
         }
     };
 
+    const handleKickMember = async (profileId: string) => {
+        if (!confirm("Вы уверены, что хотите удалить этого участника из команды?")) return;
+
+        setIsSubmitting(true);
+        try {
+            await teamService.kickMember(profileId);
+            // Если запрос успешен, запрашиваем свежие данные команды
+            const freshTeamRes = await teamService.getMyTeam();
+            if (freshTeamRes) setCurrentTeam(freshTeamRes);
+        } catch (err) {
+            alert("Не удалось удалить участника. Попробуйте позже.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const handleLeave = async () => {
         if (!confirm("Выйти из команды?")) return;
         setIsSubmitting(true);
@@ -249,6 +265,8 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                     const name = data?.name || "Загрузка...";
                                     const username = data?.username || "user";
 
+                                    const isMe = myProfile?.id.toString() === profileId;
+
                                     return (
                                         <div key={profileId} className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
                                             <div className="flex items-center gap-3">
@@ -261,9 +279,24 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                                     <RatingStars rating={data?.rating || 0} size={12} />
                                                 </div>
                                             </div>
-                                            <Button variant="ghost" size="sm" className="text-violet-600 font-semibold" onClick={() => handleOpenProfile(profileId)}>
-                                                Подробнее
-                                            </Button>
+
+                                            <div className="flex items-center gap-1">
+                                                <Button variant="ghost" size="sm" className="text-violet-600 font-semibold px-2" onClick={() => handleOpenProfile(profileId)}>
+                                                    Подробнее
+                                                </Button>
+
+                                                {isCreator && !isMe && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-red-500 hover:bg-red-50 hover:text-red-600 px-2"
+                                                        onClick={() => handleKickMember(profileId)}
+                                                        title="Удалить участника"
+                                                    >
+                                                        <UserMinus size={18} />
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     );
                                 })}
