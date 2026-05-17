@@ -16,7 +16,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
     if (isLoading) {
         return (
             <div className="modal-overlay bottom" onClick={onClose}>
-                <div className="modal-content-bottom flex items-center justify-center min-h-[300px]" onClick={e => e.stopPropagation()}>
+                <div className="modal-content-bottom flex items-center justify-center min-h-75" onClick={e => e.stopPropagation()}>
                     <div className="font-bold text-violet-600 animate-pulse">Загрузка профиля...</div>
                 </div>
             </div>
@@ -27,6 +27,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
 
     const name = profile.name || "Пользователь";
     const initial = name[0]?.toUpperCase() || "?";
+
+    const handleGithubClick = (profileUrl: string) => {
+        const url = profileUrl;
+        const webapp = window.Telegram?.WebApp;
+
+        if (webapp?.openLink) {
+            webapp.openLink(url);
+        } else {
+            window.open(url, '_blank');
+        }
+    };
 
     return (
         <div className="modal-overlay bottom" onClick={onClose}>
@@ -64,10 +75,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
 
                     {profile.githubInfo && (
                         <section className="github-card mb-6">
-                            <div className="flex items-center gap-2 mb-4">
+                            <div
+                                className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-75 transition-opacity w-fit"
+                                onClick={() => handleGithubClick(profile.githubInfo.profileUrl)}
+                            >
                                 <Computer size={18} className="text-emerald-400" />
-                                <span className="font-bold text-sm">GitHub: {profile.githubInfo.username}</span>
+                                <span className="font-bold text-sm underline decoration-emerald-400/50 underline-offset-4">
+                                    GitHub: {profile.githubInfo.username}
+                                </span>
                             </div>
+
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="bg-white/10 rounded-2xl p-3 text-center">
                                     <Folder size={15} className="mx-auto mb-1 opacity-50" />

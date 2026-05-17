@@ -37,6 +37,7 @@ export interface Skill {
 
 export interface GithubInfo {
   username: string
+  profileUrl: string
   repositoriesCount: number
   totalStars: number
   topLanguage: string
