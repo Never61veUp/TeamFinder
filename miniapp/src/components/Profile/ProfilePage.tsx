@@ -10,8 +10,6 @@ import { TeamHistory } from './Review/TeamHistory';
 import { ReviewList } from './Review/ReviewList';
 import './profile.css';
 import { profileService } from '../../services';
-import { teamService } from '../../services/team.service';
-import { invitationsService } from '../../services/invitations.service';
 import { Pencil } from 'lucide-react';
 import { Button } from "../ui/Button.tsx";
 
@@ -33,8 +31,6 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
     const [skillsModalSelected, setSkillsModalSelected] = useState<Record<string, boolean>>({});
     const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
 
-    const [hasNotifications, setHasNotifications] = useState(false);
-
     useEffect(() => {
         const loadAvailableSkills = async () => {
             try {
@@ -45,30 +41,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
             }
         };
 
-        const checkNotifications = async () => {
-            try {
-                let hasNew = false;
-
-                // Проверяем заявки в команду
-                try {
-                    const myTeam = await teamService.getMyTeam();
-                    if (myTeam?.joinRequests?.length) hasNew = true;
-                } catch (e) { }
-
-                if (!hasNew) {
-                    const invitesData = await invitationsService.getInvitations(0);
-                    const invitesArray = Array.isArray(invitesData) ? invitesData : [];
-                    if (invitesArray.length > 0) hasNew = true;
-                }
-
-                setHasNotifications(hasNew);
-            } catch (error) {
-                console.error('Ошибка проверки уведомлений:', error);
-            }
-        };
-
         loadAvailableSkills();
-        checkNotifications();
     }, []);
 
     useEffect(() => {
@@ -151,7 +124,6 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
             <Header
                 title="Профиль"
                 onNotificationClick={onOpenNotif}
-                hasNotifications={hasNotifications}
             >
                 <div className="avatar-container">
                     {user.photoUrl ? (

@@ -229,7 +229,7 @@ export function TeamCard({ team, myProfileId, isAlreadyMember }: TeamCardProps) 
                                                 const data = membersData[profileId];
 
                                                 const name = data?.telegramUser?.firstName || data?.firstName || data?.name || "Участник";
-                                                const username = data?.telegramUser?.userName || data?.userName || "user";
+                                                const username = data?.userName || "user";
                                                 const initial = name !== "Участник" ? name[0].toUpperCase() : "?";
 
                                                 return (

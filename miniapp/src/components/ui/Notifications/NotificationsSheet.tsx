@@ -1,10 +1,11 @@
-import React, {useEffect, useState} from 'react';
-import {Button} from '../Button';
-import type {Team} from '../../../types/api';
-import {invitationsService} from '../../../services/invitations.service';
-import {acceptJoinRequest} from '../../../services/feed.service';
+import React, { useEffect, useState } from 'react';
+import { Button } from '../Button';
+import type { Team } from '../../../types/api';
+import { useNotifications } from './NotificationContext';
+import { invitationsService } from '../../../services/invitations.service';
+import { acceptJoinRequest } from '../../../services/feed.service';
 import './notifications.css';
-import {teamService} from "../../../services/team.service.ts";
+import { teamService } from "../../../services/team.service.ts";
 
 interface NotificationsSheetProps {
     isOpen: boolean;
@@ -12,19 +13,15 @@ interface NotificationsSheetProps {
     onViewProfile?: (id: string) => void;
 }
 
-export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, onClose}) => {
+export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, onClose }) => {
     const [myTeam, setMyTeam] = useState<Team | null>(null);
     const [personalInvitesTeams, setPersonalInvitesTeams] = useState<Record<string, Team>>({});
     const [personalInvites, setPersonalInvites] = useState<any[]>([]);
 
+    const { markAsRead, loadData: loadDataFromContext } = useNotifications();
+
     const [isLoading, setIsLoading] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (isOpen) {
-            loadData();
-        }
-    }, [isOpen]);
 
     const loadData = async () => {
         setIsLoading(true);
@@ -33,6 +30,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                 const teamData = await teamService.getMyTeam();
                 setMyTeam(teamData);
             } catch (e) {
+                console.error('Ошибка запроса команды:', e);
                 setMyTeam(null);
             }
 
@@ -65,6 +63,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
         try {
             await acceptJoinRequest(myTeam.id, targetId);
             await loadData();
+            if (loadDataFromContext) await loadDataFromContext();
         } catch (error) {
             alert('Ошибка при принятии заявки');
         } finally {
@@ -78,6 +77,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
             await invitationsService.acceptInvitation(invitationId);
             alert('Вы успешно вступили в команду!');
             await loadData();
+            if (loadDataFromContext) await loadDataFromContext();
             onClose();
         } catch (error) {
             alert('Ошибка при принятии приглашения');

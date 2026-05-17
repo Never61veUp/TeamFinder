@@ -6,7 +6,7 @@ export interface TelegramUser {
   profileId: string
   id: number | string
   userName?: string | null
-    name?: string | null
+  name?: string | null
   photoUrl?: string | null
 }
 
