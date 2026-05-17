@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ProfileHeader } from './Header/ProfileHeader';
+import { Header } from '../ui/Header/Header';
 import { AboutMe } from './About/AboutMe';
-import type {Skill, TelegramUser} from "../../types/api";
+import type { Skill, TelegramUser } from "../../types/api";
 import { useProfile } from "../hooks/useProfile";
 import { useGithub } from "../hooks/useGithub";
 import { GithubStatsSection } from "./Stats/GithubStats";
@@ -10,6 +10,8 @@ import { TeamHistory } from './Review/TeamHistory';
 import { ReviewList } from './Review/ReviewList';
 import './profile.css';
 import { profileService } from '../../services';
+import { teamService } from '../../services/team.service';
+import { invitationsService } from '../../services/invitations.service';
 import { Pencil } from 'lucide-react';
 import { Button } from "../ui/Button.tsx";
 
@@ -31,17 +33,42 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
     const [skillsModalSelected, setSkillsModalSelected] = useState<Record<string, boolean>>({});
     const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
 
-    const loadAvailableSkills = async () => {
-        try {
-            const response = await profileService.getAllSkills();
-            setAvailableSkills(response);
-        } catch (err) {
-            console.error("Не удалось загрузить список навыков", err);
-        }
-    };
+    const [hasNotifications, setHasNotifications] = useState(false);
 
     useEffect(() => {
+        const loadAvailableSkills = async () => {
+            try {
+                const response = await profileService.getAllSkills();
+                setAvailableSkills(response);
+            } catch (err) {
+                console.error("Не удалось загрузить список навыков", err);
+            }
+        };
+
+        const checkNotifications = async () => {
+            try {
+                let hasNew = false;
+
+                // Проверяем заявки в команду
+                try {
+                    const myTeam = await teamService.getMyTeam();
+                    if (myTeam?.joinRequests?.length) hasNew = true;
+                } catch (e) { }
+
+                if (!hasNew) {
+                    const invitesData = await invitationsService.getInvitations(0);
+                    const invitesArray = Array.isArray(invitesData) ? invitesData : [];
+                    if (invitesArray.length > 0) hasNew = true;
+                }
+
+                setHasNotifications(hasNew);
+            } catch (error) {
+                console.error('Ошибка проверки уведомлений:', error);
+            }
+        };
+
         loadAvailableSkills();
+        checkNotifications();
     }, []);
 
     useEffect(() => {
@@ -50,8 +77,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
 
         const initialNames = (profile.skills ?? []).map((s: any) => s.name ?? String(s));
         setLocalSkills(initialNames);
-        const map: Record<string, boolean> = {};
-        setSkillsModalSelected(map);
+        setSkillsModalSelected({});
     }, [profile]);
 
     const handleRemoveSkill = (skillToRemove: string) => {
@@ -116,18 +142,30 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
         return <div className="profile-container"><div className="p-6">Загрузка...</div></div>;
     }
 
+    const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username || 'Пользователь';
+    const initials = displayName[0]?.toUpperCase() || 'U';
+
     return (
         <div className="profile-container pb-24 bg-white">
 
-            <ProfileHeader
-                name={user.username ?? 'User'}
-                username={user.username ? `@${user.username}` : ''}
-                avatarUrl={user.photoUrl}
+            <Header
+                title="Профиль"
                 onNotificationClick={onOpenNotif}
-            />
+                hasNotifications={hasNotifications}
+            >
+                <div className="avatar-container">
+                    {user.photoUrl ? (
+                        <img src={user.photoUrl} alt={displayName} className="avatar-img" />
+                    ) : (
+                        <div className="avatar-placeholder">{initials}</div>
+                    )}
+                </div>
+                <h2 className="profile-inside-name">{displayName}</h2>
+                <p className="profile-inside-username">@{user.username || 'user'}</p>
+            </Header>
 
             <div className="profile-content px-4 space-y-4">
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end pt-2">
                     <Button size="sm" onClick={handleToggleEdit} className="edit-btn flex items-center gap-2" disabled={isSaving}>
                         {!isEditing && <Pencil size={18} strokeWidth={2} />}
                         <span>{isEditing ? (isSaving ? 'Сохранение...' : 'Сохранить') : 'Редактировать'}</span>
@@ -158,13 +196,8 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
 
                 <GithubStatsSection githubInfo={profile?.githubInfo} isConnecting={isConnecting} onConnect={connect} />
 
-                {profile?.id && (
-                    <ReviewList userId={profile.id} />
-                )}
-
-                {profile?.id && (
-                    <TeamHistory currentUserId={profile.id} />
-                )}
+                {profile?.id && <ReviewList userId={profile.id} />}
+                {profile?.id && <TeamHistory currentUserId={profile.id} />}
 
                 <div className="flex justify-center pt-8">
                     <button onClick={onLogout} className="exit-btn text-red-500 text-sm font-bold">Выйти</button>
