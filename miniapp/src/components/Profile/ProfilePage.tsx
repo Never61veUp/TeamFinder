@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ProfileHeader } from './Header/ProfileHeader';
 import { AboutMe } from './About/AboutMe';
-import { AchievementsGrid } from './Achievements/AchievementsGrid';
 import type {Skill, TelegramUser} from "../../types/api";
 import { useProfile } from "../hooks/useProfile";
 import { useGithub } from "../hooks/useGithub";
@@ -26,16 +25,12 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
 
     const [isEditing, setIsEditing] = useState(false);
     const [localAbout, setLocalAbout] = useState<string>('');
-    const [localAchievements, setLocalAchievements] = useState<{
-        hackathons: number | '';
-        wins: number | '';
-        projects: number | '';
-    }>({ hackathons: 0, wins: 0, projects: 0 });
     const [localSkills, setLocalSkills] = useState<string[]>([]);
     const [isSkillsEditorOpen, setIsSkillsEditorOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [skillsModalSelected, setSkillsModalSelected] = useState<Record<string, boolean>>({});
     const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
+
     const loadAvailableSkills = async () => {
         try {
             const response = await profileService.getAllSkills();
@@ -52,11 +47,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
     useEffect(() => {
         if (!profile) return;
         setLocalAbout((profile as any).description ?? (profile as any).about ?? '');
-        setLocalAchievements({
-            hackathons: (profile as any).hackathons ?? 0,
-            wins: (profile as any).wins ?? 0,
-            projects: (profile as any).projects ?? 0,
-        });
+
         const initialNames = (profile.skills ?? []).map((s: any) => s.name ?? String(s));
         setLocalSkills(initialNames);
         const map: Record<string, boolean> = {};
@@ -97,10 +88,6 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
             setIsSaving(false);
             if (typeof refetch === 'function') await refetch();
         }
-    };
-
-    const handleAchievementChange = (key: 'hackathons' | 'wins' | 'projects', value: number | '') => {
-        setLocalAchievements(prev => ({ ...prev, [key]: value }));
     };
 
     const openSkillsEditor = () => {
@@ -168,12 +155,8 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
                 )}
 
                 <AboutMe text={localAbout} isEditing={isEditing} onChange={setLocalAbout} />
-                <AchievementsGrid achievements={localAchievements} isEditing={isEditing} onChange={handleAchievementChange} />
 
-                <section className="w-full flex flex-col items-left">
-                    <h2 className="font-bold text-[#333] mb-4 text-left text-[16px] tracking-widest uppercase">GitHub Статистика</h2>
-                    <GithubStatsSection githubInfo={profile?.githubInfo} isConnecting={isConnecting} onConnect={connect} />
-                </section>
+                <GithubStatsSection githubInfo={profile?.githubInfo} isConnecting={isConnecting} onConnect={connect} />
 
                 {profile?.id && (
                     <ReviewList userId={profile.id} />

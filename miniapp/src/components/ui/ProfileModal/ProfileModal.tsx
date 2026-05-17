@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
-import { Computer, CodeXml, Folder, Star, Target, Trophy, Layout } from 'lucide-react';
+import { Computer, CodeXml, Folder, Star} from 'lucide-react';
 import type { ProfileWithGithub } from '../../../types/api';
 import { ReviewList } from '../Review/ReviewList';
 import './profile-modal.css';
@@ -106,24 +106,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                             </div>
                         </section>
                     )}
-
-                    <div className="stats-grid mt-4">
-                        <div className="stat-box">
-                            <Target className="stat-icon text-blue-500" />
-                            <div className="stat-value">{profile.hackathons || 0}</div>
-                            <div className="stat-label">Хакатоны</div>
-                        </div>
-                        <div className="stat-box">
-                            <Trophy className="stat-icon text-amber-500" />
-                            <div className="stat-value">{profile.wins || 0}</div>
-                            <div className="stat-label">Победы</div>
-                        </div>
-                        <div className="stat-box">
-                            <Layout className="stat-icon text-emerald-500" />
-                            <div className="stat-value">{profile.projects || 0}</div>
-                            <div className="stat-label">Проекты</div>
-                        </div>
-                    </div>
 
                     <div className="mt-2 mb-6">
                         <ReviewList userId={profile.id} />

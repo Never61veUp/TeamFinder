@@ -19,9 +19,6 @@ export interface Profile {
   telegramId?: number
   skills?: Skill[]
   description?: string;
-  hackathons?: number;
-  wins?: number;
-  projects?: number;
   rating: number;
   reviewsCount: number;
 }
