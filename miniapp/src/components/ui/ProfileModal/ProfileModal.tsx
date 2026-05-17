@@ -1,13 +1,13 @@
 import React from 'react';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
-import { Computer, CodeXml, Folder, Star} from 'lucide-react';
-import type { ProfileWithGithub } from '../../../types/api';
+import { Computer, CodeXml, Folder, Star } from 'lucide-react';
+import type { ProfileWithGithub, Skill } from '../../../types/api';
 import { ReviewList } from '../Review/ReviewList';
 import './profile-modal.css';
 
 interface ProfileModalProps {
-    profile: ProfileWithGithub | any | null;
+    profile: ProfileWithGithub | null;
     onClose: () => void;
     isLoading?: boolean;
 }
@@ -39,6 +39,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
         }
     };
 
+    // @ts-ignore
     return (
         <div className="modal-overlay bottom" onClick={onClose}>
             <div className="modal-content-bottom profile-detail-modal animate-slide-up" onClick={e => e.stopPropagation()}>
@@ -57,7 +58,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                         <h4 className="detail-section-title">Навыки</h4>
                         <div className="flex flex-wrap gap-2">
                             {profile.skills && profile.skills.length > 0 ? (
-                                profile.skills.map((skill: any) => (
+                                profile.skills.map((skill: Skill) => (
                                     <Badge key={skill.id} variant="secondary" className="px-3 py-1 font-bold">
                                         {skill.name}
                                     </Badge>
@@ -77,7 +78,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                         <section className="github-card mb-6">
                             <div
                                 className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-75 transition-opacity w-fit"
-                                onClick={() => handleGithubClick(profile.githubInfo.profileUrl)}
+                                onClick={() => profile.githubInfo?.profileUrl && handleGithubClick(profile.githubInfo.profileUrl)}
                             >
                                 <Computer size={18} className="text-emerald-400" />
                                 <span className="font-bold text-sm underline decoration-emerald-400/50 underline-offset-4">

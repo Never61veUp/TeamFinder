@@ -3,7 +3,6 @@
 	width: 100%;
 	margin: 0 auto;
 	background: #f8fafc;
-	/* Убрали min-height: 100vh, добавили правильное flex-растяжение */
 	display: flex;
 	flex-direction: column;
 	flex: 1 0 auto;
@@ -32,14 +31,13 @@
 }
 
 .avatar-container {
-	width: 100px !important;
-	height: 100px !important;
+	width: 90px !important;
+	height: 90px !important;
 	flex-shrink: 0;
-	margin-bottom: 12px;
 	border-radius: 50%;
 	overflow: hidden;
-	background: #e5e7eb;
-	border: 3px solid rgba(255, 255, 255, 0.2);
+	background: #ffffff;
+	border: 4px solid #ffffff;
 }
 
 .avatar-img,
@@ -55,19 +53,6 @@
 	font-size: 34px;
 	color: #7c3aed;
 	object-fit: cover;
-}
-
-.profile-name {
-	font-size: 22px;
-	font-weight: 700;
-	margin-bottom: 4px;
-	color: white;
-}
-
-.profile-username {
-	font-size: 14px;
-	opacity: 0.9;
-	color: #efefef;
 }
 
 .profile-bell-btn {
@@ -90,10 +75,47 @@
 	background: rgba(255, 255, 255, 0.3);
 }
 
+.header-profile-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	margin-top: 16px;
+	padding-bottom: 24px;
+}
+
+.header-profile-container .avatar-container {
+	width: 90px;
+	height: 90px;
+	border-radius: 50%;
+	background: #ffffff;
+	padding: 4px;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.profile-inside-name {
+	font-size: 20px !important;
+	font-weight: 700 !important;
+	color: #ffffff !important;
+	margin-top: 12px !important;
+	text-align: center;
+}
+
+.profile-inside-username {
+	font-size: 14px !important;
+	color: #e0d5ff !important;
+	margin-top: 2px !important;
+	text-align: center;
+	font-weight: 400;
+}
+
 /* === CONTENT === */
 .profile-content {
-	margin-top: 12px;
-	/* Заставляем контентную часть растягиваться, чтобы заполнять пустоту */
+	margin-top: 0;
 	flex: 1 0 auto;
 	display: flex;
 	flex-direction: column;
@@ -132,8 +154,6 @@
 .exit-btn:active {
 	transform: scale(0.9);
 }
-
-/* === СТИЛИ ДЛЯ SUB-COMPONENTS (About, Achievements, Github) === */
 
 .about-card {
 	background: white;

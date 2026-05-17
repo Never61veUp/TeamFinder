@@ -1,13 +1,19 @@
-import React from 'react'
+import React from 'react';
 import './header.css';
 
 interface HeaderProps {
-    title: string,
-    onNotificationClick?: () => void
+    title: string;
+    onNotificationClick?: () => void;
+    hasNotifications?: boolean;
+    children?: React.ReactNode;
 }
 
-export const Header: React.FC<HeaderProps> = ({title, onNotificationClick}) => {
-
+export const Header: React.FC<HeaderProps> = ({
+                                                  title,
+                                                  onNotificationClick,
+                                                  hasNotifications,
+                                                  children
+                                              }) => {
     return (
         <header className="team-header">
             <div className="team-header-content">
@@ -30,8 +36,15 @@ export const Header: React.FC<HeaderProps> = ({title, onNotificationClick}) => {
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                     </svg>
+                    {hasNotifications && <div className="notification-badge"></div>}
                 </button>
             </div>
+
+            {children && (
+                <div className="header-profile-container">
+                    {children}
+                </div>
+            )}
         </header>
     );
 };
