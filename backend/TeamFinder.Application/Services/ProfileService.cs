@@ -40,6 +40,23 @@ public class ProfileService : IProfileService
         return await _profileRepository.GetById(id)
             .Bind(entity => entity.ToDomain());
     }
+    
+    public async Task<Result<ProfileResponse>> GetResponseById(Guid id)
+    {
+        var profileResult = await _profileRepository.GetById(id);
+        if(profileResult.IsFailure)
+            return Result.Failure<ProfileResponse>(profileResult.Error);
+        
+        var profile = profileResult.Value;
+        
+        var profileResponse = new ProfileResponse(
+            profile.Id, profile.Name, profile.UserName, profile.Description ?? "", profile.TgId, profile.Rating,
+            profile.ReviewsCount, 
+            profile.Skills.Select(s => s.Skill).MapToDomainList(s => s.ToDomain()).Value, 
+            profile.GithubInfo?.ToDomain());
+        
+        return profileResponse;
+    }
 
     public async Task<Result<List<Profile>>> FindBySkill(Guid skillId)
     {

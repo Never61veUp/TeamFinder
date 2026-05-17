@@ -13,7 +13,7 @@ public static class ProfileMapping
         if (entity.GithubInfo != null)
         {
             var githubResult = GithubInfo.Create(
-                entity.UserName, 
+                entity.GithubInfo.Username, 
                 entity.GithubInfo.ProfileUrl,
                 entity.GithubInfo.TopLanguage, 
                 entity.GithubInfo.TotalStars, 
