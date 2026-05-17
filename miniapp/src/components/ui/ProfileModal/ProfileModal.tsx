@@ -48,7 +48,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                     <div className="detail-avatar">{initial}</div>
                     <div>
                         <h2 className="detail-name">{name}</h2>
-                        <p className="detail-username">@{profile.username || 'user'}</p>
+                        <p className="detail-username">@{profile.userName || 'user'}</p>
                     </div>
                 </div>
 

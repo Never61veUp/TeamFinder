@@ -115,13 +115,14 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
     if (isLoading) {
         return <div className="profile-container"><div className="p-6">Загрузка...</div></div>;
     }
+    console.log(user)
 
     return (
         <div className="profile-container pb-24 bg-white">
 
             <ProfileHeader
-                name={user.username ?? 'User'}
-                username={user.username ? `@${user.username}` : ''}
+                name={user.name ?? 'User'}
+                username={user.userName ? `@${user.userName}` : ''}
                 avatarUrl={user.photoUrl}
                 onNotificationClick={onOpenNotif}
             />

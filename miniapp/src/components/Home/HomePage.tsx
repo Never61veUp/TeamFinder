@@ -55,7 +55,7 @@ export function HomePage({user, onOpenNotif}: HomePageProps) {
     return (
         <div className="home-container">
             <Header
-                title={`Привет, ${user.firstName || 'Александр'}!`}
+                title={`Привет, ${user.name || 'Александр'}!`}
                 onNotificationClick={onOpenNotif}
             />
 

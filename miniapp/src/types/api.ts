@@ -5,16 +5,15 @@ export interface AuthResponse {
 export interface TelegramUser {
   profileId: string
   id: number | string
-  username?: string | null
-  firstName?: string | null
-  lastName?: string | null
+  userName?: string | null
+    name?: string | null
   photoUrl?: string | null
 }
 
 export interface Profile {
   id: string
   name: string
-  username?: string
+  userName?: string
   photoUrl?: string
   telegramId?: number
   skills?: Skill[]

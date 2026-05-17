@@ -40,6 +40,31 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
     const today = new Date().toISOString().split('T')[0];
     const maxDate = "2100-12-31";
 
+    const loadMembersData = async (team: Team) => {
+        setMembersData({});
+        if (!team.members) return;
+
+        const profiles: Record<string, ProfileWithGithub> = {};
+
+        await Promise.all(
+            team.members.map(async (member: any) => {
+                const id =
+                    typeof member === 'string'
+                        ? member
+                        : (member.profileId || member.id);
+
+                try {
+                    const res = await httpClient.get<ProfileWithGithub>(`/profiles/${id}`);
+                    profiles[id] = (res as any).data || res;
+                } catch (e) {
+                    console.error("Ошибка загрузки профиля", id);
+                }
+            })
+        );
+
+        setMembersData(profiles);
+    };
+
     useEffect(() => {
         const initPage = async () => {
             try {
@@ -60,18 +85,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                     if (teamData && (teamData as any).status !== 0) {
                         setCurrentTeam(teamData);
 
-                        if (teamData.members) {
-                            for (const member of teamData.members) {
-                                const id = typeof member === 'string' ? member : (member.profileId || (member as any).id);
-                                try {
-                                    const res = await httpClient.get<ProfileWithGithub>(`/profiles/${id}`);
-                                    const profileData = (res as any).data || res;
-                                    setMembersData(prev => ({ ...prev, [id]: profileData }));
-                                } catch (e) {
-                                    console.error("Ошибка предзагрузки профиля", id);
-                                }
-                            }
-                        }
+                        await loadMembersData(teamData);
                     }
                 }
             } catch (err) {
@@ -127,7 +141,11 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
 
             await httpClient.post('/teams', payload);
             const freshTeamRes = await teamService.getMyTeam();
-            if (freshTeamRes) setCurrentTeam(freshTeamRes);
+
+            if (freshTeamRes) {
+                setCurrentTeam(freshTeamRes);
+                await loadMembersData(freshTeamRes);
+            }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Ошибка при создании');
         } finally {
@@ -259,7 +277,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                     const profileId = typeof member === 'string' ? member : (member.profileId || member.id);
                                     const data = membersData[profileId];
                                     const name = data?.name || "Загрузка...";
-                                    const username = data?.username || "user";
+                                    const username = data?.userName || "user";
 
                                     const isMe = myProfile?.id.toString() === profileId;
 

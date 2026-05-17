@@ -17,7 +17,7 @@ export const authService = {
   },
 
   getMe() {
-    return httpClient.get<TelegramUser>('/me')
+    return httpClient.get<TelegramUser>('/profiles/me')
   },
 
   logout() {

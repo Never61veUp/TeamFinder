@@ -311,7 +311,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                                 <div className="profile-card-header">
                                     <div>
                                         <h3 className="search-profile-name">{profile.name}</h3>
-                                        <p className="search-profile-username">@{profile.username || 'user'}</p>
+                                        <p className="search-profile-username">@{profile.userName || 'user'}</p>
                                         <RatingStars rating={profile.rating || 0} />
                                     </div>
 

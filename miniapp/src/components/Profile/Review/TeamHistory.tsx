@@ -149,7 +149,7 @@ export const TeamHistory: React.FC<TeamHistoryProps> = ({ currentUserId }) => {
 
                                 const displayName =
                                     profile?.name ||
-                                    profile?.username ||
+                                    profile?.userName ||
                                     `ID: ${memberId.slice(0, 6)}`;
 
                                 return (
@@ -162,9 +162,9 @@ export const TeamHistory: React.FC<TeamHistoryProps> = ({ currentUserId }) => {
                                                 {displayName}
                                             </span>
 
-                                            {profile?.username && (
+                                            {profile?.userName && (
                                                 <span className="text-[10px] text-gray-400">
-                                                    @{profile.username}
+                                                    @{profile.userName}
                                                 </span>
                                             )}
                                         </div>
