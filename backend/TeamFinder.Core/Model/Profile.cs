@@ -7,13 +7,15 @@ public sealed class Profile : Entity<Guid>
 {
     private readonly List<Skill> _skills = [];
 
-    private Profile(Guid id, string name, long tgId) : base(id)
+    private Profile(Guid id, string userName, string name, long tgId) : base(id)
     {
+        UserName = userName;
         Name = name;
         TelegramId = tgId;
     }
 
     public IReadOnlyCollection<Skill> Skills => _skills.AsReadOnly();
+    public string UserName { get; private set; }
     public string Name { get; private set; }
     public GithubInfo? GithubInfo { get; private set; }
     public long TelegramId { get; private set; }
@@ -22,20 +24,20 @@ public sealed class Profile : Entity<Guid>
     public int ReviewsCount { get; private set;}
     
 
-    public static Result<Profile> Create(string name, long tgId)
+    public static Result<Profile> Create(string name, long tgId, string userName)
     {
         if(string.IsNullOrWhiteSpace(name))
             return Result.Failure<Profile>("Profile name cannot be empty");
         
-        return new Profile(Guid.NewGuid(), name, tgId)
+        return new Profile(Guid.NewGuid(), userName, name, tgId)
         {
             Rating = 0,
             ReviewsCount = 0
         };
     }
-    public static Profile Restore(Guid id, string name, long tgId, double rating, int reviewsCount, GithubInfo? githubInfo = null, List<Skill>? skills = null, string? description = "")
+    public static Profile Restore(Guid id, string name, string userName, long tgId, double rating, int reviewsCount, GithubInfo? githubInfo = null, List<Skill>? skills = null, string? description = "")
     {
-        var profile = new Profile(id, name, tgId)
+        var profile = new Profile(id, userName, name, tgId)
         {
             GithubInfo = githubInfo,
             Description = description,

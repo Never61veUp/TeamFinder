@@ -22,9 +22,9 @@ public class ProfileService : IProfileService
         _skillRepository = skillRepository;
     }
 
-    public async Task<Result<Guid>> DevCreateWithoutTg(string name)
+    public async Task<Result<Guid>> DevCreateWithoutTg(string userName, string name)
     {
-        return await Profile.Create(name, 1)
+        return await Profile.Create(name, 1, userName)
             .Tap(profile => _profileRepository.Add(profile.ToEntity()))
             .Map(profile => profile.Id);
     }
@@ -39,6 +39,23 @@ public class ProfileService : IProfileService
     {
         return await _profileRepository.GetById(id)
             .Bind(entity => entity.ToDomain());
+    }
+    
+    public async Task<Result<ProfileResponse>> GetResponseById(Guid id)
+    {
+        var profileResult = await _profileRepository.GetById(id);
+        if(profileResult.IsFailure)
+            return Result.Failure<ProfileResponse>(profileResult.Error);
+        
+        var profile = profileResult.Value;
+        
+        var profileResponse = new ProfileResponse(
+            profile.Id, profile.Name, profile.UserName, profile.Description ?? "", profile.TgId, profile.Rating,
+            profile.ReviewsCount, 
+            profile.Skills.Select(s => s.Skill).MapToDomainList(s => s.ToDomain()).Value, 
+            profile.GithubInfo?.ToDomain());
+        
+        return profileResponse;
     }
 
     public async Task<Result<List<Profile>>> FindBySkill(Guid skillId)
@@ -56,11 +73,11 @@ public class ProfileService : IProfileService
             .Bind(profile => _profileRepository.ConnectGithubInfo(profileId, profile.GithubInfo!.ToEntity()));
     }
 
-    public async Task<Result<Profile>> CreateOrGetByTgId(long tgId, string name)
+    public async Task<Result<Profile>> CreateOrGetByTgId(long tgId, string userName, string name)
     {
         return await GetByTgId(tgId)
             .OnFailureCompensate(() => 
-                Profile.Create(name, tgId)
+                Profile.Create(name, tgId, userName)
                     .Tap(profile => _profileRepository.Add(profile.ToEntity()))
             );
     }

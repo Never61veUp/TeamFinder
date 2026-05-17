@@ -4,6 +4,7 @@ public class ProfileEntity
 {
     public Guid Id { get; set; }
     public string UserName { get; set; } = null!;
+    public string Name { get; set; } = null!;
     public GithubEntity? GithubInfo { get; set; }
     public long TgId { get; set; }
     public string? Description { get; set; }
