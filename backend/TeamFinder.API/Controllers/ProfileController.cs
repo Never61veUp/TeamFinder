@@ -28,7 +28,7 @@ public class ProfileController : BaseController
     [HttpPost]
     public async Task<IActionResult> Create(CreateProfileRequest request)
     {
-        var result = await _profileService.DevCreateWithoutTg(request.Name);
+        var result = await _profileService.DevCreateWithoutTg(request.Name, "sd");
         if (result.IsFailure)
             return BadRequest(result.Error);
 

@@ -29,7 +29,8 @@ public static class ProfileMapping
             .MapToDomainList(s => s.Skill.ToDomain())
             .Map(skills => Profile.Restore(
                 entity.Id,
-                entity.UserName,
+                name: entity.Name,
+                userName: entity.UserName,
                 entity.TgId,
                 entity.Rating,
                 entity.ReviewsCount,
