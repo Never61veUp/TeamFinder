@@ -25,6 +25,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
 
     const loadData = async () => {
         setIsLoading(true);
+        console.log('=== ДЕБАГ: Начало загрузки уведомлений ===');
         try {
             try {
                 const teamData = await teamService.getMyTeam();
@@ -41,6 +42,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
             console.log('4. Является ли invitesData массивом?:', Array.isArray(invitesData));
 
             const invitesArray = Array.isArray(invitesData) ? invitesData : [];
+            console.log('5. Итоговый массив инвайтов после проверки:', invitesArray);
             setPersonalInvites(invitesArray);
 
             const teamsInfo: Record<string, Team> = {};
@@ -53,14 +55,26 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                     }
                 }
             }
+            console.log('6. Информация о командах для инвайтов:', teamsInfo);
             setPersonalInvitesTeams(teamsInfo);
 
         } catch (error) {
-            console.error('Ошибка загрузки уведомлений:', error);
+            console.error('Критическая ошибка в loadData:', error);
         } finally {
             setIsLoading(false);
+            console.log('=== ДЕБАГ: Конец загрузки уведомлений ===');
         }
     };
+
+    useEffect(() => {
+        const initSheet = async () => {
+            if (isOpen) {
+                await loadData();
+                markAsRead();
+            }
+        };
+        initSheet();
+    }, [isOpen]);
 
     const handleAcceptJoinRequest = async (targetId: string) => {
         if (!myTeam) return;
