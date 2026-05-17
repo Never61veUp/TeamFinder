@@ -28,6 +28,8 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
         try {
             try {
                 const teamData = await teamService.getMyTeam();
+                console.log('1. Моя команда из API:', teamData);
+                console.log('2. Список заявок в команду (joinRequests):', teamData?.joinRequests);
                 setMyTeam(teamData);
             } catch (e) {
                 console.error('Ошибка запроса команды:', e);
@@ -35,6 +37,9 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
             }
 
             const invitesData = await invitationsService.getInvitations(0);
+            console.log('3. Инвайты из API (invitesData):', invitesData);
+            console.log('4. Является ли invitesData массивом?:', Array.isArray(invitesData));
+
             const invitesArray = Array.isArray(invitesData) ? invitesData : [];
             setPersonalInvites(invitesArray);
 
