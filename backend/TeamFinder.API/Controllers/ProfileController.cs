@@ -47,7 +47,7 @@ public class ProfileController : BaseController
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var profile = await _profileService.GetById(id);
+        var profile = await _profileService.GetResponseById(id);
         if (profile.IsFailure)
             return BadRequest(profile.Error);
 
