@@ -44,7 +44,8 @@ public static class ProfileMapping
         var profileEntity = new ProfileEntity
         {
             Id = domain.Id,
-            UserName = domain.Name,
+            UserName = domain.UserName,
+            Name = domain.Name,
             TgId = domain.TelegramId,
             Description = domain.Description,
             Rating = domain.Rating,
