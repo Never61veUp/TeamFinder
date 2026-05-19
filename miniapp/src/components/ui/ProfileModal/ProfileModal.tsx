@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
 import { Computer, CodeXml, Folder, Star } from 'lucide-react';
@@ -12,7 +12,7 @@ interface ProfileModalProps {
     isLoading?: boolean;
 }
 
-export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, isLoading }) => {
+export const ProfileModal: React.FC<ProfileModalProps> = ({profile, onClose, isLoading}) => {
     const [transformY, setTransformY] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
@@ -41,7 +41,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
     if (isLoading) {
         return (
             <div className="modal-overlay bottom" onClick={onClose}>
-                <div className="modal-content-bottom flex items-center justify-center min-h-75" onClick={e => e.stopPropagation()}>
+                <div className="modal-content-bottom flex items-center justify-center min-h-75"
+                     onClick={e => e.stopPropagation()}>
                     <div className="font-bold text-violet-600 animate-pulse">Загрузка профиля...</div>
                 </div>
             </div>
@@ -155,13 +156,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                 onTouchEnd={handleTouchEnd}
                 style={getModalStyle()}
             >
-                <div className="modal-drag-handle" onClick={triggerSmoothClose} />
+                <div className="modal-drag-handle" onClick={triggerSmoothClose}/>
 
                 <div className="profile-detail-header">
                     <div className="detail-avatar">{initial}</div>
                     <div>
                         <h2 className="detail-name">{name}</h2>
-                        <p className="detail-username">@{profile.userName || 'user'}</p>
+                        <a className="detail-username"
+                           href={`https://t.me/${profile.userName}`}
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            @{profile.userName || 'user'}
+                        </a>
                     </div>
                 </div>
 
@@ -192,25 +198,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                                 className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-75 transition-opacity w-fit"
                                 onClick={() => profile.githubInfo?.profileUrl && handleGithubClick(profile.githubInfo.profileUrl)}
                             >
-                                <Computer size={18} className="text-emerald-400" />
-                                <span className="font-bold text-sm underline decoration-emerald-400/50 underline-offset-4">
+                                <Computer size={18} className="text-emerald-400"/>
+                                <span
+                                    className="font-bold text-sm underline decoration-emerald-400/50 underline-offset-4">
                                     GitHub: {profile.githubInfo.username}
                                 </span>
                             </div>
 
                             <div className="grid grid-cols-3 gap-2">
                                 <div className="bg-white/10 rounded-2xl p-3 text-center">
-                                    <Folder size={15} className="mx-auto mb-1 opacity-50" />
+                                    <Folder size={15} className="mx-auto mb-1 opacity-50"/>
                                     <div className="text-lg font-bold">{profile.githubInfo.repositoriesCount}</div>
                                     <div className="text-[10px] uppercase opacity-50 font-bold">Репо</div>
                                 </div>
                                 <div className="bg-white/10 rounded-2xl p-3 text-center">
-                                    <Star size={15} className="mx-auto mb-1 text-amber-400" />
+                                    <Star size={15} className="mx-auto mb-1 text-amber-400"/>
                                     <div className="text-lg font-bold">{profile.githubInfo.totalStars}</div>
                                     <div className="text-[10px] uppercase opacity-50 font-bold">Звезды</div>
                                 </div>
-                                <div className="bg-white/10 rounded-2xl p-3 items-center text-center flex flex-col justify-center min-h-20">
-                                    <CodeXml size={15} className="mb-1 text-emerald-400" />
+                                <div
+                                    className="bg-white/10 rounded-2xl p-3 items-center text-center flex flex-col justify-center min-h-20">
+                                    <CodeXml size={15} className="mb-1 text-emerald-400"/>
                                     <div className="text-emerald-400 text-[10px] font-bold truncate w-full px-1">
                                         {profile.githubInfo.topLanguage || '---'}
                                     </div>
@@ -221,7 +229,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                     )}
 
                     <div className="mt-2 mb-6">
-                        <ReviewList userId={profile.id} />
+                        <ReviewList userId={profile.id}/>
                     </div>
                 </div>
 
