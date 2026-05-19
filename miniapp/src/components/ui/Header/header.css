@@ -57,17 +57,15 @@
 
 .notification-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 10px;
-    height: 10px;
+    top: 6px;
+    right: 6px;
+    width: 12px;
+    height: 12px;
     background-color: #ff4d4f;
     border: 2px solid #823cf4;
     border-radius: 50%;
+    z-index: 10;
     box-shadow: 0 0 0 1px rgba(255, 77, 79, 0.2);
-}
-
-.notification-badge {
     animation: pulse 2s infinite;
 }
 

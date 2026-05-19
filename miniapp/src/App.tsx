@@ -1,14 +1,15 @@
-import {useEffect, useState} from 'react'
-import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom'
-import {ProfilePage} from './components/Profile/ProfilePage'
-import {Navigation} from './components/Navigation/Navigation'
-import {TeamPage} from './components/Team/TeamPage.tsx'
-import {HomePage} from './components/Home/HomePage'
-import {NotificationsSheet} from './components/ui/Notifications/NotificationsSheet'
-import {SearchPage} from './components/Search/SearchPage'
+import { useEffect, useState } from 'react'
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom'
+import { ProfilePage } from './components/Profile/ProfilePage'
+import { Navigation } from './components/Navigation/Navigation'
+import { TeamPage } from './components/Team/TeamPage.tsx'
+import { HomePage } from './components/Home/HomePage'
+import { NotificationsSheet } from './components/ui/Notifications/NotificationsSheet'
+import { SearchPage } from './components/Search/SearchPage'
 import './style.css'
-import type {TelegramUser} from "./types/api.ts";
-import {authService} from "./services";
+import type { TelegramUser } from "./types/api.ts"
+import { authService } from "./services"
+import { NotificationProvider } from './components/ui/Notifications/NotificationContext'
 
 function App() {
     const initData = window.Telegram?.WebApp?.initData ?? ''
@@ -23,10 +24,8 @@ function App() {
     useEffect(() => {
         try {
             const tg = (window as any).Telegram?.WebApp;
-
             if (tg) {
                 tg.ready();
-
                 if (tg.setHeaderColor) {
                     tg.setHeaderColor('bg_color');
                 }
@@ -60,7 +59,6 @@ function App() {
 
     useEffect(() => {
         if (token || busy || authTried) return
-
         setAuthTried(true)
         onLogin()
     }, [token, authTried, busy])
@@ -103,9 +101,8 @@ function App() {
             <div className="min-h-dvh flex items-center justify-center bg-slate-50">
                 <div className="text-center">
                     <div className="text-sm text-slate-500">
-                        {busy ?? 'Загрузка...'}
+                        {busy ? 'Загрузка...' : 'Авторизация...'}
                     </div>
-
                     {error && (
                         <div className="mt-2 text-xs text-red-500">
                             {error}
@@ -117,38 +114,38 @@ function App() {
     }
 
     return (
-        <Router>
-            <main className="main-scroll-area">
-                <Routes>
-                    <Route
-                        path="/"
-                        element={<HomePage user={me} onOpenNotif={() => setIsNotifOpen(true)}/>}
-                    />
-                    <Route
-                        path="/search"
-                        element={<SearchPage onOpenNotif={() => setIsNotifOpen(true)}/>}
-                    />
+        <NotificationProvider>
+            <Router>
+                <main className="main-scroll-area">
+                    <Routes>
+                        <Route
+                            path="/"
+                            element={<HomePage user={me} onOpenNotif={() => setIsNotifOpen(true)} />}
+                        />
+                        <Route
+                            path="/search"
+                            element={<SearchPage onOpenNotif={() => setIsNotifOpen(true)} />}
+                        />
+                        <Route
+                            path="/create"
+                            element={<TeamPage onOpenNotif={() => setIsNotifOpen(true)} />}
+                        />
+                        <Route
+                            path="/profile"
+                            element={<ProfilePage user={me} onLogout={onLogout} onOpenNotif={() => setIsNotifOpen(true)} />}
+                        />
+                        <Route path="*" element={<Navigate to="/" />} />
+                    </Routes>
+                </main>
 
-                    <Route
-                        path="/create"
-                        element={<TeamPage onOpenNotif={() => setIsNotifOpen(true)}/>}
-                    />
+                <NotificationsSheet
+                    isOpen={isNotifOpen}
+                    onClose={() => setIsNotifOpen(false)}
+                />
 
-                    <Route
-                        path="/profile"
-                        element={<ProfilePage user={me} onLogout={onLogout} onOpenNotif={() => setIsNotifOpen(true)}/>}
-                    />
-                    <Route path="*" element={<Navigate to="/"/>}/>
-                </Routes>
-            </main>
-
-            <NotificationsSheet
-                isOpen={isNotifOpen}
-                onClose={() => setIsNotifOpen(false)}
-            />
-
-            <Navigation/>
-        </Router>
+                <Navigation />
+            </Router>
+        </NotificationProvider>
     )
 }
 

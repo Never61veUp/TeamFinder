@@ -13,17 +13,15 @@ interface NotificationContextType {
     markAsRead: () => void;
 }
 
-const NotificationContext = createContext<NotificationContextType>({
-    hasUnread: false,
-    myTeam: null,
-    personalInvites: [],
-    personalInvitesTeams: {},
-    isLoading: false,
-    loadData: async () => {},
-    markAsRead: () => {},
-});
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const useNotifications = () => useContext(NotificationContext);
+export const useNotifications = () => {
+    const context = useContext(NotificationContext);
+    if (!context) {
+        throw new Error("useNotifications must be used within a NotificationProvider");
+    }
+    return context;
+};
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [myTeam, setMyTeam] = useState<Team | null>(null);
@@ -32,7 +30,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [isLoading, setIsLoading] = useState(false);
     const [hasUnread, setHasUnread] = useState(false);
 
-    const currentNotificationsRef = useRef<{ joinRequests: any[], invites: any[] }>({ joinRequests: [], invites: [] });
+    const currentIdsRef = useRef<string[]>([]);
 
     const loadData = async () => {
         setIsLoading(true);
@@ -40,69 +38,60 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             let teamData: Team | null = null;
             try {
                 teamData = await teamService.getMyTeam();
-                setMyTeam(teamData);
-            } catch (e) {
-                setMyTeam(null);
+            } catch {
             }
+            setMyTeam(teamData);
 
-            const invitesData = await invitationsService.getInvitations(0);
-            const invitesArray = Array.isArray(invitesData) ? invitesData : [];
+            const invitesData = await invitationsService.getInvitations(0).catch(() => []);
+            const invitesArray = Array.isArray(invitesData)
+                ? invitesData
+                : (invitesData as any)?.items || (invitesData as any)?.data || [];
+
             setPersonalInvites(invitesArray);
 
-            currentNotificationsRef.current = {
-                joinRequests: teamData?.joinRequests || [],
-                invites: invitesArray
-            };
+            const currentIds: string[] = [
+                ...(teamData?.joinRequests || []).map((r: any) => `join_${r.profileId || r.id}`),
+                ...invitesArray.map((i: any) => `invite_${i.id || i.inviteeId || i.teamId}`)
+            ];
+            currentIdsRef.current = currentIds;
 
-            const teamsInfo: Record<string, Team> = {};
+            const teamsInfo = { ...personalInvitesTeams };
             for (const invite of invitesArray) {
                 const tId = invite.teamId || invite.team?.id;
                 if (tId && !teamsInfo[tId]) {
                     try {
                         teamsInfo[tId] = await teamService.getTeam(tId);
                     } catch (err) {
-                        console.error(`Не удалось загрузить команду ${tId}:`, err);
+                        console.error(`Ошибка загрузки команды ${tId}:`, err);
                     }
                 }
             }
             setPersonalInvitesTeams(teamsInfo);
 
-            let currentIds: string[] = [];
-            if (teamData && teamData.joinRequests && teamData.joinRequests.length) {
-                currentIds = [...currentIds, ...teamData.joinRequests.map((r: any) => `join_${r.profileId || r.id}`)];
+            if (currentIds.length === 0) {
+                setHasUnread(false);
+            } else {
+                const seenIds: string[] = JSON.parse(localStorage.getItem('seen_notif_ids') || '[]');
+                setHasUnread(currentIds.some(id => !seenIds.includes(id)));
             }
-            currentIds = [...currentIds, ...invitesArray.map(i => `invite_${i.id}`)];
 
-            const seenIds = JSON.parse(localStorage.getItem('seen_notif_ids') || '[]');
-            const hasNew = currentIds.some(id => !seenIds.includes(id));
-
-            setHasUnread(hasNew);
         } catch (error) {
-            console.error('Ошибка загрузки уведомлений:', error);
+            console.error('Ошибка провайдера уведомлений:', error);
         } finally {
             setIsLoading(false);
         }
     };
 
     const markAsRead = () => {
-        const { joinRequests} = currentNotificationsRef.current;
-        let currentIds: string[] = [];
-
-        if (joinRequests.length) {
-            currentIds = [...currentIds, ...joinRequests.map((r: any) => `join_${r.profileId || r.id}`)];
+        if (currentIdsRef.current.length > 0) {
+            localStorage.setItem('seen_notif_ids', JSON.stringify(currentIdsRef.current));
         }
-        currentIds = [...currentIds, ...personalInvites.map(i => `invite_${i.id || i.inviteeId || i.teamId}`)];
-
-        localStorage.setItem('seen_notif_ids', JSON.stringify(currentIds));
         setHasUnread(false);
     };
+
     useEffect(() => {
         loadData();
-
-        const interval = setInterval(() => {
-            loadData();
-        }, 30000); // 30000 мс = 30 сек
-
+        const interval = setInterval(loadData, 30000);
         return () => clearInterval(interval);
     }, []);
 

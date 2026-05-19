@@ -90,26 +90,6 @@
 }
 
 /* Кнопка и бейдж в хедере */
-.notification-btn {
-    position: relative;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 4px;
-}
-
-.notification-badge {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 10px;
-    height: 10px;
-    background: #ff4d4f;
-    border: 2px solid #823cf4;
-    border-radius: 50%;
-}
-
 .team-full-desc {
     font-size: 13px;
     color: #64748b;
