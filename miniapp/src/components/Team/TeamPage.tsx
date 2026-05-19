@@ -228,11 +228,11 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-24">
+        <div className="min-h-screen bg-slate-50">
             <Header title={currentTeam ? "Моя команда" : "Создать команду"} onNotificationClick={onOpenNotif} />
 
             {currentTeam ? (
-                <div className="px-4 pt-6 pb-20">
+                <div className="px-4 pt-6">
                     <div className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100">
                         <div className="text-center mb-6">
                             <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">{currentTeam.name}</h2>
@@ -278,7 +278,6 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                     const data = membersData[profileId];
                                     const name = data?.name || "Загрузка...";
                                     const username = data?.userName || "user";
-
                                     const isMe = myProfile?.id.toString() === profileId;
 
                                     return (
@@ -317,7 +316,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                             </div>
                         </div>
 
-                        <div className="exit-btn">
+                        <div className="mt-4">
                             {isCreator ? (
                                 <Button onClick={handleInactivate} variant="secondary" className="w-full text-red-500! bg-red-50! border-none rounded-xl py-3" isLoading={isSubmitting}>
                                     <Trash2 size={18} className="mr-2" /> Удалить команду
@@ -351,10 +350,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="form-group">
                                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Начало</label>
-                                <div
-                                    onClick={handleDateClick}
-                                    className="relative flex items-center group cursor-pointer"
-                                >
+                                <div onClick={handleDateClick} className="relative flex items-center group cursor-pointer">
                                     <input
                                         name="startDate"
                                         type="date"
@@ -362,25 +358,15 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                         max={maxDate}
                                         value={formData.startDate}
                                         onChange={handleChange}
-                                        className="w-full p-3 pr-10 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none
-                           transition-all duration-200
-                           group-hover:bg-white group-hover:border-violet-300
-                           focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white"
+                                        className="w-full p-3 pr-10 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none transition-all duration-200 group-hover:bg-white group-hover:border-violet-300 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white"
                                     />
-                                    <Calendar
-                                        size={16}
-                                        className="absolute right-3 text-slate-400 transition-colors duration-200
-                           group-hover:text-violet-500 pointer-events-none"
-                                    />
+                                    <Calendar size={16} className="absolute right-3 text-slate-400 transition-colors duration-200 group-hover:text-violet-500 pointer-events-none" />
                                 </div>
                             </div>
 
                             <div className="form-group">
                                 <label className="text-xs font-bold text-slate-400 uppercase ml-1">Конец</label>
-                                <div
-                                    onClick={handleDateClick}
-                                    className="relative flex items-center group cursor-pointer"
-                                >
+                                <div onClick={handleDateClick} className="relative flex items-center group cursor-pointer">
                                     <input
                                         name="endDate"
                                         type="date"
@@ -388,16 +374,9 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
                                         max={maxDate}
                                         value={formData.endDate}
                                         onChange={handleChange}
-                                        className="w-full p-3 pr-10 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none
-                           transition-all duration-200
-                           group-hover:bg-white group-hover:border-violet-300
-                           focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white"
+                                        className="w-full p-3 pr-10 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none transition-all duration-200 group-hover:bg-white group-hover:border-violet-300 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 focus:bg-white"
                                     />
-                                    <Calendar
-                                        size={16}
-                                        className="absolute right-3 text-slate-400 transition-colors duration-200
-                           group-hover:text-violet-500 pointer-events-none"
-                                    />
+                                    <Calendar size={16} className="absolute right-3 text-slate-400 transition-colors duration-200 group-hover:text-violet-500 pointer-events-none" />
                                 </div>
                             </div>
                         </div>
@@ -414,7 +393,7 @@ export const TeamPage = ({ onOpenNotif }: TeamPageProps) => {
 
                         {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
 
-                        <Button type="submit" isLoading={isSubmitting} className="create-btn w-full bg-violet-600 hover:bg-violet-700 text-white rounded-2xl py-4 font-bold shadow-lg shadow-violet-200">
+                        <Button type="submit" isLoading={isSubmitting} className="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-2xl py-4 font-bold shadow-lg shadow-violet-200">
                             Создать команду
                         </Button>
                     </div>
