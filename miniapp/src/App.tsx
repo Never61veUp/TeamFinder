@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { ProfilePage } from './components/Profile/ProfilePage'
-import { Navigation } from './components/Navigation/Navigation'
-import { TeamPage } from './components/Team/TeamPage.tsx'
-import { HomePage } from './components/Home/HomePage'
-import { NotificationsSheet } from './components/ui/Notifications/NotificationsSheet'
-import { SearchPage } from './components/Search/SearchPage'
+import {useEffect, useState} from 'react'
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom'
+import {ProfilePage} from './components/Profile/ProfilePage'
+import {Navigation} from './components/Navigation/Navigation'
+import {TeamPage} from './components/Team/TeamPage.tsx'
+import {HomePage} from './components/Home/HomePage'
+import {NotificationsSheet} from './components/ui/Notifications/NotificationsSheet'
+import {SearchPage} from './components/Search/SearchPage'
 import './style.css'
-import type { TelegramUser } from "./types/api.ts";
-import { authService } from "./services";
+import type {TelegramUser} from "./types/api.ts";
+import {authService} from "./services";
 
 function App() {
     const initData = window.Telegram?.WebApp?.initData ?? ''
@@ -16,6 +16,7 @@ function App() {
     const [me, setMe] = useState<TelegramUser | null>(null)
     const [error, setError] = useState<string>('')
     const [busy, setBusy] = useState(false)
+    const [authTried, setAuthTried] = useState(false)
 
     const [isNotifOpen, setIsNotifOpen] = useState(false)
 
@@ -46,13 +47,23 @@ function App() {
             .catch((e: unknown) => {
                 if (!cancelled) {
                     setError(e instanceof Error ? e.message : 'Unknown error')
-                    if (token) onLogout()
+                    if (token) {
+                        onLogout()
+                        setAuthTried(true)
+                    }
                 }
             })
         return () => {
             cancelled = true
         }
     }, [token])
+
+    useEffect(() => {
+        if (token || busy || authTried) return
+
+        setAuthTried(true)
+        onLogin()
+    }, [token, authTried, busy])
 
     async function onLogin() {
         setBusy(true)
@@ -89,21 +100,17 @@ function App() {
 
     if (!me) {
         return (
-            <div className="min-h-dvh bg-slate-50 text-slate-900">
-                <div className="mx-auto grid max-w-2xl gap-3 p-4">
-                    <header className="py-2">
-                        <div className="text-xl font-extrabold">TeamFinder</div>
-                    </header>
-                    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <button
-                            className="w-full inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-3 text-sm font-bold text-white disabled:opacity-50"
-                            disabled={busy}
-                            onClick={onLogin}
-                        >
-                            {busy ? 'Вход...' : 'Войти через Telegram'}
-                        </button>
-                        {error ? <div className="mt-3 text-red-700">{error}</div> : null}
-                    </section>
+            <div className="min-h-dvh flex items-center justify-center bg-slate-50">
+                <div className="text-center">
+                    <div className="text-sm text-slate-500">
+                        {busy ?? 'Загрузка...'}
+                    </div>
+
+                    {error && (
+                        <div className="mt-2 text-xs text-red-500">
+                            {error}
+                        </div>
+                    )}
                 </div>
             </div>
         )
@@ -115,23 +122,23 @@ function App() {
                 <Routes>
                     <Route
                         path="/"
-                        element={<HomePage user={me} onOpenNotif={() => setIsNotifOpen(true)} />}
+                        element={<HomePage user={me} onOpenNotif={() => setIsNotifOpen(true)}/>}
                     />
                     <Route
                         path="/search"
-                        element={<SearchPage onOpenNotif={() => setIsNotifOpen(true)} />}
+                        element={<SearchPage onOpenNotif={() => setIsNotifOpen(true)}/>}
                     />
 
                     <Route
                         path="/create"
-                        element={<TeamPage onOpenNotif={() => setIsNotifOpen(true)} />}
+                        element={<TeamPage onOpenNotif={() => setIsNotifOpen(true)}/>}
                     />
 
                     <Route
                         path="/profile"
-                        element={<ProfilePage user={me} onLogout={onLogout} onOpenNotif={() => setIsNotifOpen(true)} />}
+                        element={<ProfilePage user={me} onLogout={onLogout} onOpenNotif={() => setIsNotifOpen(true)}/>}
                     />
-                    <Route path="*" element={<Navigate to="/" />} />
+                    <Route path="*" element={<Navigate to="/"/>}/>
                 </Routes>
             </main>
 
@@ -140,7 +147,7 @@ function App() {
                 onClose={() => setIsNotifOpen(false)}
             />
 
-            <Navigation />
+            <Navigation/>
         </Router>
     )
 }
