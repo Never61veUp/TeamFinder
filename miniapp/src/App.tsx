@@ -29,10 +29,6 @@ function App() {
                 if (tg.setHeaderColor) {
                     tg.setHeaderColor('bg_color');
                 }
-
-                if (tg.requestFullscreen) {
-                    tg.requestFullscreen();
-                }
             }
         } catch (e) {
             console.error("Ошибка инициализации:", e);
