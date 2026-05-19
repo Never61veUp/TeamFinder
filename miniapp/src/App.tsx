@@ -25,7 +25,6 @@ function App() {
 
             if (tg) {
                 tg.ready();
-                tg.expand();
 
                 if (tg.setHeaderColor) {
                     tg.setHeaderColor('bg_color');
