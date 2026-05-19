@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
 import { Computer, CodeXml, Folder, Star } from 'lucide-react';
@@ -13,6 +13,12 @@ interface ProfileModalProps {
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, isLoading }) => {
+    const [transformY, setTransformY] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+
+    const startYRef = useRef(0);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+
     if (isLoading) {
         return (
             <div className="modal-overlay bottom" onClick={onClose}>
@@ -39,10 +45,52 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
         }
     };
 
-    // @ts-ignore
+    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+        startYRef.current = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        const currentY = e.touches[0].clientY;
+        const deltaY = currentY - startYRef.current;
+
+        if (deltaY > 0) {
+            if (scrollAreaRef.current && scrollAreaRef.current.contains(e.target as Node)) {
+                if (scrollAreaRef.current.scrollTop > 0) {
+                    return;
+                }
+            }
+
+            setIsDragging(true);
+            setTransformY(deltaY);
+
+            if (e.cancelable) e.preventDefault();
+        }
+    };
+
+    const handleTouchEnd = () => {
+        if (!isDragging) return;
+        setIsDragging(false);
+
+        if (transformY > 120) {
+            onClose();
+        }
+
+        setTransformY(0);
+    };
+
     return (
         <div className="modal-overlay bottom" onClick={onClose}>
-            <div className="modal-content-bottom profile-detail-modal animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div
+                className="modal-content-bottom profile-detail-modal animate-slide-up"
+                onClick={e => e.stopPropagation()}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                style={{
+                    transform: transformY > 0 ? `translateY(${transformY}px)` : undefined,
+                    transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+            >
                 <div className="modal-drag-handle" onClick={onClose} />
 
                 <div className="profile-detail-header">
@@ -53,7 +101,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                     </div>
                 </div>
 
-                <div className="detail-scroll-area">
+                <div className="detail-scroll-area" ref={scrollAreaRef}>
                     <section className="detail-section mb-8">
                         <h4 className="detail-section-title">Навыки</h4>
                         <div className="flex flex-wrap gap-2">
@@ -111,7 +159,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                     <div className="mt-2 mb-6">
                         <ReviewList userId={profile.id} />
                     </div>
-
                 </div>
 
                 <Button variant="primary" className="detail-close-btn mt-auto" onClick={onClose}>
