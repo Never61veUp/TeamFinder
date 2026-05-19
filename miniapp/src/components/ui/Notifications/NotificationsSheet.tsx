@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '../Button';
-import { teamService } from '../../../types/api';
+import type { Team } from '../../../types/api';
+import { useNotifications } from './NotificationContext';
 import { invitationsService } from '../../../services/invitations.service';
 import { acceptJoinRequest } from '../../../services/feed.service';
-import type { Team } from '../../../types/api';
 import './notifications.css';
+import { teamService } from "../../../services/team.service.ts";
 
 interface NotificationsSheetProps {
     isOpen: boolean;
@@ -12,38 +13,68 @@ interface NotificationsSheetProps {
     onViewProfile?: (id: string) => void;
 }
 
-export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, onClose}) => {
+export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, onClose }) => {
     const [myTeam, setMyTeam] = useState<Team | null>(null);
+    const [personalInvitesTeams, setPersonalInvitesTeams] = useState<Record<string, Team>>({});
     const [personalInvites, setPersonalInvites] = useState<any[]>([]);
+
+    const { markAsRead, loadData: loadDataFromContext } = useNotifications();
 
     const [isLoading, setIsLoading] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isOpen) {
-            loadData();
-        }
-    }, [isOpen]);
-
     const loadData = async () => {
         setIsLoading(true);
+        console.log('=== ДЕБАГ: Начало загрузки уведомлений ===');
         try {
             try {
                 const teamData = await teamService.getMyTeam();
+                console.log('1. Моя команда из API:', teamData);
+                console.log('2. Список заявок в команду (joinRequests):', teamData?.joinRequests);
                 setMyTeam(teamData);
             } catch (e) {
+                console.error('Ошибка запроса команды:', e);
                 setMyTeam(null);
             }
 
             const invitesData = await invitationsService.getInvitations(0);
-            setPersonalInvites(Array.isArray(invitesData) ? invitesData : []);
+            console.log('3. Инвайты из API (invitesData):', invitesData);
+            console.log('4. Является ли invitesData массивом?:', Array.isArray(invitesData));
+
+            const invitesArray = Array.isArray(invitesData) ? invitesData : [];
+            console.log('5. Итоговый массив инвайтов после проверки:', invitesArray);
+            setPersonalInvites(invitesArray);
+
+            const teamsInfo: Record<string, Team> = {};
+            for (const invite of invitesArray) {
+                if (invite.teamId && !teamsInfo[invite.teamId]) {
+                    try {
+                        teamsInfo[invite.teamId] = await teamService.getTeam(invite.teamId);
+                    } catch (err) {
+                        console.error(`Не удалось загрузить команду ${invite.teamId}`, err);
+                    }
+                }
+            }
+            console.log('6. Информация о командах для инвайтов:', teamsInfo);
+            setPersonalInvitesTeams(teamsInfo);
 
         } catch (error) {
-            console.error('Ошибка загрузки уведомлений:', error);
+            console.error('Критическая ошибка в loadData:', error);
         } finally {
             setIsLoading(false);
+            console.log('=== ДЕБАГ: Конец загрузки уведомлений ===');
         }
     };
+
+    useEffect(() => {
+        const initSheet = async () => {
+            if (isOpen) {
+                await loadData();
+                markAsRead();
+            }
+        };
+        initSheet();
+    }, [isOpen]);
 
     const handleAcceptJoinRequest = async (targetId: string) => {
         if (!myTeam) return;
@@ -51,6 +82,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
         try {
             await acceptJoinRequest(myTeam.id, targetId);
             await loadData();
+            if (loadDataFromContext) await loadDataFromContext();
         } catch (error) {
             alert('Ошибка при принятии заявки');
         } finally {
@@ -64,7 +96,8 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
             await invitationsService.acceptInvitation(invitationId);
             alert('Вы успешно вступили в команду!');
             await loadData();
-            onClose(); // Закрываем шторку, т.к. статус изменился
+            if (loadDataFromContext) await loadDataFromContext();
+            onClose();
         } catch (error) {
             alert('Ошибка при принятии приглашения');
         } finally {
@@ -89,32 +122,54 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                     ) : hasAnyNotifications ? (
                         <div className="requests-list">
 
-                            {/* Секция: Вас пригласили в команду */}
-                            {personalInvites.length > 0 && (
-                                <>
-                                    <h5 className="section-subtitle">Вас пригласили</h5>
-                                    {personalInvites.map((invite) => (
-                                        <div key={invite.id} className="request-notification-card">
-                                            <div className="request-message">
-                                                Команда <span className="user-name">{invite.teamName || 'Неизвестная'}</span>{' '}
-                                                приглашает вас присоединиться
-                                            </div>
-                                            <div className="request-actions">
-                                                <Button
-                                                    variant="primary"
-                                                    size="sm"
-                                                    isLoading={actionLoadingId === `invite_${invite.id}`}
-                                                    onClick={() => handleAcceptInvite(invite.id)}
-                                                >
-                                                    Принять инвайт
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </>
-                            )}
+                            {personalInvites.map((invite) => {
+                                const teamInfo = personalInvitesTeams[invite.teamId];
+                                if (!teamInfo) return null;
 
-                            {/* Секция: Хотят вступить в вашу команду */}
+                                return (
+                                    <div key={invite.id} className="request-notification-card">
+                                        <div className="request-message">
+                                            Команда <span className="user-name">{teamInfo.name}</span> приглашает вас
+                                        </div>
+
+                                        {teamInfo.eventDetails?.title && (
+                                            <div className="team-event-badge">
+                                                {teamInfo.eventDetails.title}
+                                            </div>
+                                        )}
+
+                                        {teamInfo.description && (
+                                            <div className="team-full-desc">
+                                                {teamInfo.description}
+                                            </div>
+                                        )}
+
+                                        {teamInfo.eventDetails?.tags && teamInfo.eventDetails.tags.length > 0 && (
+                                            <div className="team-tags-row">
+                                                {teamInfo.eventDetails.tags.map((tag: any) => (
+                                                    <span key={tag.id} className="team-mini-tag">#{tag.name}</span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        <div className="team-meta-info">
+                                            Участников: {teamInfo.members?.length || 0} / {teamInfo.maxMembers}
+                                        </div>
+
+                                        <div className="request-actions">
+                                            <Button
+                                                variant="primary"
+                                                size="sm"
+                                                isLoading={actionLoadingId === `invite_${invite.id}`}
+                                                onClick={() => handleAcceptInvite(invite.id)}
+                                            >
+                                                Принять заявку
+                                            </Button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
                             {myTeam?.joinRequests?.length ? (
                                 <>
                                     <h5 className="section-subtitle" style={{ marginTop: '16px' }}>Заявки в вашу команду</h5>

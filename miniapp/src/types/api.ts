@@ -1,5 +1,3 @@
-import { httpClient } from '../lib/http-client';
-
 export interface AuthResponse {
   token: string
 }
@@ -7,23 +5,21 @@ export interface AuthResponse {
 export interface TelegramUser {
   profileId: string
   id: number | string
-  username?: string | null
-  firstName?: string | null
-  lastName?: string | null
+  userName?: string | null
+  name?: string | null
   photoUrl?: string | null
 }
 
 export interface Profile {
   id: string
   name: string
-  username?: string
+  userName?: string
   photoUrl?: string
   telegramId?: number
   skills?: Skill[]
   description?: string;
-  hackathons?: number;
-  wins?: number;
-  projects?: number;
+  rating: number;
+  reviewsCount: number;
 }
 
 export interface ProfileWithGithub extends Profile {
@@ -37,6 +33,7 @@ export interface Skill {
 
 export interface GithubInfo {
   username: string
+  profileUrl: string
   repositoriesCount: number
   totalStars: number
   topLanguage: string
@@ -53,9 +50,11 @@ export interface Tag {
 }
 
 export interface TeamMember {
-  id: string | number;
-  initials: string;
+  profileId?: string;
+  id: string;
+  initials?: string;
   name?: string;
+  status?: number;
 }
 
 export interface Team {
@@ -82,6 +81,14 @@ export interface Team {
   status: number;
   members: TeamMember[];
   joinRequests?: TeamMember[];
+    ownerId?: string;
+    averageRating?: number;
+    eventTitle?: string;
+}
+
+export interface PagedResponse<T> {
+    items: T[];
+    totalCount: number;
 }
 
 export interface CreateTeamRequest {
@@ -94,16 +101,13 @@ export interface CreateTeamRequest {
   tags: number[];
 }
 
-export const teamService = {
-  getMyTeam: async (): Promise<Team> => {
-    return await httpClient.get<Team>('/teams/my-team');
-  },
-
-  leaveTeam: async (): Promise<void> => {
-    await httpClient.post('/teams/leave', {});
-  },
-
-  makeInactive: async (): Promise<void> => {
-    await httpClient.post('/teams/make-inactive', {});
-  }
-};
+export interface Review {
+    id: string;
+    reviewerId: string;
+    reviewerName: string;
+    targetProfileId: string;
+    teamId: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+}

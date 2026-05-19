@@ -1,31 +1,86 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { Team } from '../../types/api'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
 import { feedService } from '../../services/feed.service'
+import { httpClient } from '../../lib/http-client'
+import { ProfilePreviewModal } from './ProfilePreviewModal';
+import { RatingStars } from '../ui/RatingStars';
 import './home.css'
 
 interface TeamCardProps {
-    team: Team
+    team: Team;
     myProfileId?: string;
+    onOpenProfile?: (profileId: string) => void;
+    isAlreadyMember?: boolean;
 }
 
-export function TeamCard({ team, myProfileId }: TeamCardProps) {
+export function TeamCard({ team, myProfileId, isAlreadyMember }: TeamCardProps) {
     const [showDetails, setShowDetails] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
     const [alreadyJoined, setAlreadyJoined] = useState(false);
 
+    const [membersData, setMembersData] = useState<Record<string, any>>({});
+    const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+    const [previewProfileId, setPreviewProfileId] = useState<string | null>(null);
+
     const storageKey = `req_sent_${team.id}`;
 
+    const myTeamStatus = useMemo(() => {
+        if (!team.members || !myProfileId) return null;
+        const found = team.members.find((m: any) => {
+            const memberId = typeof m === 'string' ? m : (m.profileId || m.id);
+            return String(memberId) === String(myProfileId);
+        });
+        return found && found.status !== undefined ? found.status : null;
+    }, [team.members, myProfileId]);
+
     useEffect(() => {
-        // Проверяем участие (ID участников могут приходить строками или числами, приводим к String)
-        const isMember = team.members?.some(m => String(m) === String(myProfileId));
         const hasLocalRecord = localStorage.getItem(storageKey) === 'true';
 
-        if (isMember || hasLocalRecord) {
+        if (isAlreadyMember || hasLocalRecord) {
             setAlreadyJoined(true);
         }
-    }, [team.members, myProfileId, storageKey]);
+    }, [isAlreadyMember, storageKey]);
+
+    useEffect(() => {
+        if (showDetails && team.members && team.members.length > 0) {
+            const fetchMembers = async () => {
+                setIsLoadingMembers(true);
+                try {
+                    const uniqueIds = team.members
+                        .map(m => typeof m === 'string' ? m : (m.profileId || m.id))
+                        .filter(id => id && !membersData[String(id)]);
+
+                    if (uniqueIds.length === 0) {
+                        setIsLoadingMembers(false);
+                        return;
+                    }
+
+                    const profileMap: Record<string, any> = { ...membersData };
+
+                    await Promise.all(
+                        uniqueIds.map(async (id) => {
+                            try {
+                                const res = await httpClient.get(`/profiles/${id}`);
+                                profileMap[String(id)] = (res as any).data || res;
+                            } catch (err) {
+                                console.error(`Ошибка загрузки профиля ${id}`, err);
+                            }
+                        })
+                    );
+
+                    setMembersData(profileMap);
+                } catch (error) {
+                    console.error("Ошибка при загрузке участников:", error);
+                } finally {
+                    setIsLoadingMembers(false);
+                }
+            };
+
+            fetchMembers();
+        }
+    }, [showDetails, team.members]);
 
     const handleJoin = async () => {
         setIsJoining(true);
@@ -35,23 +90,45 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
             setAlreadyJoined(true);
             alert('Заявка успешно отправлена!');
             setShowDetails(false);
-        } catch (e: any) {
-            alert('Ошибка при отправке заявки.');
-        } finally {
+        }
+        catch (e: any) {
+            const message =
+                e?.response?.data ||
+                e?.response?.body ||
+                e?.message;
+
+            if (typeof message === 'string' && message.includes("User is already a member")) {
+                setAlreadyJoined(true);
+            } else {
+                alert('Ошибка при отправке заявки.');
+            }
+        }
+        finally {
             setIsJoining(false);
         }
     };
 
-    // Основная информация
     const currentCount = team.currentMembers || team.members?.length || 1;
     const description = team.description || 'Описание отсутствует';
-
-    // Данные события и теги (берем из новой структуры)
     const eventTitle = team.eventDetails?.title;
     const period = team.eventDetails?.period;
-
-    // ТЕПЕРЬ ТЕГИ ТУТ:
     const teamTags = team.eventDetails?.tags || [];
+
+    const renderCardButtonText = () => {
+        if (myTeamStatus === 0) return 'Покинули';
+        if (isAlreadyMember || myTeamStatus === 1) return 'Вы в команде';
+        if (alreadyJoined) return 'Заявка подана';
+        return 'Подробнее';
+    };
+
+    const renderModalButtonText = () => {
+        if (myTeamStatus === 0) return 'Доступ закрыт';
+        if (isAlreadyMember || myTeamStatus === 1) return 'Вы уже в команде';
+        if (alreadyJoined) return 'Заявка уже отправлена';
+        return 'Подать заявку';
+    };
+
+    const isButtonDisabled = alreadyJoined || isAlreadyMember || myTeamStatus === 1 || myTeamStatus === 0;
 
     return (
         <div className="team-card">
@@ -63,13 +140,13 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
                 <div className="team-capacity">
                     {currentCount} / {team.maxMembers}
                 </div>
+                <RatingStars rating={team.averageRating || 0} />
             </div>
 
             <p className="team-desc-short">
                 {description.length > 80 ? description.slice(0, 80) + '...' : description}
             </p>
 
-            {/* Отображение тегов в списке */}
             <div className="skills-list">
                 {teamTags.length > 0 ? (
                     teamTags.map((tag: any) => (
@@ -87,9 +164,9 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
                 variant="primary"
                 className="team-card-btn"
                 onClick={() => setShowDetails(true)}
-                disabled={alreadyJoined}
+                disabled={isButtonDisabled && myTeamStatus !== 0}
             >
-                {alreadyJoined ? 'Заявка подана' : 'Подробнее'}
+                {renderCardButtonText()}
             </Button>
 
             {showDetails && (
@@ -123,14 +200,13 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
                             )}
 
                             <div className="modal-section">
-                                <h3>О проекте:</h3>
+                                <h3 className="text-[16px] font-bold text-slate-900 mb-2">О проекте:</h3>
                                 <p className="full-desc">{team.description}</p>
                             </div>
 
-                            {/* Теги в модальном окне */}
                             {teamTags.length > 0 && (
-                                <div className="modal-section">
-                                    <h3>Направления:</h3>
+                                <div className="modal-section mt-4">
+                                    <h3 className="text-[16px] font-bold text-slate-900 mb-2">Направления:</h3>
                                     <div className="view-tags-list flex flex-wrap gap-2">
                                         {teamTags.map((tag: any) => (
                                             <Badge key={tag.id} className="badge">
@@ -140,24 +216,76 @@ export function TeamCard({ team, myProfileId }: TeamCardProps) {
                                     </div>
                                 </div>
                             )}
+
+                            {team.members && team.members.length > 0 && (
+                                <div className="modal-section mt-6 mb-4">
+                                    <h3 className="text-[16px] font-bold text-slate-900 mb-3">Участники</h3>
+                                    {isLoadingMembers && Object.keys(membersData).length === 0 ? (
+                                        <div className="text-sm text-gray-400 italic">Загрузка участников...</div>
+                                    ) : (
+                                        <div className="flex flex-col gap-3">
+                                            {team.members.map((member: any) => {
+                                                const profileId = String(typeof member === 'string' ? member : (member.profileId || member.id));
+                                                const data = membersData[profileId];
+
+                                                const name = data?.telegramUser?.firstName || data?.firstName || data?.name || "Участник";
+                                                const username = data?.userName || "user";
+                                                const initial = name !== "Участник" ? name[0].toUpperCase() : "?";
+
+                                                return (
+                                                    <div key={profileId} className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-violet-600 font-bold shadow-sm text-lg">
+                                                                {initial}
+                                                            </div>
+                                                            <div className="flex flex-col text-left">
+                                                                <span className="text-sm font-bold text-slate-900">{name}</span>
+                                                                <span className="text-xs text-slate-400">@{username}</span>
+                                                                <RatingStars rating={data?.rating || 0} size={12} />
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-violet-600 font-semibold"
+                                                            onClick={() => setPreviewProfileId(profileId)}
+                                                        >
+                                                            Подробнее
+                                                        </Button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
-                        <div className="modal-actions">
-                            <Button
-                                variant="primary"
-                                onClick={handleJoin}
-                                isLoading={isJoining}
-                                className="w-full"
-                                disabled={alreadyJoined}
-                            >
-                                {alreadyJoined ? 'Заявка уже отправлена' : 'Подать заявку'}
-                            </Button>
+                        <div className="modal-actions mt-2">
+                            <div className="mb-4">
+                                <Button
+                                    variant="primary"
+                                    onClick={handleJoin}
+                                    isLoading={isJoining}
+                                    className="w-full"
+                                    disabled={isButtonDisabled}
+                                >
+                                    {renderModalButtonText()}
+                                </Button>
+                            </div>
                             <Button variant="ghost" onClick={() => setShowDetails(false)}>
                                 Закрыть
                             </Button>
                         </div>
                     </div>
                 </div>
+            )}
+
+            {previewProfileId && (
+                <ProfilePreviewModal
+                    profileId={previewProfileId}
+                    onClose={() => setPreviewProfileId(null)}
+                />
             )}
         </div>
     )

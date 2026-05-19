@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TeamFinder.Application.Abstractions;
 using TeamFinder.Application.Services;
 using TeamFinder.Contracts;
+using TeamFinder.Core.Model.Teams;
 
 namespace TeamFinder.API.Controllers;
 
@@ -27,7 +28,7 @@ public class ProfileController : BaseController
     [HttpPost]
     public async Task<IActionResult> Create(CreateProfileRequest request)
     {
-        var result = await _profileService.DevCreateWithoutTg(request.Name);
+        var result = await _profileService.DevCreateWithoutTg(request.Name, "sd");
         if (result.IsFailure)
             return BadRequest(result.Error);
 
@@ -46,7 +47,7 @@ public class ProfileController : BaseController
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var profile = await _profileService.GetById(id);
+        var profile = await _profileService.GetResponseById(id);
         if (profile.IsFailure)
             return BadRequest(profile.Error);
 
@@ -185,6 +186,16 @@ public class ProfileController : BaseController
         if(result.IsFailure)
             return BadRequest(result.Error);
         
+        return Ok(result.Value);
+    }
+    
+    [HttpGet("all")]
+    public async Task<IActionResult> GetProfiles([FromQuery]int from = 0, int count = 5)
+    {
+        var result = await _profileService.GetList(from, count);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+
         return Ok(result.Value);
     }
 }

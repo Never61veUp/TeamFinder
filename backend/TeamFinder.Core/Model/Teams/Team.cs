@@ -3,14 +3,44 @@ using CSharpFunctionalExtensions;
 
 namespace TeamFinder.Core.Model.Teams;
 
+public class Member : Entity<Guid>
+{
+    public MemberStatus Status { get; private set; }
+
+    public Member(Guid id) : base(id)
+    {
+        Status = MemberStatus.Active;
+    }
+    
+    public Member(Guid id, MemberStatus status) : base(id)
+    {
+        Status = status;
+    }
+
+    public void SetStatus(MemberStatus status)
+    {
+        Status = status;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Member other && Id == other.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
+}
+
 public class Team : Entity<Guid>
 {
     private readonly List<Invitation> _invitations = [];
     private readonly List<JoinRequest> _joinRequests = [];
-    private readonly List<Guid> _members = [];
+    private readonly List<Member> _members;
     private readonly List<WantedProfile> _wantedProfiles = [];
 
-    private Team(Guid id, Guid ownerId, string name, int maxMembers, List<Guid> members, string description, EventDetails? eventDetails) : base(id)
+    private Team(Guid id, Guid ownerId, string name, int maxMembers, List<Member> members, string description, EventDetails? eventDetails) : base(id)
     {
         Name = name;
         OwnerId = ownerId;
@@ -18,11 +48,12 @@ public class Team : Entity<Guid>
         _members = members;
         Description = description;
         EventDetails = eventDetails;
+        UpdateStatus();
     }
 
     public string Name { get; private set; }
     public Guid OwnerId { get; private set; }
-    public IReadOnlyList<Guid> Members => _members.AsReadOnly();
+    public IReadOnlyList<Member> Members => _members.AsReadOnly();
     public int MaxMembers { get; }
     public string Description { get; private set; }
     public EventDetails? EventDetails { get; private set; }
@@ -31,7 +62,7 @@ public class Team : Entity<Guid>
     public IReadOnlyList<JoinRequest> JoinRequests => _joinRequests.AsReadOnly();
     public IReadOnlyList<Invitation> Invitations => _invitations.AsReadOnly();
 
-    public bool IsFull() => _members.Count >= MaxMembers;
+    public bool IsFull() => _members.Count(m => m.Status == MemberStatus.Active) >= MaxMembers;
     
     public static Result<Team> Create(Guid ownerId, string name, int maxMembers, string? description, EventDetails? eventDetails)
     {
@@ -42,7 +73,7 @@ public class Team : Entity<Guid>
         if (maxMembers <= 0)
             return Result.Failure<Team>("MaxMembers must be > 0");
 
-        var members = new List<Guid> { ownerId };
+        var members = new List<Member> { new(ownerId) };
 
         var validDescription = description?.Trim() ?? string.Empty;
 
@@ -54,25 +85,15 @@ public class Team : Entity<Guid>
         return Result.Success(team);
     }
     
-    public static Result<Team> Restore(Guid id, Guid ownerId, List<Guid> members, string name, int maxMembers, TeamStatus teamStatus, string? description,
+    public static Result<Team> Restore(Guid id, Guid ownerId, List<Member> members, string name, int maxMembers, TeamStatus teamStatus, string? description,
         EventDetails? eventDetails,
         List<WantedProfile>? wantedProfiles = null, List<Invitation>? invitations = null,
         List<JoinRequest>? joinRequests = null)
     {
-        //TODO: Доверяем бд?
-        if (ownerId == Guid.Empty)
-            return Result.Failure<Team>("OwnerId is required");
-        if (string.IsNullOrWhiteSpace(name))
-            return Result.Failure<Team>("Name is required");
-        if (maxMembers <= 0)
-            return Result.Failure<Team>("MaxMembers must be > 0");
-        if (members.Count > maxMembers)
-            return Result.Failure<Team>("Members exceed maxMembers");
-
         var normalizedMembers = members.Distinct().ToList();
 
-        if (!normalizedMembers.Contains(ownerId))
-            normalizedMembers.Add(ownerId);
+        if (normalizedMembers.All(m => m.Id != ownerId))
+            normalizedMembers.Add(new Member(ownerId));
         
         var validDescription = description?.Trim() ?? string.Empty;
 
@@ -87,6 +108,8 @@ public class Team : Entity<Guid>
             team._joinRequests.AddRange(joinRequests);
         if (invitations != null)
             team._invitations.AddRange(invitations);
+        
+        
 
         return Result.Success(team);
     }
@@ -97,7 +120,7 @@ public class Team : Entity<Guid>
             return Result.Failure<JoinRequest>("Invalid profile id");
         if(Status == TeamStatus.Inactive)
             return Result.Failure<JoinRequest>("Team is inactive");
-        if (_members.Contains(profileId))
+        if (_members.Any(m => m.Id == profileId))
             return Result.Failure<JoinRequest>("Already a member");
         if (_joinRequests.Any(r => r.ProfileId == profileId))
             return Result.Failure<JoinRequest>("Already requested");
@@ -112,15 +135,17 @@ public class Team : Entity<Guid>
 
     public Result AcceptInvitation(Guid profileId)
     {
-        if (Members.Count >= MaxMembers)
+        if (IsFull())
             return Result.Failure("Team is full");
-        if (_members.Contains(profileId))
+        if (_members.Any(m => m.Id == profileId))
             return Result.Failure("Already a member");
-        if(_invitations.Any(i => i.InviteeId == profileId && i.Status != InvitationStatus.Pending))
+        if (!_invitations.Any(i => 
+                i.InviteeId == profileId &&
+                i.Status == InvitationStatus.Pending))
             return Result.Failure("User has no pending invitation");
         
         _invitations.FirstOrDefault(i => i.InviteeId == profileId)?.Accept();
-        _members.Add(profileId);
+        _members.Add(new Member(profileId));
         
         return Result.Success();
     }
@@ -131,9 +156,9 @@ public class Team : Entity<Guid>
             return Result.Failure<Invitation>("Invalid ids");
         if(Status == TeamStatus.Inactive)
             return Result.Failure<Invitation>("Team is inactive");
-        if (!_members.Contains(inviterId))
+        if (_members.All(m => m.Id != inviterId))
             return Result.Failure<Invitation>("Only team members can send invitations");
-        if (_members.Contains(inviteeId))
+        if (_members.Any(m => m.Id == inviteeId))
             return Result.Failure<Invitation>("User is already a member");
         if (IsFull())
             return Result.Failure<Invitation>("Team is full");
@@ -164,13 +189,13 @@ public class Team : Entity<Guid>
         if (request == null)
             return Result.Failure("Join request not found");
         
-        if (_members.Contains(profileId))
+        if (_members.Any(m => m.Id == profileId))
         {
             _joinRequests.Remove(request);
             return Result.Failure("User is already a member");
         }
         
-        _members.Add(profileId);
+        _members.Add(new Member(profileId));
         _joinRequests.Remove(request);
         
         return Result.Success();
@@ -178,14 +203,20 @@ public class Team : Entity<Guid>
     
     public Result LeaveTeam(Guid profileId)
     {
-        if (!_members.Contains(profileId))
+        if (_members.All(m => m.Id != profileId))
             return Result.Failure("Not a team member");
         if (profileId == OwnerId)
             return Result.Failure("Only team member can leave team");
         if(Status == TeamStatus.Inactive)
             return Result.Failure("Team is inactive");
         
-        _members.Remove(profileId);
+        var member = _members.FirstOrDefault(m => m.Id == profileId);
+
+        if (member is null)
+            return Result.Failure("Not a team member");
+
+        member.SetStatus(MemberStatus.Inactive);
+        
         return Result.Success();
     }
 
@@ -199,10 +230,26 @@ public class Team : Entity<Guid>
         Status = TeamStatus.Inactive;
         return Result.Success(Id);
     }
-}
 
-public enum TeamStatus
-{
-    Active = 1,
-    Inactive = 0
+    public Result<Guid> KickMember(Guid initiatorId, Guid profileId)
+    {
+        if(initiatorId != OwnerId)
+            return Result.Failure<Guid>("Only team owner can kick the member");
+        
+        var member = _members.FirstOrDefault(m => m.Id == profileId);
+        if (member is null)
+            return Result.Failure<Guid>("Member not found");
+        if(member.Status == MemberStatus.Inactive)
+            return Result.Failure<Guid>("Member is already kicked");
+        
+        member.SetStatus(MemberStatus.Inactive);
+        
+        return Result.Success(member.Id);
+    }
+    
+    private void UpdateStatus()
+    {
+        if (EventDetails?.Period?.IsOver(DateOnly.FromDateTime(DateTime.UtcNow)) is true)
+            Status = TeamStatus.Inactive;
+    }
 }

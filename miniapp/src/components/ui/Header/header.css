@@ -1,7 +1,6 @@
 .team-header {
     width: 100%;
     background: linear-gradient(90deg, #6b48ff 0%, #823cf4 50%, #a03af0 100%);
-    padding: 24px 20px;
     margin-bottom: 50px;
     color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -9,6 +8,7 @@
     border-bottom-right-radius: 20px;
     top: 0;
     z-index: 100;
+    padding: calc(var(--tg-safe-area-inset-top, 0px) + 16px) 16px 16px;
 }
 
 .team-header-content {
@@ -17,6 +17,10 @@
     align-items: center;
     max-width: 1200px;
     margin: 0 auto;
+    padding-top: calc(var(--tg-safe-area-inset-top, 0px) + 20px) !important;
+    height: auto !important;
+    min-height: 80px;
+    padding-bottom: 20px;
 }
 
 .team-title {
@@ -53,17 +57,15 @@
 
 .notification-badge {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 10px;
-    height: 10px;
+    top: 6px;
+    right: 6px;
+    width: 12px;
+    height: 12px;
     background-color: #ff4d4f;
     border: 2px solid #823cf4;
     border-radius: 50%;
+    z-index: 10;
     box-shadow: 0 0 0 1px rgba(255, 77, 79, 0.2);
-}
-
-.notification-badge {
     animation: pulse 2s infinite;
 }
 

@@ -16,14 +16,12 @@ public class EventDetails : ValueObject
         _tags = tags;
     }
     
-    public static Result<EventDetails> Create(string title, DateOnly? start, DateOnly? end, List<Tag> tags)
+    public static Result<EventDetails> Create(string? title, DateOnly? start, DateOnly? end, List<Tag> tags)
     {
-        if (!start.HasValue || !end.HasValue)
-            return Result.Success(new EventDetails(title, null, tags));
         if(string.IsNullOrWhiteSpace(title))
             title = string.Empty;
         
-        return EventPeriod.Create(start.Value, end.Value)
+        return EventPeriod.Create(start, end)
             .Map(period => new EventDetails(title, period, tags));
     }
 

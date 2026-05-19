@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Model;
 
@@ -11,10 +12,13 @@ public interface ITeamRepository
     Task<Result> AddInvitation(InvitationEntity invitationEntity);
     Task<Result> AddJoinRequest(Guid teamId, Guid profileId);
     Task<Result> AcceptJoinRequest(Guid teamId, Guid profileId);
-    Task<Result<IEnumerable<TeamEntity>>> GetAllTeams();
+    Task<Result<IEnumerable<TeamsResponse>>> GetAllTeams(TeamStatus teamStatus, int from = 0, int count = 5);
     Task<Result<TeamEntity>> GetByProfileId(Guid id, TeamStatus status = TeamStatus.Active);
-    Task<Result> DeleteMemberByProfileId(Guid profileId);
+    Task<Result> LeaveTeamByProfileId(Guid profileId);
     Task<Result> MakeInactive(Guid teamId);
     Task<Result> AddMember(Guid teamId, Guid profileId);
     Task<Result<List<TeamEntity>>> GetTeamsByProfileId(Guid id, TeamStatus status = TeamStatus.Active);
+    Task<int> Count(TeamStatus status = TeamStatus.Active);
+    Task<Result> MakeMemberInactive(Guid profileId, Guid teamId);
+
 }

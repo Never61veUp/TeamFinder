@@ -25,6 +25,33 @@ public class ReviewController : BaseController
             ? BadRequest(result.Error) 
             : Ok();
     }
+    
+    [HttpGet("{profileId:guid}")]
+    public async Task<IActionResult> GetReviewsByProfileId(Guid profileId)
+    {
+        var result = await _reviewService.GetReviewsByProfileId(profileId);
+        return result.IsFailure 
+            ? BadRequest(result.Error) 
+            : Ok(result.Value);
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> GetMyReviews()
+    {
+        var result = await _reviewService.GetReviewsByProfileId(CurrentProfileId);
+        return result.IsFailure 
+            ? BadRequest(result.Error) 
+            : Ok(result.Value);
+    }
+    
+    [HttpGet("leftByMe")]
+    public async Task<IActionResult> GetLeftByMeReviews()
+    {
+        var result = await _reviewService.GetLeftByMe(CurrentProfileId);
+        return result.IsFailure 
+            ? BadRequest(result.Error) 
+            : Ok(result.Value);
+    }
 }
 
 public record CreateReviewRequest(Guid TeamId, Guid TargetProfileId, int Rating, string Comment);

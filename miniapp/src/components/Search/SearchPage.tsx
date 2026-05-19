@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {
-    Search, Plus, X, Trophy, Layout, Target,
-    Folder, Star, CodeXml
-} from 'lucide-react';
+import { Search, Plus, X } from 'lucide-react';
 import { Header } from '../ui/Header/Header';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { searchService } from '../../services/search.service';
 import { invitationsService } from '../../services/invitations.service';
-import {type Skill, teamService} from '../../types/api';
-import type { Profile, Team, ProfileWithGithub } from '../../types/api';
+import { type Skill } from '../../types/api';
+import type { Profile, Team } from '../../types/api';
+import { RatingStars } from '../ui/RatingStars';
 import './search.css';
-import {profileService} from "../../services";
+import { profileService } from "../../services";
+import { ProfileModal } from '../ui/ProfileModal/ProfileModal';
+import {teamService} from "../../services/team.service.ts";
 
 interface SearchPageProps {
     onOpenNotif: () => void;
@@ -21,13 +21,22 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
     const [myTeam, setMyTeam] = useState<Team | null>(null);
     const [invitingId, setInvitingId] = useState<string | null>(null);
     const [sentInvitations, setSentInvitations] = useState<string[]>([]);
     const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
     const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
+
+    const [from, setFrom] = useState(0);
+    const [count] = useState(5);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const getInviteKey = (profileId: string) => `invite_sent_${profileId}`;
+    const [teamMembers, setTeamMembers] = useState<string[]>([]);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -35,80 +44,221 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                 const team = await teamService.getMyTeam().catch(() => null);
                 setMyTeam(team);
 
+                if (team?.members) {
+                    const ids = team.members.map((m: any) =>
+                        String(typeof m === 'string' ? m : (m.profileId || m.id))
+                    );
+
+                    setTeamMembers(ids);
+                }
+
                 const skills = await profileService.getAllSkills();
                 setAvailableSkills(skills);
 
                 if (team) {
                     const allInvites = await invitationsService.getInvitations(0);
-                    const sentIds = allInvites
+
+                    const apiSentIds = allInvites
                         .filter((inv: any) => inv.senderTeamId === team.id)
-                        .map((inv: any) => inv.receiverId);
-                    setSentInvitations(sentIds);
+                        .map((inv: any) => String(inv.receiverId));
+
+                    const localSentIds = Object.keys(localStorage)
+                        .filter(key => key.startsWith('invite_sent_'))
+                        .map(key => key.replace('invite_sent_', ''));
+
+                    const combined = Array.from(new Set([...apiSentIds, ...localSentIds]));
+
+                    setSentInvitations(combined);
                 }
             } catch (error) {
                 console.error('❌ Ошибка инициализации:', error);
             }
         };
+
         loadInitialData();
     }, []);
 
     useEffect(() => {
-        const performSearch = async () => {
-            if (!searchQuery && selectedSkills.length === 0) {
-                setProfiles([]);
-                return;
-            }
+        const loadProfiles = async () => {
             setIsLoading(true);
+
             try {
-                let combinedResults: Profile[] = [];
-                if (searchQuery) {
-                    try {
-                        const res = await searchService.findProfileByName(searchQuery);
-                        if (res) combinedResults.push(res);
-                    } catch (e) { console.log('По имени не нашли'); }
+                const res = await profileService.getAllProfiles(0, count);
+
+                let data: Profile[];
+
+                if (!res) {
+                    data = [];
+                } else if (Array.isArray(res)) {
+                    data = res;
+                } else if ((res as any).items) {
+                    data = (res as any).items;
+                } else {
+                    console.warn('Неожиданный формат API:', res);
+                    data = [];
                 }
-                if (selectedSkills.length > 0) {
-                    const skillResults = await Promise.all(
-                        selectedSkills.map(async (skillId) => {
-                            try { return await searchService.getProfilesBySkill(skillId); }
-                            catch (err) { return []; }
-                        })
-                    );
-                    combinedResults = [...combinedResults, ...skillResults.flat()];
+
+                setProfiles(data);
+                setFrom(count);
+
+                if (data.length < count) {
+                    setHasMore(false);
                 }
-                const unique = Array.from(new Map(combinedResults.map(p => [p.id, p])).values());
-                setProfiles(unique);
+
+            } catch (e) {
+                console.error('Ошибка загрузки профилей:', e);
+                setProfiles([]);
             } finally {
                 setIsLoading(false);
             }
         };
-        const timer = setTimeout(performSearch, 500);
+
+        loadProfiles();
+    }, []);
+
+    useEffect(() => {
+        const performSearch = async () => {
+
+            if (!searchQuery && selectedSkills.length === 0) {
+                return;
+            }
+
+            setIsLoading(true);
+
+            try {
+                let combinedResults: Profile[] = [];
+
+                if (searchQuery) {
+                    try {
+                        const res = await searchService.findProfileByName(searchQuery);
+                        if (res) combinedResults.push(res);
+                    } catch {
+                        console.log('По имени не нашли');
+                    }
+                }
+
+                if (selectedSkills.length > 0) {
+                    const skillResults = await Promise.all(
+                        selectedSkills.map(async (skillId) => {
+                            try {
+                                return await searchService.getProfilesBySkill(skillId);
+                            } catch {
+                                return [];
+                            }
+                        })
+                    );
+
+                    combinedResults = [...combinedResults, ...skillResults.flat()];
+                }
+
+                const unique = Array.from(
+                    new Map(combinedResults.map(p => [p.id, p])).values()
+                );
+
+                setProfiles(unique);
+
+                setHasMore(false);
+
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        const timer = setTimeout(performSearch, 400);
         return () => clearTimeout(timer);
+
     }, [searchQuery, selectedSkills]);
+
+    useEffect(() => {
+        if (!searchQuery && selectedSkills.length === 0) {
+            const reload = async () => {
+                setIsLoading(true);
+                try {
+                    const data = await profileService.getAllProfiles(0, count);
+                    setProfiles(data);
+                    setFrom(count);
+                    setHasMore(true);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            reload();
+        }
+    }, [searchQuery, selectedSkills]);
+
+    const handleLoadMore = async () => {
+        setIsLoadingMore(true);
+
+        try {
+            const data = await profileService.getAllProfiles(from, count);
+
+            setProfiles(prev => [...prev, ...data]);
+            setFrom(prev => prev + count);
+
+            if (data.length < count) {
+                setHasMore(false);
+            }
+        } catch (e) {
+            console.error('Ошибка подгрузки:', e);
+        } finally {
+            setIsLoadingMore(false);
+        }
+    };
 
     const handleInvite = async (profileId: string) => {
         if (!myTeam) {
             alert('Сначала создайте команду!');
             return;
         }
+
         setInvitingId(profileId);
+
         try {
             await invitationsService.inviteToTeam(myTeam.id, profileId);
-            setSentInvitations(prev => [...prev, profileId]);
-        } catch (error: any) {
-            if (error.response?.data === "Invitation already sent") {
-                setSentInvitations(prev => [...prev, profileId]);
-            } else {
-                alert('Не удалось отправить приглашение');
+            localStorage.setItem(getInviteKey(profileId), 'true');
+
+            setSentInvitations(prev =>
+                prev.includes(profileId) ? prev : [...prev, profileId]
+            );
+        }
+        catch (error: any) {
+            const message =
+                error?.response?.data ||
+                error?.response?.body ||
+                error?.message;
+
+            if (typeof message === 'string') {
+
+                if (message.includes("Invitation already sent")) {
+                    localStorage.setItem(getInviteKey(profileId), 'true');
+
+                    setSentInvitations(prev =>
+                        prev.includes(profileId) ? prev : [...prev, profileId]
+                    );
+                }
+
+                else if (message.includes("User is already a member")) {
+                    setTeamMembers(prev =>
+                        prev.includes(profileId) ? prev : [...prev, profileId]
+                    );
+                }
+
+                else {
+                    alert('Не удалось отправить приглашение');
+                }
             }
-        } finally {
+        }
+        finally {
             setInvitingId(null);
         }
     };
 
     const toggleSkill = (skillId: string) => {
         setSelectedSkills(prev =>
-            prev.includes(skillId) ? prev.filter(id => id !== skillId) : [...prev, skillId]
+            prev.includes(skillId)
+                ? prev.filter(id => id !== skillId)
+                : [...prev, skillId]
         );
     };
 
@@ -129,18 +279,22 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
 
             <div className="search-filters-section">
                 <h3 className="section-title">Выберите навыки для поиска</h3>
+
                 <div className="selected-badges-row">
                     {selectedSkills.map((id) => {
                         const skill = availableSkills.find(s => s.id === id);
+
                         return (
-                            <Badge key={`sel-${id}`} className="skill-badge-active">
-                                {skill?.name || 'Загрузка...'}
-                                <X size={14} onClick={() => toggleSkill(id)} className="badge-close-icon" />
+                            <Badge key={id} className="skill-badge-active">
+                                {skill?.name || '...'}
+                                <X size={14} onClick={() => toggleSkill(id)} />
                             </Badge>
                         );
                     })}
+
                     <button className="add-filter-btn" onClick={() => setIsEditorOpen(true)}>
-                        <Plus size={16} /> {selectedSkills.length > 0 ? 'Изменить' : 'Добавить'}
+                        <Plus size={16} />
+                        {selectedSkills.length ? 'Изменить' : 'Добавить'}
                     </button>
                 </div>
             </div>
@@ -148,47 +302,77 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
             <div className="profiles-list">
                 {isLoading ? (
                     <div className="empty-state">Загрузка...</div>
-                ) : profiles.length === 0 && (searchQuery || selectedSkills.length > 0) ? (
+                ) : profiles.length === 0 ? (
                     <div className="empty-state">Никого не нашли...</div>
-                ) : profiles.map((profile) => (
-                    <div key={profile.id} className="profile-card">
-                        <div className="profile-card-header">
-                            <div>
-                                <h3 className="profile-name">{profile.name}</h3>
-                                <p className="profile-username">@{profile.username || 'user'}</p>
+                ) : (
+                    <>
+                        {profiles.map((profile) => (
+                            <div key={profile.id} className="profile-card">
+                                <div className="profile-card-header">
+                                    <div>
+                                        <h3 className="search-profile-name">{profile.name}</h3>
+                                        <p className="search-profile-username">@{profile.userName || 'user'}</p>
+                                        <RatingStars rating={profile.rating || 0} />
+                                    </div>
+
+                                    <Button variant="secondary" className="detail-btn" onClick={() => setSelectedProfile(profile)}>
+                                        Подробнее
+                                    </Button>
+                                </div>
+
+                                <div className="profile-skills-row">
+                                    {profile.skills?.map((s: any, i) => (
+                                        <span key={i} className="profile-tag">
+                                            #{typeof s === 'string' ? s : s.name}
+                                        </span>
+                                    ))}
+                                </div>
+
+                                <Button
+                                    className="invite-btn-full"
+                                    disabled={
+                                        invitingId === profile.id ||
+                                        sentInvitations.includes(profile.id) ||
+                                        teamMembers.includes(profile.id)
+                                    }
+                                    onClick={() => handleInvite(profile.id)}
+                                >
+                                    {invitingId === profile.id
+                                        ? 'Отправка...'
+                                        : teamMembers.includes(profile.id)
+                                            ? 'Уже в команде'
+                                            : sentInvitations.includes(profile.id)
+                                                ? 'Заявка отправлена'
+                                                : 'Пригласить'}
+                                </Button>
                             </div>
-                            <Button variant="secondary" className="detail-btn" onClick={() => setSelectedProfile(profile)}>
-                                Подробнее
-                            </Button>
-                        </div>
-
-                        <div className="profile-skills-row">
-                            {profile.skills?.map((s: any, idx) => (
-                                <span key={idx} className="profile-tag">
-                                    #{typeof s === 'string' ? s : s.name}
-                                </span>
-                            ))}
-                        </div>
-
-                        <Button
-                            className="invite-btn-full"
-                            variant={sentInvitations.includes(profile.id) ? "secondary" : "primary"}
-                            disabled={invitingId === profile.id || sentInvitations.includes(profile.id)}
-                            onClick={() => handleInvite(profile.id)}
-                        >
-                            {invitingId === profile.id ? 'Отправка...' :
-                                sentInvitations.includes(profile.id) ? 'Заявка отправлена' : 'Пригласить'}
-                        </Button>
-                    </div>
-                ))}
+                        ))}
+                    </>
+                )}
             </div>
+
+            {hasMore && !searchQuery && selectedSkills.length === 0 && !isLoading && profiles.length > 0 && (
+                <div className="load-more-container">
+                    <Button className="load-more-btn" onClick={handleLoadMore} disabled={isLoadingMore}>
+                        {isLoadingMore ? 'Загрузка...' : 'Показать ещё'}
+                    </Button>
+                </div>
+            )}
+
+            <div className="bottom-spacer" />
+
+            <ProfileModal
+                profile={selectedProfile}
+                onClose={() => setSelectedProfile(null)}
+            />
 
             {isEditorOpen && (
                 <div className="modal-overlay centered" onClick={() => setIsEditorOpen(false)}>
                     <div className="modal-content skills-modal" onClick={e => e.stopPropagation()}>
                         <h3 className="modal-title">Навыки</h3>
+
                         <div className="skills-selection-grid">
-                            {availableSkills.map((skill) => (
+                            {availableSkills.map(skill => (
                                 <div
                                     key={skill.id}
                                     className={`skill-label ${selectedSkills.includes(skill.id) ? 'active' : ''}`}
@@ -198,85 +382,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({ onOpenNotif }) => {
                                 </div>
                             ))}
                         </div>
+
                         <Button className="modal-close-btn" onClick={() => setIsEditorOpen(false)}>Готово</Button>
-                    </div>
-                </div>
-            )}
-
-            {selectedProfile && (
-                <div className="modal-overlay bottom" onClick={() => setSelectedProfile(null)}>
-                    {/* Добавлен класс animate-slide-up */}
-                    <div className="modal-content-bottom profile-detail-modal animate-slide-up" onClick={e => e.stopPropagation()}>
-                        <div className="modal-drag-handle" onClick={() => setSelectedProfile(null)} />
-
-                        <div className="profile-detail-header">
-                            <div className="detail-avatar">
-                                {selectedProfile.name[0]}
-                            </div>
-                            <div>
-                                <h2 className="detail-name">{selectedProfile.name}</h2>
-                                <p className="detail-username">@{selectedProfile.username}</p>
-                            </div>
-                        </div>
-
-                        <div className="detail-scroll-area">
-                            <section className="detail-section">
-                                <h4 className="detail-section-title">О себе</h4>
-                                <p className="detail-description">
-                                    {selectedProfile.description || "Пользователь пока не добавил описание."}
-                                </p>
-                            </section>
-
-                            <div className="stats-grid">
-                                <div className="stat-box">
-                                    <Target className="stat-icon text-blue-500" />
-                                    <div className="stat-value">{selectedProfile.hackathons || 0}</div>
-                                    <div className="stat-label">Хакатоны</div>
-                                </div>
-                                <div className="stat-box">
-                                    <Trophy className="stat-icon text-amber-500" />
-                                    <div className="stat-value">{selectedProfile.wins || 0}</div>
-                                    <div className="stat-label">Победы</div>
-                                </div>
-                                <div className="stat-box">
-                                    <Layout className="stat-icon text-emerald-500" />
-                                    <div className="stat-value">{selectedProfile.projects || 0}</div>
-                                    <div className="stat-label">Проекты</div>
-                                </div>
-                            </div>
-
-                            {(selectedProfile as ProfileWithGithub).githubInfo && (
-                                <section className="github-card">
-                                    <div className="github-header">
-                                        <div className="github-icon-wrapper">
-                                            <CodeXml size={18} />
-                                        </div>
-                                        <span className="github-title">GitHub</span>
-                                    </div>
-                                    <div className="github-stats-row">
-                                        <div className="github-stat-item">
-                                            <CodeXml className="text-slate-500 mb-1" size={14} />
-                                            <div className="github-stat-label">Язык</div>
-                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.topLanguage || '—'}</div>
-                                        </div>
-                                        <div className="github-stat-item border-x">
-                                            <Folder className="text-slate-500 mb-1" size={14} />
-                                            <div className="github-stat-label">Репо</div>
-                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.repositoriesCount || 0}</div>
-                                        </div>
-                                        <div className="github-stat-item">
-                                            <Star className="text-amber-400 mb-1" size={14} />
-                                            <div className="github-stat-label">Звезды</div>
-                                            <div className="github-stat-value">{(selectedProfile as ProfileWithGithub).githubInfo?.totalStars || 0}</div>
-                                        </div>
-                                    </div>
-                                </section>
-                            )}
-                        </div>
-
-                        <Button className="detail-close-btn" onClick={() => setSelectedProfile(null)}>
-                            Закрыть
-                        </Button>
                     </div>
                 </div>
             )}

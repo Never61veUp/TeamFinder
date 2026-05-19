@@ -52,6 +52,17 @@ export const profileService = {
     return httpClient.put(`/profiles/${profileId}/skills`, { skills: skillIds });
   },
 
+  getAllProfiles(from: number, count: number): Promise<Profile[]> {
+    return httpClient
+        .get<any>(`/profiles/all?from=${from}&count=${count}`)
+        .then((res) => {
+          if (!res) return [];
+          if (Array.isArray(res)) return res;
+          if (res.items) return res.items;
+          return [];
+        });
+  },
+
   async updateProfile(profileId: string, payload: Partial<Profile & {
     about?: string;
     hackathons?: number;
@@ -67,7 +78,6 @@ export const profileService = {
         name: (current as any)?.name ?? (payload as any).name ?? 'Unknown',
         username: (current as any)?.username,
         photoUrl: (current as any)?.photoUrl,
-        // Если API ждет 'description', лучше переименовать здесь
         description: payload.about ?? (current as any)?.description ?? (current as any)?.about,
         hackathons: payload.hackathons ?? (current as any)?.hackathons,
         wins: payload.wins ?? (current as any)?.wins,

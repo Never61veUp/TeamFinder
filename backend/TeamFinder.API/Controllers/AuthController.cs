@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using TeamFinder.API.Options;
 using TeamFinder.API.Security;
 using TeamFinder.Application.Abstractions;
+using TeamFinder.Application.Options;
 using TeamFinder.Application.Services;
 
 namespace TeamFinder.API.Controllers;
@@ -59,7 +59,7 @@ public class AuthController : BaseController
             return Unauthorized();
         }
 
-        var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.FirstName);
+        var profile = await _profileService.CreateOrGetByTgId(result.User.TgId, result.User.Username, result.User.FirstName);
         if (profile.IsFailure)
             return Problem(profile.Error, statusCode: 500);
 
@@ -83,7 +83,7 @@ public class AuthController : BaseController
         if (!bool.TryParse(Environment.GetEnvironmentVariable("ENABLE_DEV_AUTH"), out var devAuth) || !devAuth)
             return NotFound();
 
-        var profile = await _profileService.CreateOrGetByTgId(tgId, "Dev");
+        var profile = await _profileService.CreateOrGetByTgId(tgId, "Dev", "DevName");
         if (profile.IsFailure)
             return Problem(profile.Error, statusCode: 500);
 

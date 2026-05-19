@@ -11,7 +11,7 @@ public static class ReviewMapping
         var rating = Rating.Create(entity.Rating);
         if(rating.IsFailure)
             return Result.Failure<Review>(rating.Error);
-        return Review.Restore(entity.Id, entity.TargetId, entity.ReviewerId, rating.Value, entity.Content);
+        return Review.Restore(entity.Id, entity.TargetId, entity.ReviewerId, entity.TeamId, rating.Value, entity.Content);
     }
     
     public static ReviewEntity ToEntity(this Review review)
@@ -22,7 +22,8 @@ public static class ReviewMapping
             TargetId = review.ProfileId,
             ReviewerId = review.ReviewerId,
             Rating = review.Rating.Value,
-            Content = review.Comment
+            Content = review.Comment,
+            TeamId = review.TeamId
         };
     }
 }

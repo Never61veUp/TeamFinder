@@ -1,11 +1,15 @@
 ﻿using CSharpFunctionalExtensions;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using TeamFinder.Postgresql.Model;
 
 namespace TeamFinder.Postgresql.Repositories;
 
 public interface IReviewRepository
 {
-    Task<Result> AddReview(ReviewEntity review);
+    Task<Result> AddReview(ReviewEntity review, double profileRating);
+    Task<Result<List<ReviewEntity>>> GetByProfileId(Guid targetProfileId);
+    Task<Result<List<ReviewEntity>>> GetLeftByMeReviews(Guid myProfileId);
 }
 
 public class ReviewRepository : IReviewRepository
@@ -17,11 +21,65 @@ public class ReviewRepository : IReviewRepository
         _context = context;
     }
     
-    public async Task<Result> AddReview(ReviewEntity review)
+    public async Task<Result> AddReview(ReviewEntity review, double profileRating)
     {
-        await _context.Reviews.AddAsync(review);
-        return await _context.SaveChangesAsync() > 0 
-            ? Result.Success() 
-            : Result.Failure("Failed to add review");
+        _context.Add(review);
+        await UpdateRating(review.TargetId, profileRating);
+
+        try 
+        {
+            await _context.SaveChangesAsync(); 
+            return Result.Success();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException pg)
+        {
+            return pg.SqlState switch
+            {
+                PostgresErrorCodes.UniqueViolation => Result.Failure("Review already added"),
+                _ => Result.Failure("Database error")
+            };
+        }
+    }
+    
+    public async Task<Result<List<ReviewEntity>>> GetByProfileId(Guid targetProfileId)
+    {
+        try
+        {
+            var results = await _context.Reviews
+                .AsNoTracking()
+                .Where(r => r.TargetId == targetProfileId)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+            return Result.Success(results);
+        }
+        catch (Exception)
+        {
+            return Result.Failure<List<ReviewEntity>>("Failed to retrieve reviews");
+        }
+    }
+
+    public async Task<Result<List<ReviewEntity>>> GetLeftByMeReviews(Guid myProfileId)
+    {
+        try
+        {
+            var results = await _context.Reviews
+                .AsNoTracking()
+                .Where(r => r.ReviewerId == myProfileId).ToListAsync();
+            return Result.Success(results);
+        }
+        catch (Exception)
+        {
+            return Result.Failure<List<ReviewEntity>>("Failed to retrieve reviews");
+        }
+    }
+    
+    private async Task UpdateRating(Guid profileId, double rating)
+    {
+        var profile = await _context.Profiles.FirstOrDefaultAsync(p => p.Id == profileId);
+        if (profile != null)
+        {
+            profile.Rating = rating;
+            profile.ReviewsCount++;
+        }
     }
 }

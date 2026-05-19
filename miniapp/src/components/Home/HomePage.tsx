@@ -4,6 +4,7 @@ import {feedService} from '../../services/feed.service'
 import {TeamCard} from './TeamCard'
 import {Header} from '../ui/Header/Header'
 import './home.css'
+import {Button} from "../ui/Button.tsx";
 
 interface HomePageProps {
     user: TelegramUser,
@@ -14,21 +15,38 @@ export function HomePage({user, onOpenNotif}: HomePageProps) {
     const [teams, setTeams] = useState<Team[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
-    useEffect(() => {
-        feedService.getRecommendedTeams()
+    const [isLoadingMore, setIsLoadingMore] = useState(false)
+    const [totalCount, setTotalCount] = useState(0)
+    const PAGE_SIZE = 5;
+
+    const loadTeams = (from: number, append: boolean = false) => {
+        const loadingTrigger = append ? setIsLoadingMore : setIsLoading;
+        loadingTrigger(true);
+
+        feedService.getRecommendedTeams(1, from, PAGE_SIZE)
             .then((data) => {
-                const teamsData = Array.isArray(data) ? data : (data as any).data || [];
-                setTeams(teamsData);
+                setTeams(prev => append ? [...prev, ...data.items] : data.items);
+                setTotalCount(data.totalCount);
             })
-            .catch(err => console.error("Ошибка загрузки команд:", err))
-            .finally(() => setIsLoading(false))
-    }, [])
+            .catch(err => console.error("Ошибка загрузки:", err))
+            .finally(() => loadingTrigger(false));
+    };
+
+    useEffect(() => {
+        loadTeams(0);
+    }, []);
+
+    const handleLoadMore = () => {
+        if (teams.length < totalCount) {
+            loadTeams(teams.length, true);
+        }
+    };
 
     const hasTeam = teams.some(team => {
-        const isOwner = String((team as any).ownerId) === String(user.profileId);
+        const isOwner = String(team.ownerId) === String(user.profileId);
 
-        const isMember = team.members?.some(member =>
-            String(member.id) === String(user.profileId)
+        const isMember = team.members?.some(memberId =>
+            String(memberId) === String(user.profileId)
         );
 
         return isOwner || isMember;
@@ -37,7 +55,7 @@ export function HomePage({user, onOpenNotif}: HomePageProps) {
     return (
         <div className="home-container">
             <Header
-                title={`Привет, ${user.firstName || 'Александр'}!`}
+                title={`Привет, ${user.name || 'Александр'}!`}
                 onNotificationClick={onOpenNotif}
             />
 
@@ -45,22 +63,40 @@ export function HomePage({user, onOpenNotif}: HomePageProps) {
                 <h2 className="section-title">Рекомендуемые команды</h2>
 
                 {isLoading ? (
-                    <div className="loader-container">
-                        <div className="spinner"/>
-                    </div>
-                ) : teams.length > 0 ? (
-                    <div className="teams-grid">
-                        {teams.map((team) => (
-                            <TeamCard
-                                key={team.id}
-                                team={team}
-                                myProfileId={user.profileId}
-                            />
-                        ))}
-                    </div>
+                    <div className="loader-container"><div className="spinner"/></div>
                 ) : (
-                    <p className="text-center text-slate-400 py-10">Активных команд пока нет</p>
+                    <>
+                        <div className="teams-grid">
+                            {teams.map((team) => {
+                                const isOwner = String(team.ownerId) === String(user.profileId);
+
+                                const isMember = team.members?.some(memberId =>
+                                    String(memberId) === String(user.profileId)
+                                );
+
+                                return (
+                                    <TeamCard
+                                        key={team.id}
+                                        team={team}
+                                        myProfileId={user.profileId}
+                                        isAlreadyMember={isOwner || isMember}
+                                    />
+                                );
+                            })}
+                        </div>
+
+                        {teams.length < totalCount && (
+                            <Button
+                                onClick={handleLoadMore}
+                                disabled={isLoadingMore}
+                            >
+                                {isLoadingMore ? 'Загрузка...' : 'Показать еще'}
+                            </Button>
+                        )}
+                    </>
                 )}
+
+                {teams.length === 0 && !isLoading && <p>Активных команд нет</p>}
 
                 {!hasTeam && !isLoading && (
                     <div className="tip-box">

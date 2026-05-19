@@ -23,7 +23,9 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
+  --tg-safe-area-inset-top: 0px;
+  --tg-safe-area-inset-bottom: 0px;
+  --tg-theme-bg-color: #ffffff;
   --tg-viewport-height: 100dvh;
 }
 
@@ -60,16 +62,18 @@ body {
   flex-direction: column;
   box-sizing: border-box;
   text-align: left;
+  background-color: var(--tg-theme-bg-color);
 }
 
 .main-scroll-area {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  /* Плавный скролл на iOS */
+  background-color: #f8fafc;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
+  padding-top: 0 !important;
 }
 
 body {
@@ -81,7 +85,6 @@ body {
 
 @media (min-width: 481px) {
   #root {
-    border-inline: 1px solid var(--border);
   }
 }
 

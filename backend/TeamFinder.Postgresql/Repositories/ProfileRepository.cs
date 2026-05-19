@@ -25,10 +25,13 @@ public class ProfileRepository : IProfileRepository
             : Result.Success(result);
     }
 
-    public async Task<List<ProfileEntity>> GetAll()
+    public async Task<Result<List<ProfileEntity>>> GetAll(int from = 0, int count = 5)
     {
         return await _context.Profiles
-            .Include(x => x.Skills)
+            .OrderByDescending(p => p.Rating)
+            .Skip(from)
+            .Take(count)
+            .Include(x => x.Skills).ThenInclude(us => us.Skill)
             .ToListAsync();
     }
 
@@ -189,5 +192,36 @@ public class ProfileRepository : IProfileRepository
         return profile == null 
             ? Result.Failure<ProfileEntity>("Profile not found") 
             : Result.Success(profile);
+    }
+    
+    public async Task<Result<Dictionary<Guid, string>>> GetNamesByIds(List<Guid> ids)
+    {
+        var profiles = await _context.Profiles
+            .Where(p => ids.Contains(p.Id))
+            .Select(p => new { p.Id, p.UserName })
+            .AsNoTracking()
+            .ToDictionaryAsync(p => p.Id, p => p.UserName);
+    
+        return profiles.Count == 0
+            ? Result.Failure<Dictionary<Guid, string>>("Profiles not found") 
+            : Result.Success(profiles);
+    }
+
+    public async Task<Result<long>> GetTgIdByProfileId(Guid profileId)
+    {
+        var tgId = await _context.Profiles
+            .AsNoTracking()
+            .Where(p => p.Id == profileId)
+            .Select(p => p.TgId)
+            .FirstOrDefaultAsync();
+        
+        return tgId == 0
+            ? Result.Failure<long>("Profile not found")
+            : Result.Success(tgId);
+    }
+
+    public async Task<int> Count()
+    {
+        return await _context.Profiles.CountAsync();
     }
 }

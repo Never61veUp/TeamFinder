@@ -13,7 +13,7 @@ public static class ProfileMapping
         if (entity.GithubInfo != null)
         {
             var githubResult = GithubInfo.Create(
-                entity.UserName, 
+                entity.GithubInfo.Username, 
                 entity.GithubInfo.ProfileUrl,
                 entity.GithubInfo.TopLanguage, 
                 entity.GithubInfo.TotalStars, 
@@ -29,8 +29,11 @@ public static class ProfileMapping
             .MapToDomainList(s => s.Skill.ToDomain())
             .Map(skills => Profile.Restore(
                 entity.Id,
-                entity.UserName,
+                name: entity.Name,
+                userName: entity.UserName,
                 entity.TgId,
+                entity.Rating,
+                entity.ReviewsCount,
                 githubInfo,
                 skills,
                 entity.Description));
@@ -41,9 +44,12 @@ public static class ProfileMapping
         var profileEntity = new ProfileEntity
         {
             Id = domain.Id,
-            UserName = domain.Name,
+            UserName = domain.UserName,
+            Name = domain.Name,
             TgId = domain.TelegramId,
             Description = domain.Description,
+            Rating = domain.Rating,
+            ReviewsCount = domain.ReviewsCount,
             Skills = domain.Skills
                 .Select(s => new ProfileSkillEntity
                 {

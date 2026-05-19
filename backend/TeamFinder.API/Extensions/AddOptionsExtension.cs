@@ -1,4 +1,4 @@
-﻿using TeamFinder.API.Options;
+﻿using TeamFinder.Application.Options;
 
 namespace TeamFinder.API.Extensions;
 

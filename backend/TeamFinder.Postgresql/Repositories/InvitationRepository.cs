@@ -49,7 +49,8 @@ public class InvitationRepository : IInvitationRepository
             await _context.TeamMembers.AddAsync(new TeamMemberEntity
             {
                 TeamId = teamId,
-                ProfileId = profileId
+                ProfileId = profileId,
+                Status = MemberStatus.Active
             });
 
             await _context.SaveChangesAsync();

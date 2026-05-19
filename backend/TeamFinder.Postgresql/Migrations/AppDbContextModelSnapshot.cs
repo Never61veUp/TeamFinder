@@ -72,6 +72,16 @@ namespace TeamFinder.Postgresql.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("ReviewsCount")
+                        .HasColumnType("integer");
+
                     b.Property<long>("TgId")
                         .HasColumnType("bigint");
 
@@ -131,9 +141,15 @@ namespace TeamFinder.Postgresql.Migrations
                     b.Property<Guid>("TargetId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Reviews");
+                    b.HasIndex("TeamId", "TargetId", "ReviewerId")
+                        .IsUnique();
+
+                    b.ToTable("reviews", (string)null);
                 });
 
             modelBuilder.Entity("TeamFinder.Postgresql.Model.SkillClosure", b =>
@@ -195,6 +211,7 @@ namespace TeamFinder.Postgresql.Migrations
                         .HasColumnType("integer[]");
 
                     b.Property<string>("EventTitle")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("MaxMembers")
@@ -223,7 +240,12 @@ namespace TeamFinder.Postgresql.Migrations
                     b.Property<Guid>("ProfileId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
                     b.HasKey("TeamId", "ProfileId");
+
+                    b.HasIndex("ProfileId");
 
                     b.ToTable("TeamMembers");
                 });
@@ -363,11 +385,19 @@ namespace TeamFinder.Postgresql.Migrations
 
             modelBuilder.Entity("TeamFinder.Postgresql.Model.TeamMemberEntity", b =>
                 {
+                    b.HasOne("TeamFinder.Postgresql.Model.ProfileEntity", "Profile")
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("TeamFinder.Postgresql.Model.TeamEntity", "Team")
                         .WithMany("Members")
                         .HasForeignKey("TeamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Profile");
 
                     b.Navigation("Team");
                 });

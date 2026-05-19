@@ -3,7 +3,6 @@
 	width: 100%;
 	margin: 0 auto;
 	background: #f8fafc;
-	/* Убрали min-height: 100vh, добавили правильное flex-растяжение */
 	display: flex;
 	flex-direction: column;
 	flex: 1 0 auto;
@@ -14,7 +13,8 @@
 /* === HEADER === */
 .profile-header {
 	width: 100%;
-	height: 220px;
+	height: auto !important;
+	min-height: 200px;
 	background: linear-gradient(90deg, #6b48ff 0%, #823cf4 50%, #a03af0 100%);
 	border-bottom-left-radius: 30px;
 	border-bottom-right-radius: 30px;
@@ -25,12 +25,19 @@
 	color: white;
 	text-align: center;
 	position: relative;
+	padding-top: calc(var(--tg-safe-area-inset-top, 0px) + 20px) !important;
+	margin-top: 0 !important;
+	padding-bottom: 30px;
 }
 
 .avatar-container {
-	width: 100px;
-	height: 100px;
-	margin-bottom: 12px;
+	width: 90px !important;
+	height: 90px !important;
+	flex-shrink: 0;
+	border-radius: 50%;
+	overflow: hidden;
+	background: #ffffff;
+	border: 4px solid #ffffff;
 }
 
 .avatar-img,
@@ -45,43 +52,50 @@
 	font-weight: bold;
 	font-size: 34px;
 	color: #7c3aed;
+	object-fit: cover;
 }
 
-.profile-name {
-	font-size: 22px;
-	font-weight: 700;
-	margin-bottom: 4px;
-	color: white;
+.header-profile-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	margin-top: 16px;
+	padding-bottom: 24px;
 }
 
-.profile-username {
-	font-size: 14px;
-	opacity: 0.9;
-}
-
-.profile-bell-btn {
-	position: absolute;
-	top: 20px;
-	right: 20px;
-	background: rgba(255, 255, 255, 0.2);
-	border: none;
-	border-radius: 12px;
-	padding: 8px;
-	cursor: pointer;
+.header-profile-container .avatar-container {
+	width: 90px;
+	height: 90px;
+	border-radius: 50%;
+	background: #ffffff;
+	padding: 4px;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	transition: background 0.2s;
 }
 
-.profile-bell-btn:active {
-	background: rgba(255, 255, 255, 0.3);
+.profile-inside-name {
+	font-size: 20px !important;
+	font-weight: 700 !important;
+	color: #ffffff !important;
+	margin-top: 12px !important;
+	text-align: center;
+}
+
+.profile-inside-username {
+	font-size: 14px !important;
+	color: #e0d5ff !important;
+	margin-top: 2px !important;
+	text-align: center;
+	font-weight: 400;
 }
 
 /* === CONTENT === */
 .profile-content {
-	margin-top: 12px;
-	/* Заставляем контентную часть растягиваться, чтобы заполнять пустоту */
+	margin-top: 0;
 	flex: 1 0 auto;
 	display: flex;
 	flex-direction: column;
@@ -120,8 +134,6 @@
 .exit-btn:active {
 	transform: scale(0.9);
 }
-
-/* === СТИЛИ ДЛЯ SUB-COMPONENTS (About, Achievements, Github) === */
 
 .about-card {
 	background: white;

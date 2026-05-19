@@ -31,6 +31,16 @@ public class TeamController : BaseController
         return Ok();
     }
     
+    [HttpGet("{teamId:guid}")]
+    public async Task<IActionResult> GetTeamById(Guid teamId)
+    {
+        var result = await _teamService.GetTeamById(teamId);
+        if(result.IsFailure)
+            return BadRequest(result.Error);
+        
+        return Ok(result.Value);
+    }
+    
     [HttpPost("{teamId:guid}/invitations/{inviteeId:guid}")]
     public async Task<IActionResult> InviteProfile(Guid teamId, Guid inviteeId)
     {
@@ -61,13 +71,14 @@ public class TeamController : BaseController
         return Ok();
     }
     
-    [HttpGet]
-    public async Task<IActionResult> GetTeams()
+    [HttpGet("all")]
+    public async Task<IActionResult> GetTeams([FromQuery] GetAllTeamsRequest request)
     {
-        var result = await _teamService.GetTeams();
-        if(result.IsFailure)
+        var result = await _teamService.GetTeams(request.Status, request.From, request.Count);
+
+        if (result.IsFailure)
             return BadRequest(result.Error);
-        
+
         return Ok(result.Value);
     }
     
@@ -86,9 +97,19 @@ public class TeamController : BaseController
     }
 
     [HttpGet("my-team")]
-    public async Task<IActionResult> GetMyTeam()
+    public async Task<IActionResult> GetMyTeam([FromQuery] TeamStatus status = TeamStatus.Active)
     {
-        var result = await _teamService.GetMyTeam(CurrentProfileId);
+        var result = await _teamService.GetMyTeam(CurrentProfileId, status);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+    
+    [HttpGet("my-team-list")]
+    public async Task<IActionResult> GetMyTeamList([FromQuery] TeamStatus status = TeamStatus.Inactive)
+    {
+        var result = await _teamService.GetMyTeamList(CurrentProfileId, status);
         if (result.IsFailure)
             return BadRequest(result.Error);
 
@@ -114,4 +135,16 @@ public class TeamController : BaseController
 
         return Ok();
     }
+    
+    [HttpPost("kick-member/{profileId:guid}")]
+    public async Task<IActionResult> DisbandTeam(Guid profileId)
+    {
+        var result = await _teamService.KickMember(CurrentProfileId,  profileId);
+        if (result.IsFailure)
+            return BadRequest(result.Error);
+
+        return Ok();
+    }
 }
+
+public record GetAllTeamsRequest(TeamStatus Status = TeamStatus.Active, int From = 0, int Count = 5);

@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using TeamFinder.Application.Mapping;
+using TeamFinder.Contracts;
 using TeamFinder.Core.Model.Reviews;
 using TeamFinder.Core.Model.Teams;
 using TeamFinder.Postgresql.Abstractions;
@@ -10,17 +11,26 @@ namespace TeamFinder.Application.Services;
 public interface IReviewService
 {
     Task<Result> CreateReview(Guid teamId, Guid profileId, Guid reviewerId, int rating, string comment);
+    Task<Result<List<ReviewResponse>>> GetReviewsByProfileId(Guid profileId);
+    Task<Result<List<ReviewResponse>>> GetLeftByMe(Guid profileId);
 }
 
 public class ReviewService : IReviewService
 {
     private readonly ITeamRepository _teamRepository;
     private readonly IReviewRepository _reviewRepository;
+    private readonly IProfileRepository _profileRepository;
+    private readonly INotificationService _notificationService;
+    private readonly ITelegramNotificationTemplate _telegramNotificationTemplate;
 
-    public ReviewService(ITeamRepository teamRepository, IReviewRepository reviewRepository)
+    public ReviewService(ITeamRepository teamRepository, IReviewRepository reviewRepository, 
+        IProfileRepository profileRepository, INotificationService notificationService, ITelegramNotificationTemplate telegramNotificationTemplate)
     {
         _teamRepository = teamRepository;
         _reviewRepository = reviewRepository;
+        _profileRepository = profileRepository;
+        _notificationService = notificationService;
+        _telegramNotificationTemplate = telegramNotificationTemplate;
     }
     
     public async Task<Result> CreateReview(Guid teamId, Guid profileId, Guid reviewerId, int ratingValue, string comment)
@@ -30,18 +40,76 @@ public class ReviewService : IReviewService
         
         if(team.Value.Status == TeamStatus.Active)
             return Result.Failure<Review>("Team is still active");
-        if(!team.Value.Members.Contains(profileId))
+        if(team.Value.Members.All(m => m.Id != profileId))
             return Result.Failure<Review>("Only member can create review");
 
-        var rating = Rating.Create(ratingValue);
-        if(rating.IsFailure)
-            return Result.Failure<Review>(rating.Error);
+        var profile = await _profileRepository.GetById(profileId)
+            .Bind(p => p.ToDomain());
         
-        var review = Review.Create(profileId, reviewerId, rating.Value, comment);
+        var review = profile.Value.AddReview(reviewerId, teamId, ratingValue, comment);
         if (review.IsFailure)
             return Result.Failure<Review>(review.Error);
         
-        var result = await _reviewRepository.AddReview(review.Value.ToEntity());
-        return result;
+        var reviewResult = await _reviewRepository.AddReview(review.Value.ToEntity(), profile.Value.Rating);
+        if (reviewResult.IsSuccess)
+        {
+            var message = _telegramNotificationTemplate.CreateReviewReceivedMessage(review.Value.Rating.Value, review.Value.Comment);
+            await _notificationService.NotifyProfileAsync(
+                profileId,
+                message,
+                additionalUrl: "/profile");
+        }
+        
+        return reviewResult;
+    }
+    
+    public async Task<Result<List<ReviewResponse>>> GetReviewsByProfileId(Guid profileId)
+    {
+        var reviews = await _reviewRepository.GetByProfileId(profileId)
+            .Bind(reviews => reviews.MapToDomainList(r => r.ToDomain()));
+        
+        var reviewerIds = reviews.Value.Select(r => r.ReviewerId).Distinct().ToList();
+        
+        var profilesResult = await _profileRepository.GetNamesByIds(reviewerIds);
+        var namesDict = profilesResult.IsSuccess 
+            ? profilesResult.Value 
+            : new Dictionary<Guid, string>();
+        //TODO DateTime
+        var reviewResponses = reviews.Value.Select(r => new ReviewResponse(
+            r.Id,
+            r.ReviewerId, 
+            namesDict.GetValueOrDefault(r.ReviewerId) ?? "Аноним", 
+            r.Rating.Value, 
+            r.Comment, 
+            r.TeamId,
+            r.ProfileId,
+            DateTime.UtcNow)).ToList();
+
+        return Result.Success(reviewResponses);
+    }
+    
+    public async Task<Result<List<ReviewResponse>>> GetLeftByMe(Guid profileId)
+    {
+        var reviews = await _reviewRepository.GetLeftByMeReviews(profileId)
+            .Bind(reviews => reviews.MapToDomainList(r => r.ToDomain()));
+        
+        var reviewerIds = reviews.Value.Select(r => r.ReviewerId).Distinct().ToList();
+        
+        var profilesResult = await _profileRepository.GetNamesByIds(reviewerIds);
+        var namesDict = profilesResult.IsSuccess 
+            ? profilesResult.Value 
+            : new Dictionary<Guid, string>();
+        //TODO DateTime
+        var reviewResponses = reviews.Value.Select(r => new ReviewResponse(
+            r.Id,
+            r.ReviewerId, 
+            namesDict.GetValueOrDefault(r.ReviewerId) ?? "Аноним", 
+            r.Rating.Value, 
+            r.Comment, 
+            r.TeamId,
+            r.ProfileId,
+            DateTime.UtcNow)).ToList();
+
+        return Result.Success(reviewResponses);
     }
 }

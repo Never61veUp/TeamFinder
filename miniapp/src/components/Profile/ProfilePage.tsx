@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { ProfileHeader } from './Header/ProfileHeader';
+import { Header } from '../ui/Header/Header';
 import { AboutMe } from './About/AboutMe';
-import { AchievementsGrid } from './Achievements/AchievementsGrid';
-import type {Skill, TelegramUser} from "../../types/api";
+import type { Skill, TelegramUser } from "../../types/api";
 import { useProfile } from "../hooks/useProfile";
 import { useGithub } from "../hooks/useGithub";
 import { GithubStatsSection } from "./Stats/GithubStats";
 import { SkillsList } from "./Skills/SkillTags";
+import { TeamHistory } from './Review/TeamHistory';
+import { ReviewList } from './Review/ReviewList';
 import './profile.css';
 import { profileService } from '../../services';
 import { Pencil } from 'lucide-react';
 import { Button } from "../ui/Button.tsx";
-
-const HARD_SKILLS: string[] = ["Backend", "Programming", "Frontend", "React", "Python", "Jango"];
 
 interface Props {
     user: TelegramUser;
@@ -26,42 +25,32 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
 
     const [isEditing, setIsEditing] = useState(false);
     const [localAbout, setLocalAbout] = useState<string>('');
-    const [localAchievements, setLocalAchievements] = useState<{
-        hackathons: number | '';
-        wins: number | '';
-        projects: number | '';
-    }>({ hackathons: 0, wins: 0, projects: 0 });
     const [localSkills, setLocalSkills] = useState<string[]>([]);
     const [isSkillsEditorOpen, setIsSkillsEditorOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [skillsModalSelected, setSkillsModalSelected] = useState<Record<string, boolean>>({});
     const [availableSkills, setAvailableSkills] = useState<Skill[]>([]);
-    const loadAvailableSkills = async () => {
-        try {
-            const response = await profileService.getAllSkills();
-            setAvailableSkills(response);
-        } catch (err) {
-            console.error("Не удалось загрузить список навыков", err);
-        }
-    };
 
     useEffect(() => {
+        const loadAvailableSkills = async () => {
+            try {
+                const response = await profileService.getAllSkills();
+                setAvailableSkills(response);
+            } catch (err) {
+                console.error("Не удалось загрузить список навыков", err);
+            }
+        };
+
         loadAvailableSkills();
     }, []);
 
     useEffect(() => {
         if (!profile) return;
         setLocalAbout((profile as any).description ?? (profile as any).about ?? '');
-        setLocalAchievements({
-            hackathons: (profile as any).hackathons ?? 0,
-            wins: (profile as any).wins ?? 0,
-            projects: (profile as any).projects ?? 0,
-        });
+
         const initialNames = (profile.skills ?? []).map((s: any) => s.name ?? String(s));
         setLocalSkills(initialNames);
-        const map: Record<string, boolean> = {};
-        HARD_SKILLS.forEach(name => { map[name] = initialNames.includes(name); });
-        setSkillsModalSelected(map);
+        setSkillsModalSelected({});
     }, [profile]);
 
     const handleRemoveSkill = (skillToRemove: string) => {
@@ -100,10 +89,6 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
         }
     };
 
-    const handleAchievementChange = (key: 'hackathons' | 'wins' | 'projects', value: number | '') => {
-        setLocalAchievements(prev => ({ ...prev, [key]: value }));
-    };
-
     const openSkillsEditor = () => {
         const map: Record<string, boolean> = {};
         availableSkills.forEach(skill => {
@@ -130,18 +115,29 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
         return <div className="profile-container"><div className="p-6">Загрузка...</div></div>;
     }
 
+    const displayName = user.userName || 'Пользователь';
+    const initials = displayName[0]?.toUpperCase() || 'U';
+
     return (
         <div className="profile-container pb-24 bg-white">
 
-            <ProfileHeader
-                name={user.username ?? 'User'}
-                username={user.username ? `@${user.username}` : ''}
-                avatarUrl={user.photoUrl}
+            <Header
+                title="Профиль"
                 onNotificationClick={onOpenNotif}
-            />
+            >
+                <div className="avatar-container">
+                    {user.photoUrl ? (
+                        <img src={user.photoUrl} alt={displayName} className="avatar-img" />
+                    ) : (
+                        <div className="avatar-placeholder">{initials}</div>
+                    )}
+                </div>
+                <h2 className="profile-inside-name">{user.name}</h2>
+                <p className="profile-inside-username">@{user.userName || 'user'}</p>
+            </Header>
 
             <div className="profile-content px-4 space-y-4">
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end pt-2">
                     <Button size="sm" onClick={handleToggleEdit} className="edit-btn flex items-center gap-2" disabled={isSaving}>
                         {!isEditing && <Pencil size={18} strokeWidth={2} />}
                         <span>{isEditing ? (isSaving ? 'Сохранение...' : 'Сохранить') : 'Редактировать'}</span>
@@ -169,12 +165,11 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
                 )}
 
                 <AboutMe text={localAbout} isEditing={isEditing} onChange={setLocalAbout} />
-                <AchievementsGrid achievements={localAchievements} isEditing={isEditing} onChange={handleAchievementChange} />
 
-                <section className="w-full flex flex-col items-left">
-                    <h2 className="font-bold text-[#333] mb-4 text-left text-[16px] tracking-widest uppercase">GitHub Статистика</h2>
-                    <GithubStatsSection githubInfo={profile?.githubInfo} isConnecting={isConnecting} onConnect={connect} />
-                </section>
+                <GithubStatsSection githubInfo={profile?.githubInfo} isConnecting={isConnecting} onConnect={connect} />
+
+                {profile?.id && <ReviewList userId={profile.id} />}
+                {profile?.id && <TeamHistory currentUserId={profile.id} />}
 
                 <div className="flex justify-center pt-8">
                     <button onClick={onLogout} className="exit-btn text-red-500 text-sm font-bold">Выйти</button>
@@ -182,7 +177,7 @@ export const ProfilePage: React.FC<Props> = ({ user, onLogout, onOpenNotif }) =>
             </div>
 
             {isSkillsEditorOpen && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center">
+                <div className="fixed inset-0 z-1000 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black opacity-40" onClick={closeSkillsEditor}></div>
                     <div className="relative bg-white rounded-2xl p-6 w-[90%] max-w-120 shadow-lg">
                         <h3 className="font-bold text-lg mb-3 text-slate-800">Выберите навыки</h3>
