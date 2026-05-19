@@ -1,6 +1,14 @@
 .modal-overlay.bottom {
     align-items: flex-end;
     padding: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-overlay.bottom.fade-in {
+}
+
+.modal-overlay.bottom.fade-out {
+    pointer-events: none;
 }
 
 .modal-content-bottom {
@@ -15,6 +23,7 @@
     flex-direction: column;
     margin-bottom: 0;
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.1);
+    will-change: transform;
 }
 
 .modal-drag-handle {
@@ -194,17 +203,4 @@
     border-radius: 20px !important;
     height: 54px !important;
     font-weight: 900 !important;
-}
-
-.animate-slide-up {
-    animation: slideUp 0.3s ease-out forwards;
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
-    }
 }

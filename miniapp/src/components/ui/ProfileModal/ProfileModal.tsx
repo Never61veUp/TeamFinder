@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Badge } from '../Badge';
 import { Button } from '../Button';
 import { Computer, CodeXml, Folder, Star } from 'lucide-react';
@@ -15,9 +15,28 @@ interface ProfileModalProps {
 export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, isLoading }) => {
     const [transformY, setTransformY] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
+    const [isClosing, setIsClosing] = useState(false);
+    const [isAnimateReturn, setIsAnimateReturn] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
 
     const startYRef = useRef(0);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const modalRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (profile) {
+            setIsClosing(false);
+            setIsAnimateReturn(false);
+            setIsDragging(false);
+            setTransformY(0);
+
+            requestAnimationFrame(() => {
+                setIsMounted(true);
+            });
+        } else {
+            setIsMounted(false);
+        }
+    }, [profile]);
 
     if (isLoading) {
         return (
@@ -45,11 +64,26 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
         }
     };
 
+    const triggerSmoothClose = () => {
+        setIsClosing(true);
+        setIsAnimateReturn(true);
+        setIsDragging(false);
+        const modalHeight = modalRef.current?.offsetHeight || window.innerHeight;
+        setTransformY(modalHeight);
+
+        setTimeout(() => {
+            onClose();
+        }, 250);
+    };
+
     const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+        if (isClosing) return;
+        setIsAnimateReturn(false);
         startYRef.current = e.touches[0].clientY;
     };
 
     const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        if (isClosing) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - startYRef.current;
 
@@ -68,30 +102,60 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
     };
 
     const handleTouchEnd = () => {
-        if (!isDragging) return;
-        setIsDragging(false);
+        if (isClosing || !isDragging) return;
 
         if (transformY > 120) {
-            onClose();
+            triggerSmoothClose();
+        } else {
+            setIsDragging(false);
+            setIsAnimateReturn(true);
+
+            setTimeout(() => {
+                setTransformY(0);
+            }, 0);
+
+            setTimeout(() => {
+                setIsAnimateReturn(false);
+            }, 550);
+        }
+    };
+
+    const getModalStyle = () => {
+        const style: React.CSSProperties = {};
+
+        if (isClosing || transformY > 0) {
+            style.transform = `translateY(${transformY}px)`;
+        } else if (!isMounted) {
+            style.transform = 'translateY(100%)';
+        } else {
+            style.transform = 'translateY(0)';
         }
 
-        setTransformY(0);
+        if (isClosing) {
+            style.transition = 'transform 0.25s cubic-bezier(0.25, 1, 0.5, 1)';
+        } else if (isAnimateReturn) {
+            style.transition = 'transform 0.5s cubic-bezier(0.19, 1, 0.22, 1)';
+        } else if (isDragging) {
+            style.transition = 'none';
+        } else {
+            style.transition = 'transform 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
+        }
+
+        return style;
     };
 
     return (
-        <div className="modal-overlay bottom" onClick={onClose}>
+        <div className={`modal-overlay bottom ${isClosing ? 'fade-out' : ''} ${isMounted ? 'fade-in' : ''}`} onClick={triggerSmoothClose}>
             <div
-                className="modal-content-bottom profile-detail-modal animate-slide-up"
+                ref={modalRef}
+                className="modal-content-bottom profile-detail-modal"
                 onClick={e => e.stopPropagation()}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
-                style={{
-                    transform: transformY > 0 ? `translateY(${transformY}px)` : undefined,
-                    transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
+                style={getModalStyle()}
             >
-                <div className="modal-drag-handle" onClick={onClose} />
+                <div className="modal-drag-handle" onClick={triggerSmoothClose} />
 
                 <div className="profile-detail-header">
                     <div className="detail-avatar">{initial}</div>
@@ -161,7 +225,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, is
                     </div>
                 </div>
 
-                <Button variant="primary" className="detail-close-btn mt-auto" onClick={onClose}>
+                <Button variant="primary" className="detail-close-btn mt-auto" onClick={triggerSmoothClose}>
                     Закрыть
                 </Button>
             </div>
