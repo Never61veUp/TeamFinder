@@ -23,7 +23,6 @@ function App() {
     useEffect(() => {
         try {
             const tg = (window as any).Telegram?.WebApp;
-
             if (tg) {
                 tg.ready();
 
@@ -31,12 +30,16 @@ function App() {
                     tg.expand();
                 }
 
+                if (tg.requestFullscreen) {
+                    tg.requestFullscreen();
+                }
+
                 if (tg.setHeaderColor) {
                     tg.setHeaderColor('bg_color');
                 }
             }
         } catch (e) {
-            console.error('Ошибка инициализации:', e);
+            console.error("Ошибка инициализации:", e);
         }
     }, []);
 
