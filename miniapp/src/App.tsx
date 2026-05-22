@@ -28,6 +28,12 @@ function App() {
                 if (tg.setHeaderColor) {
                     tg.setHeaderColor('bg_color');
                 }
+                const mobilePlatforms = ['ios', 'android'];
+                const currentPlatform = tg.platform?.toLowerCase() || '';
+
+                if (mobilePlatforms.includes(currentPlatform) && tg.requestFullscreen) {
+                    tg.requestFullscreen();
+                }
             }
         } catch (e) {
             console.error("Ошибка инициализации:", e);
