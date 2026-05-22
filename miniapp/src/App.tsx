@@ -23,6 +23,7 @@ function App() {
     useEffect(() => {
         try {
             const tg = (window as any).Telegram?.WebApp;
+
             if (tg) {
                 tg.ready();
 
@@ -30,7 +31,11 @@ function App() {
                     tg.expand();
                 }
 
-                if (tg.requestFullscreen) {
+                const isMobile =
+                    tg.platform === 'android' ||
+                    tg.platform === 'ios';
+
+                if (isMobile && tg.requestFullscreen) {
                     tg.requestFullscreen();
                 }
 
@@ -39,7 +44,7 @@ function App() {
                 }
             }
         } catch (e) {
-            console.error("Ошибка инициализации:", e);
+            console.error('Ошибка инициализации:', e);
         }
     }, []);
 
