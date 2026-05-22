@@ -28,7 +28,10 @@ function App() {
                 if (tg.setHeaderColor) {
                     tg.setHeaderColor('bg_color');
                 }
-                if (tg.requestFullscreen) {
+                const mobilePlatforms = ['ios', 'android'];
+                const currentPlatform = tg.platform?.toLowerCase() || '';
+
+                if (mobilePlatforms.includes(currentPlatform) && tg.requestFullscreen) {
                     tg.requestFullscreen();
                 }
             }
