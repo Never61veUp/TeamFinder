@@ -16,8 +16,7 @@ function App() {
     const [token, setToken] = useState<string>(() => localStorage.getItem('jwt') ?? '')
     const [me, setMe] = useState<TelegramUser | null>(null)
     const [error, setError] = useState<string>('')
-    const [busy, setBusy] = useState(false)
-    const [authTried, setAuthTried] = useState(false)
+    const [initializing, setInitializing] = useState(true)
 
     const [isNotifOpen, setIsNotifOpen] = useState(false)
 
@@ -45,75 +44,89 @@ function App() {
     }, []);
 
     useEffect(() => {
-        if (!token) return
         let cancelled = false
-        setError('')
-        authService.getMe()
-            .then((u) => {
-                if (!cancelled) setMe(u)
-            })
-            .catch((e: unknown) => {
-                if (!cancelled) {
-                    setError(e instanceof Error ? e.message : 'Unknown error')
-                    if (token) {
-                        onLogout()
-                        setAuthTried(true)
-                    }
+
+        async function initAuth() {
+            try {
+                setError('')
+
+                let currentToken = token
+
+                if (!currentToken) {
+                    const data = initData
+                        ? await authService.loginWithTelegram(initData)
+                        : await authService.loginDev()
+
+                    currentToken = data.token
+
+                    localStorage.setItem('jwt', currentToken)
+                    setToken(currentToken)
                 }
-            })
+
+                const user = await authService.getMe()
+
+                if (!cancelled) {
+                    setMe(user)
+                }
+            } catch (e: unknown) {
+                if (!cancelled) {
+                    localStorage.removeItem('jwt')
+                    setToken('')
+                    setMe(null)
+
+                    setError(
+                        e instanceof Error
+                            ? e.message
+                            : 'Unknown error'
+                    )
+                }
+            } finally {
+                if (!cancelled) {
+                    setInitializing(false)
+                }
+            }
+        }
+
+        initAuth()
+
         return () => {
             cancelled = true
         }
-    }, [token])
-
-    useEffect(() => {
-        if (token || busy || authTried) return
-        setAuthTried(true)
-        onLogin()
-    }, [token, authTried, busy])
-
-    async function onLogin() {
-        setBusy(true)
-        if (!initData) {
-            try {
-                const data = await authService.loginDev()
-                localStorage.setItem('jwt', data.token)
-                setToken(data.token)
-            } catch (e: unknown) {
-                setError(e instanceof Error ? e.message : 'Unknown error')
-            } finally {
-                setBusy(false)
-            }
-        } else {
-            setError('')
-            try {
-                const data = await authService.loginWithTelegram(initData)
-                localStorage.setItem('jwt', data.token)
-                setToken(data.token)
-            } catch (e: unknown) {
-                setError(e instanceof Error ? e.message : 'Unknown error')
-            } finally {
-                setBusy(false)
-            }
-        }
-    }
+    }, [])
 
     function onLogout() {
         localStorage.removeItem('jwt')
-        setToken('')
-        setMe(null)
-        setError('')
+        window.location.reload()
+    }
+
+    if (initializing) {
+        return (
+            <div className="min-h-dvh flex items-center justify-center bg-slate-50">
+                <div className="text-center">
+                    <div className="text-sm text-slate-500">
+                        Авторизация...
+                    </div>
+
+                    {error && (
+                        <div className="mt-2 text-xs text-red-500">
+                            {error}
+                        </div>
+                    )}
+                </div>
+            </div>
+        )
     }
 
     if (!me) {
         return (
             <div className="min-h-dvh flex items-center justify-center bg-slate-50">
                 <div className="text-center">
-                    <div className="text-sm text-slate-500">
-                        {busy ? 'Загрузка...' : 'Авторизация...'}
+                    <div className="text-sm text-red-500">
+                        Не удалось авторизоваться
                     </div>
+
                     {error && (
-                        <div className="mt-2 text-xs text-red-500">
+                        <div className="mt-2 text-xs text-slate-500">
                             {error}
                         </div>
                     )}
