@@ -13,7 +13,6 @@
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
-
   font: 16px/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light dark;
@@ -33,7 +32,6 @@
   display: none;
 }
 
-/* Для Firefox */
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -48,13 +46,12 @@ body {
 }
 
 #root {
-  width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
-  position: relative;
-
   height: var(--tg-viewport-height, 100vh);
   min-height: var(--tg-viewport-height, 100vh);
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  position: relative;
 
   overflow: hidden;
 
@@ -63,6 +60,8 @@ body {
   box-sizing: border-box;
   text-align: left;
   background-color: var(--tg-theme-bg-color);
+  padding-top: var(--tg-safe-area-inset-top, 0px);
+  padding-bottom: var(--tg-safe-area-inset-bottom, 0px);
 }
 
 .main-scroll-area {
@@ -84,10 +83,23 @@ body {
 }
 
 @media (min-width: 481px) {
+  body {
+    background-color: rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+  }
+
   #root {
+    max-width: 480px;
+    height: 750px;
+    max-height: 90vh;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   }
 }
-
 h1, h2 {
   font-family: var(--heading), serif;
   font-weight: 600;

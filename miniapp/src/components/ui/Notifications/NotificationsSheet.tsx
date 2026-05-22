@@ -4,6 +4,7 @@ import type { Team } from '../../../types/api';
 import { useNotifications } from './NotificationContext';
 import { invitationsService } from '../../../services/invitations.service';
 import { acceptJoinRequest } from '../../../services/feed.service';
+import { httpClient } from '../../../lib/http-client';
 import './notifications.css';
 import { teamService } from "../../../services/team.service.ts";
 
@@ -17,21 +18,21 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
     const [myTeam, setMyTeam] = useState<Team | null>(null);
     const [personalInvitesTeams, setPersonalInvitesTeams] = useState<Record<string, Team>>({});
     const [personalInvites, setPersonalInvites] = useState<any[]>([]);
-
+    const [requestsProfiles, setRequestsProfiles] = useState<Record<string, any>>({});
     const { markAsRead, loadData: loadDataFromContext } = useNotifications();
-
     const [isLoading, setIsLoading] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
-
     const loadData = async () => {
         setIsLoading(true);
         console.log('=== ДЕБАГ: Начало загрузки уведомлений ===');
         try {
+            let currentTeam: Team | null = null;
             try {
                 const teamData = await teamService.getMyTeam();
                 console.log('1. Моя команда из API:', teamData);
                 console.log('2. Список заявок в команду (joinRequests):', teamData?.joinRequests);
                 setMyTeam(teamData);
+                currentTeam = teamData;
             } catch (e) {
                 console.error('Ошибка запроса команды:', e);
                 setMyTeam(null);
@@ -39,10 +40,8 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
 
             const invitesData = await invitationsService.getInvitations(0);
             console.log('3. Инвайты из API (invitesData):', invitesData);
-            console.log('4. Является ли invitesData массивом?:', Array.isArray(invitesData));
 
             const invitesArray = Array.isArray(invitesData) ? invitesData : [];
-            console.log('5. Итоговый массив инвайтов после проверки:', invitesArray);
             setPersonalInvites(invitesArray);
 
             const teamsInfo: Record<string, Team> = {};
@@ -55,8 +54,28 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                     }
                 }
             }
-            console.log('6. Информация о командах для инвайтов:', teamsInfo);
             setPersonalInvitesTeams(teamsInfo);
+
+            const requests = currentTeam?.joinRequests;
+
+            if (requests && requests.length > 0) {
+                const profilesMap: Record<string, any> = { ...requestsProfiles };
+
+                await Promise.all(
+                    requests.map(async (req: any) => {
+                        const profileId = String(req.profileId || req.id || "");
+                        if (profileId && !profilesMap[profileId]) {
+                            try {
+                                const res = await httpClient.get(`/profiles/${profileId}`);
+                                profilesMap[profileId] = (res as any).data || res;
+                            } catch (err) {
+                                console.error(`Ошибка загрузки профиля заявки ${profileId}`, err);
+                            }
+                        }
+                    })
+                );
+                setRequestsProfiles(profilesMap);
+            }
 
         } catch (error) {
             console.error('Критическая ошибка в loadData:', error);
@@ -131,31 +150,6 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                                         <div className="request-message">
                                             Команда <span className="user-name">{teamInfo.name}</span> приглашает вас
                                         </div>
-
-                                        {teamInfo.eventDetails?.title && (
-                                            <div className="team-event-badge">
-                                                {teamInfo.eventDetails.title}
-                                            </div>
-                                        )}
-
-                                        {teamInfo.description && (
-                                            <div className="team-full-desc">
-                                                {teamInfo.description}
-                                            </div>
-                                        )}
-
-                                        {teamInfo.eventDetails?.tags && teamInfo.eventDetails.tags.length > 0 && (
-                                            <div className="team-tags-row">
-                                                {teamInfo.eventDetails.tags.map((tag: any) => (
-                                                    <span key={tag.id} className="team-mini-tag">#{tag.name}</span>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <div className="team-meta-info">
-                                            Участников: {teamInfo.members?.length || 0} / {teamInfo.maxMembers}
-                                        </div>
-
                                         <div className="request-actions">
                                             <Button
                                                 variant="primary"
@@ -175,11 +169,20 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                                     <h5 className="section-subtitle" style={{ marginTop: '16px' }}>Заявки в вашу команду</h5>
                                     {myTeam.joinRequests.map((req: any) => {
                                         const effectiveId = String(req.profileId || req.id || "");
+                                        const profileData = requestsProfiles[effectiveId];
+                                        const name = profileData?.telegramUser?.firstName || profileData?.firstName || profileData?.name;
+                                        const username = profileData?.userName;
+                                        const displayName = name && username
+                                            ? `${name} (@${username})`
+                                            : username
+                                                ? `@${username}`
+                                                : name || `Пользователь #${effectiveId.slice(0, 8)}`;
+
                                         return (
                                             <div key={effectiveId} className="request-notification-card">
                                                 <div className="request-message">
                                                     <span className="user-name">
-                                                        {req.name || `Пользователь #${effectiveId.slice(0, 8)}`}
+                                                        {displayName}
                                                     </span>
                                                     {' '}хочет вступить к вам в команду
                                                 </div>
