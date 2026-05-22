@@ -13,6 +13,7 @@
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
+
   font: 16px/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light dark;
@@ -32,6 +33,7 @@
   display: none;
 }
 
+/* Для Firefox */
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -46,12 +48,13 @@ body {
 }
 
 #root {
-  height: var(--tg-viewport-height, 100vh);
-  min-height: var(--tg-viewport-height, 100vh);
   width: 100%;
-  max-width: 100%;
+  max-width: 480px;
   margin: 0 auto;
   position: relative;
+
+  height: var(--tg-viewport-height, 100vh);
+  min-height: var(--tg-viewport-height, 100vh);
 
   overflow: hidden;
 
@@ -60,8 +63,6 @@ body {
   box-sizing: border-box;
   text-align: left;
   background-color: var(--tg-theme-bg-color);
-  padding-top: var(--tg-safe-area-inset-top, 0px);
-  padding-bottom: var(--tg-safe-area-inset-bottom, 0px);
 }
 
 .main-scroll-area {
@@ -83,33 +84,10 @@ body {
 }
 
 @media (min-width: 481px) {
-  body {
-    background-color: #1e1e24;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    width: 100vw;
-    margin: 0;
-  }
-
   #root {
-    max-width: 420px !important;
-    width: 100% !important;
-    height: 780px !important;
-    max-height: 92vh !important;
-    border-radius: 24px !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    overflow: hidden !important;
-    transform: translate(0, 0) !important;
-    position: relative !important;
-  }
-
-  .main-scroll-area {
-    height: 100%;
   }
 }
+
 h1, h2 {
   font-family: var(--heading), serif;
   font-weight: 600;

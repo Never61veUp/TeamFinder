@@ -26,15 +26,6 @@ function App() {
             const tg = (window as any).Telegram?.WebApp;
             if (tg) {
                 tg.ready();
-
-                if (tg.expand) {
-                    tg.expand();
-                }
-
-                if (tg.requestFullscreen) {
-                    tg.requestFullscreen();
-                }
-
                 if (tg.setHeaderColor) {
                     tg.setHeaderColor('bg_color');
                 }
