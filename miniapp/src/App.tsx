@@ -31,14 +31,6 @@ function App() {
                     tg.expand();
                 }
 
-                const isMobile =
-                    tg.platform === 'android' ||
-                    tg.platform === 'ios';
-
-                if (isMobile && tg.requestFullscreen) {
-                    tg.requestFullscreen();
-                }
-
                 if (tg.setHeaderColor) {
                     tg.setHeaderColor('bg_color');
                 }
