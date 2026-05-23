@@ -22,6 +22,7 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
     const { markAsRead, loadData: loadDataFromContext } = useNotifications();
     const [isLoading, setIsLoading] = useState(false);
     const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
     const loadData = async () => {
         setIsLoading(true);
         console.log('=== ДЕБАГ: Начало загрузки уведомлений ===');
@@ -30,7 +31,6 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
             try {
                 const teamData = await teamService.getMyTeam();
                 console.log('1. Моя команда из API:', teamData);
-                console.log('2. Список заявок в команду (joinRequests):', teamData?.joinRequests);
                 setMyTeam(teamData);
                 currentTeam = teamData;
             } catch (e) {
@@ -38,10 +38,15 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                 setMyTeam(null);
             }
 
-            const invitesData = await invitationsService.getInvitations(0);
-            console.log('3. Инвайты из API (invitesData):', invitesData);
+            let invitesArray: any[] = [];
+            try {
+                const invitesData = await invitationsService.getInvitations(0);
+                console.log('3. Инвайты из API (invitesData):', invitesData);
+                invitesArray = Array.isArray(invitesData) ? invitesData : [];
+            } catch (err: any) {
+                console.log('Инвайтов нет или ошибка запроса инвайтов. Идем дальше.');
+            }
 
-            const invitesArray = Array.isArray(invitesData) ? invitesData : [];
             setPersonalInvites(invitesArray);
 
             const teamsInfo: Record<string, Team> = {};
@@ -63,7 +68,8 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
 
                 await Promise.all(
                     requests.map(async (req: any) => {
-                        const profileId = String(req.profileId || req.id || "");
+                        const profileId = String(req.profileId || "");
+
                         if (profileId && !profilesMap[profileId]) {
                             try {
                                 const res = await httpClient.get(`/profiles/${profileId}`);
@@ -168,18 +174,24 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                                 <>
                                     <h5 className="section-subtitle" style={{ marginTop: '16px' }}>Заявки в вашу команду</h5>
                                     {myTeam.joinRequests.map((req: any) => {
-                                        const effectiveId = String(req.profileId || req.id || "");
-                                        const profileData = requestsProfiles[effectiveId];
-                                        const name = profileData?.telegramUser?.firstName || profileData?.firstName || profileData?.name;
-                                        const username = profileData?.userName;
+                                        const profileId = String(req.profileId || "");
+                                        const requestId = String(req.id || profileId);
+
+                                        if (!profileId) return null;
+
+                                        const profileData = requestsProfiles[profileId];
+
+                                        const name = profileData?.name || req?.name;
+                                        const username = profileData?.userName || profileData?.username;
+
                                         const displayName = name && username
                                             ? `${name} (@${username})`
                                             : username
                                                 ? `@${username}`
-                                                : name || `Пользователь #${effectiveId.slice(0, 8)}`;
+                                                : name || `Пользователь #${profileId.slice(0, 8)}`;
 
                                         return (
-                                            <div key={effectiveId} className="request-notification-card">
+                                            <div key={requestId} className="request-notification-card">
                                                 <div className="request-message">
                                                     <span className="user-name">
                                                         {displayName}
@@ -190,8 +202,8 @@ export const NotificationsSheet: React.FC<NotificationsSheetProps> = ({ isOpen, 
                                                     <Button
                                                         variant="primary"
                                                         size="sm"
-                                                        isLoading={actionLoadingId === `join_${effectiveId}`}
-                                                        onClick={() => handleAcceptJoinRequest(effectiveId)}
+                                                        isLoading={actionLoadingId === `join_${profileId}`}
+                                                        onClick={() => handleAcceptJoinRequest(profileId)}
                                                     >
                                                         Принять
                                                     </Button>
