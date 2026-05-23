@@ -138,7 +138,7 @@ export function TeamCard({ team, myProfileId, isAlreadyMember }: TeamCardProps) 
                     {eventTitle && <p className="team-event">{eventTitle}</p>}
                 </div>
                 <div className="team-capacity">
-                    {currentCount} / {team.maxMembers}
+                    {team.members?.filter(member => member.status == 1).length || 0} / {team.maxMembers}
                 </div>
                 <RatingStars rating={team.averageRating || 0} />
             </div>
@@ -216,15 +216,14 @@ export function TeamCard({ team, myProfileId, isAlreadyMember }: TeamCardProps) 
                                     </div>
                                 </div>
                             )}
-
-                            {team.members && team.members.length > 0 && (
+                            {team.members?.filter(member => member.status == 1).length > 0 && (
                                 <div className="modal-section mt-6 mb-4">
                                     <h3 className="text-[16px] font-bold text-slate-900 mb-3">Участники</h3>
                                     {isLoadingMembers && Object.keys(membersData).length === 0 ? (
                                         <div className="text-sm text-gray-400 italic">Загрузка участников...</div>
                                     ) : (
                                         <div className="flex flex-col gap-3">
-                                            {team.members.map((member: any) => {
+                                            {team.members.filter((member: any) => member.status == 1).map((member: any) => {
                                                 const profileId = String(typeof member === 'string' ? member : (member.profileId || member.id));
                                                 const data = membersData[profileId];
 
