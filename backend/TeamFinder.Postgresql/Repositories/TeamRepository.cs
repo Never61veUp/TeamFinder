@@ -235,20 +235,42 @@ public class TeamRepository : ITeamRepository
     
     public async Task<Result> MakeInactive(Guid teamId)
     {
-        await _context.TeamMembers
-            .Where(m => m.TeamId == teamId)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(m => m.Status, MemberStatus.Inactive));
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+    
+        try
+        {
+            var updatedRows = await _context.Teams
+                .Where(t => t.Id == teamId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.Status, TeamStatus.Inactive)
+                    .SetProperty(t => t.EventEnd, DateOnly.FromDateTime(DateTime.UtcNow)));
+            
+            if (updatedRows == 0)
+                return Result.Failure("Team not found");
+            
+            await _context.TeamMembers
+                .Where(m => m.TeamId == teamId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(m => m.Status, MemberStatus.Inactive));
+            
+            await _context.JoinRequests
+                .Where(m => m.TeamId == teamId)
+                .ExecuteDeleteAsync();
+            
+            await _context.Invitations
+                .Where(m => m.TeamId == teamId)
+                .ExecuteDeleteAsync();
+            
+            await transaction.CommitAsync();
         
-        var updatedRows = await _context.Teams
-            .Where(t => t.Id == teamId)
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(t => t.Status, TeamStatus.Inactive)
-                .SetProperty(t => t.EventEnd, DateOnly.FromDateTime(DateTime.UtcNow)));
-        
-        return updatedRows > 0 
-            ? Result.Success() 
-            : Result.Failure("Team not found");
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            
+            return Result.Failure($"Failed to deactivate team: {ex.Message}");
+        }
     }
     
     public async Task<Result> AddMember(Guid teamId, Guid profileId)
